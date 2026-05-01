@@ -690,8 +690,143 @@
 
     <section class="section" id="sec-transducer">
       <h2>3. 框架二：3 態轉換器與譜間隙</h2>
-      <div id="chart-2a-container"></div>
-      <div id="chart-2b-container"></div>
+
+      <!-- 白話引言 -->
+      <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>問題：</strong>把 3n+1 想成一台機器——吃進二進位的每一位、吐出結果的每一位，同時記住進位狀態。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>類比：</strong>就像一個只有三個心情（A=乾淨、B=中間、C=高溫）的機器人，根據心情和看到的 0/1 來決定吐出什麼。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>目標：</strong>分析這台機器的「記憶混合速度」——用譜間隙衡量，混合得越快越好。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary);">
+          <strong>結果：</strong>譜間隙 = 1/2，混合速度很快，但只對隨機輸入有效，對確定性輸入無法保證。
+        </p>
+      </div>
+
+      <!-- Chart 2A: State Machine Animation -->
+      <div class="chart-container" id="chart-2a-container" aria-label="3 態轉換器狀態機動畫">
+        <div class="chart-title">圖 2A：3 態轉換器動畫</div>
+        <div class="chart-input-group">
+          <label style="font-size:var(--text-xs)">n =</label>
+          <input type="text" class="chart-input" id="chart-2a-input" inputmode="numeric">
+          <button class="chart-unlink-btn" id="chart-2a-unlink" title="重新同步全域 n">&#128279;</button>
+          <button class="btn btn-primary" id="chart-2a-play">&#9654;</button>
+          <button class="btn" id="chart-2a-pause">&#10074;&#10074;</button>
+          <div style="display:flex;gap:0.25rem;">
+            <button class="btn chart-2a-speed active" data-speed="1">1x</button>
+            <button class="btn chart-2a-speed" data-speed="2">2x</button>
+            <button class="btn chart-2a-speed" data-speed="4">4x</button>
+          </div>
+        </div>
+        <p id="chart-2a-even-msg" style="font-size:var(--text-xs);color:var(--color-medium);display:none;"></p>
+      </div>
+
+      <!-- §3.1 Transducer construction -->
+      <h3>3.1 轉換器構造</h3>
+      <p>\( 3n + 1 = n + 2n + 1 \) 在二進位中是逐位加法加進位。進位傳播構成有限狀態轉換器。</p>
+      <p><strong>位置 i 的計算</strong>：</p>
+      <pre><code>sum = b_i(n) + b_{i-1}(n) + &delta;_{i,0} + carry_{i-1}
+output_bit = sum mod 2
+carry_i = sum &divide; 2</code></pre>
+      <p>進位 \( \in \{0, 1\} \)，結合上一輸入位 \( b_{i-1} \in \{0, 1\} \)，等效為 4 態自動機。</p>
+      <p>合併等效態後得到 <strong>3 態</strong>：</p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>狀態</th><th>定義</th><th>含義</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>A</td><td>(prev=0, carry=0)</td><td>乾淨</td></tr>
+            <tr><td>B</td><td>(prev&oplus;carry=1)</td><td>中間</td></tr>
+            <tr><td>C</td><td>(prev=1, carry=1)</td><td>高溫</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- §3.2 Transition rules -->
+      <h3>3.2 轉移規則</h3>
+      <pre><code>A --0&rarr; A (out 0)     A --1&rarr; B (out 1)
+B --0&rarr; A (out 1)     B --1&rarr; C (out 0)
+C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
+
+      <!-- §3.3 v₂ and transducer -->
+      <h3>3.3 v&#x2082; 與轉換器的關係</h3>
+      <p>初始狀態（位置 0 特殊處理 +1）：carry&#x2080; = 1, prev = 1 &rarr; 狀態 C。</p>
+      <p>v&#x2082;(3n+1) 由首次非零輸出位的位置決定：</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>條件</th><th>v&#x2082;</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>\( b_1 = 1 \)（\( n \equiv 3 \pmod{4} \)）</td><td>1</td></tr>
+            <tr><td>\( b_1 = 0, b_2 = 0 \)（\( n \equiv 1 \pmod{8} \)）</td><td>2</td></tr>
+            <tr><td>\( b_1 = 0, b_2 = 1, b_3 = 1 \)（\( n \equiv 13 \pmod{16} \)）</td><td>3</td></tr>
+            <tr><td>\( b_1 = 0, b_2 = 1, b_3 = 0, b_4 = 0 \)</td><td>4</td></tr>
+            <tr><td>交替模式 \( 01010\ldots \)</td><td>最大化 v&#x2082;</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- §3.4 Spectral gap calculation -->
+      <h3>3.4 譜間隙計算</h3>
+      <p>對均勻隨機輸入位，3 態轉移矩陣為：</p>
+      <div class="math-block">
+        \[ M = \begin{pmatrix} 1/2 & 1/2 & 0 \\ 1/2 & 0 & 1/2 \\ 0 & 1/2 & 1/2 \end{pmatrix} \]
+      </div>
+      <p><strong>特徵多項式</strong>：</p>
+      <div class="math-block">
+        \[ \det(M - \lambda I) = 0 \implies 4\lambda^3 - 4\lambda^2 - \lambda + 1 = 0 \]
+      </div>
+      <p><strong>因式分解</strong>：\( (\lambda - 1)(2\lambda - 1)(2\lambda + 1) = 0 \)</p>
+      <p><strong>結果</strong>：</p>
+      <div class="math-block">
+        \[ \text{特徵值} = 1,\; \frac{1}{2},\; -\frac{1}{2} \qquad \text{譜間隙} = \frac{1}{2} \]
+      </div>
+      <p><strong>穩態分佈</strong>：\( \pi = (1/3, 1/3, 1/3) \)。</p>
+
+      <!-- §3.5 Implications -->
+      <h3>3.5 譜間隙的含義</h3>
+      <p>carry 狀態以速率 \( (1/2)^t \) 收斂到穩態分佈。處理 \( t \) 個<strong>隨機</strong>輸入位後，carry 的分佈距穩態的距離 \( \leq (1/2)^t \)。</p>
+
+      <!-- §3.6 De-correlation -->
+      <h3>3.6 對 v&#x2082; 去相關性的推論</h3>
+      <p>\( S(n) \) 的低位元是 \( n \) 的<strong>高位區段</strong>經 carry 濾波的結果。carry 混合（譜間隙 1/2）意味著 \( S(n) \) 的低位與 \( n \) 的低位之間的相關性<strong>指數衰減</strong>。</p>
+
+      <!-- Chart 2B: Spectral Convergence -->
+      <div class="chart-container" id="chart-2b-container" aria-label="譜收斂圖">
+        <div class="chart-title">圖 2B：譜收斂——不管從哪個狀態開始，幾步之後三個狀態的出現頻率都趨近各 1/3</div>
+        <div class="chart-input-group">
+          <label style="font-size:var(--text-xs)">步數 t =</label>
+          <input type="range" id="chart-2b-slider" min="1" max="50" value="20" style="width:12rem;">
+          <span id="chart-2b-t-label" style="font-size:var(--text-xs);min-width:2rem;">20</span>
+          <div style="display:flex;gap:0.25rem;">
+            <button class="btn chart-2b-init active" data-init="A">全 A</button>
+            <button class="btn chart-2b-init" data-init="B">全 B</button>
+            <button class="btn chart-2b-init" data-init="C">全 C</button>
+            <button class="btn chart-2b-init" data-init="U">均勻</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- §3.7 Breakpoint -->
+      <div class="callout-break">
+        <h3>此框架的斷裂點</h3>
+        <p style="font-size:var(--text-sm);">譜間隙對<strong>隨機</strong>輸入保證混合。對<strong>確定性</strong>輸入（特定二進位字串），carry 路徑是確定的，理論上可能與輸入位永久<strong>共振</strong>。</p>
+        <p style="font-size:var(--text-sm); margin-top:0.75rem;">需要但未獲得的結果：</p>
+        <div style="background:var(--bg-surface); border-left:3px solid var(--color-medium); padding:1rem; margin-top:0.5rem; border-radius:0 0.375rem 0.375rem 0;">
+          <p style="font-size:var(--text-sm);"><strong>確定性 Expander Mixing 定理</strong>：對任意有限二進位字串 \( s \)，Collatz 轉換器的 \( T \) 步迭代所產生的 \( v_2 \) 序列滿足</p>
+          <div class="math-block">
+            \[ \frac{1}{T}\sum_{i=1}^{T} v_i \geq 2 - \delta(T) \]
+          </div>
+          <p style="font-size:var(--text-sm);">其中 \( \delta(T) \to 0 \)，<strong>對所有有限字串均成立</strong>。</p>
+        </div>
+      </div>
     </section>
 
     <section class="section" id="sec-cfrac">
@@ -1851,6 +1986,647 @@
       _chart1B = null;
     }
 
+    /* ==================== CHART 2A: STATE MACHINE ANIMATION ==================== */
+    let _chart2A = null;
+
+    function initChart2A(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const input = document.getElementById('chart-2a-input');
+      const unlinkBtn = document.getElementById('chart-2a-unlink');
+      const playBtn = document.getElementById('chart-2a-play');
+      const pauseBtn = document.getElementById('chart-2a-pause');
+      const speedBtns = document.querySelectorAll('.chart-2a-speed');
+      const evenMsg = document.getElementById('chart-2a-even-msg');
+
+      let linked = true;
+      let unsub = null;
+      const anim = new AnimationController(600);
+
+      // Transducer rules: [fromState][inputBit] = { to, out }
+      const rules = {
+        A: { 0: { to: 'A', out: 0 }, 1: { to: 'B', out: 1 } },
+        B: { 0: { to: 'A', out: 1 }, 1: { to: 'C', out: 0 } },
+        C: { 0: { to: 'B', out: 0 }, 1: { to: 'C', out: 1 } }
+      };
+
+      const stateColors = {
+        A: 'var(--color-critical)',
+        B: 'var(--color-medium)',
+        C: 'var(--color-low)'
+      };
+      const stateColorHex = { A: '#c93135', B: '#8a7020', C: '#2a6bb8' };
+
+      // SVG setup
+      const svgW = 600, svgH = 440;
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-2a-svg')
+        .attr('viewBox', `0 0 ${svgW} ${svgH}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet');
+
+      // Arrowhead marker
+      svg.append('defs').append('marker')
+        .attr('id', 'arrowhead-2a')
+        .attr('viewBox', '0 0 10 10')
+        .attr('refX', 8).attr('refY', 5)
+        .attr('markerWidth', 6).attr('markerHeight', 6)
+        .attr('orient', 'auto-start-reverse')
+        .append('path')
+        .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+        .attr('fill', 'var(--text-muted)');
+
+      // Node positions: equilateral triangle
+      const cx = svgW / 2, cy = 200;
+      const R = 120; // triangle radius
+      const nodes = {
+        A: { x: cx, y: cy - R, label: 'A (乾淨)' },
+        B: { x: cx - R * Math.cos(Math.PI / 6), y: cy + R * Math.sin(Math.PI / 6), label: 'B (中間)' },
+        C: { x: cx + R * Math.cos(Math.PI / 6), y: cy + R * Math.sin(Math.PI / 6), label: 'C (高溫)' }
+      };
+      const nodeR = 40;
+
+      // Groups
+      const edgesG = svg.append('g').attr('class', 'edges');
+      const nodesG = svg.append('g').attr('class', 'nodes');
+      const infoG = svg.append('g').attr('class', 'info');
+
+      // Draw edges (curved arcs between nodes)
+      const edges = [
+        { from: 'A', to: 'A', bit: 0, out: 0, label: '0/0' },
+        { from: 'A', to: 'B', bit: 1, out: 1, label: '1/1' },
+        { from: 'B', to: 'A', bit: 0, out: 1, label: '0/1' },
+        { from: 'B', to: 'C', bit: 1, out: 0, label: '1/0' },
+        { from: 'C', to: 'B', bit: 0, out: 0, label: '0/0' },
+        { from: 'C', to: 'C', bit: 1, out: 1, label: '1/1' }
+      ];
+
+      function arcPath(from, to, selfLoop) {
+        const s = nodes[from], t = nodes[to];
+        if (selfLoop) {
+          // Self-loop arc
+          const loopR = 25;
+          const angle = from === 'A' ? -Math.PI / 2 : (from === 'C' ? Math.PI / 4 : (3 * Math.PI / 4));
+          const lx = s.x + (nodeR + loopR) * Math.cos(angle);
+          const ly = s.y + (nodeR + loopR) * Math.sin(angle);
+          const startAngle = angle - 0.8;
+          const endAngle = angle + 0.8;
+          const sx = s.x + nodeR * Math.cos(startAngle);
+          const sy = s.y + nodeR * Math.sin(startAngle);
+          const ex = s.x + nodeR * Math.cos(endAngle);
+          const ey = s.y + nodeR * Math.sin(endAngle);
+          const cpx = s.x + (nodeR + loopR * 2.5) * Math.cos(angle);
+          const cpy = s.y + (nodeR + loopR * 2.5) * Math.sin(angle);
+          return { path: `M ${sx} ${sy} Q ${cpx} ${cpy} ${ex} ${ey}`, labelX: cpx, labelY: cpy };
+        }
+
+        // Curved arc between two nodes
+        const dx = t.x - s.x, dy = t.y - s.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const nx = -dy / dist, ny = dx / dist;
+
+        // Offset to avoid overlapping with reverse arc
+        const curveOffset = 25;
+        const mx = (s.x + t.x) / 2 + nx * curveOffset;
+        const my = (s.y + t.y) / 2 + ny * curveOffset;
+
+        // Start/end on node border
+        const angleS = Math.atan2(my - s.y, mx - s.x);
+        const angleT = Math.atan2(my - t.y, mx - t.x);
+        const sx = s.x + nodeR * Math.cos(angleS);
+        const sy = s.y + nodeR * Math.sin(angleS);
+        const ex = t.x + nodeR * Math.cos(angleT);
+        const ey = t.y + nodeR * Math.sin(angleT);
+
+        return { path: `M ${sx} ${sy} Q ${mx} ${my} ${ex} ${ey}`, labelX: mx, labelY: my };
+      }
+
+      const edgeElems = [];
+      const edgeLabelElems = [];
+      edges.forEach((e, i) => {
+        const isSelf = e.from === e.to;
+        const { path, labelX, labelY } = arcPath(e.from, e.to, isSelf);
+
+        const pathEl = edgesG.append('path')
+          .attr('d', path)
+          .attr('fill', 'none')
+          .attr('stroke', 'var(--text-muted)')
+          .attr('stroke-width', 2)
+          .attr('marker-end', 'url(#arrowhead-2a)');
+        edgeElems.push(pathEl);
+
+        const labelOff = isSelf ? 0 : -8;
+        const labelEl = edgesG.append('text')
+          .attr('x', labelX)
+          .attr('y', labelY + labelOff)
+          .attr('text-anchor', 'middle')
+          .attr('fill', 'var(--text-secondary)')
+          .attr('font-size', '16px')
+          .attr('font-weight', '600')
+          .text(e.label);
+        edgeLabelElems.push(labelEl);
+      });
+
+      // Draw nodes
+      const nodeCircles = {};
+      const nodeLabels = {};
+      const nodeStats = {};
+      ['A', 'B', 'C'].forEach(s => {
+        const n = nodes[s];
+        nodeCircles[s] = nodesG.append('circle')
+          .attr('cx', n.x)
+          .attr('cy', n.y)
+          .attr('r', nodeR)
+          .attr('fill', 'white')
+          .attr('stroke', stateColors[s])
+          .attr('stroke-width', 3);
+
+        nodeLabels[s] = nodesG.append('text')
+          .attr('x', n.x)
+          .attr('y', n.y + 6)
+          .attr('text-anchor', 'middle')
+          .attr('fill', stateColors[s])
+          .attr('font-size', '20px')
+          .attr('font-weight', '700')
+          .text(s);
+
+        nodeStats[s] = nodesG.append('text')
+          .attr('x', n.x)
+          .attr('y', n.y + nodeR + 20)
+          .attr('text-anchor', 'middle')
+          .attr('fill', 'var(--text-secondary)')
+          .attr('font-size', '16px')
+          .text('0%');
+      });
+
+      // Input/output stream displays
+      const inputStreamText = infoG.append('text')
+        .attr('x', svgW / 2)
+        .attr('y', 360)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-primary)')
+        .attr('font-size', '18px')
+        .attr('font-family', '"SF Mono", "Fira Code", monospace');
+
+      const outputStreamText = infoG.append('text')
+        .attr('x', svgW / 2)
+        .attr('y', 390)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-primary)')
+        .attr('font-size', '18px')
+        .attr('font-family', '"SF Mono", "Fira Code", monospace');
+
+      const v2Text = infoG.append('text')
+        .attr('x', svgW / 2)
+        .attr('y', 420)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--color-pass)')
+        .attr('font-size', '18px');
+
+      const stateLabel = infoG.append('text')
+        .attr('x', svgW / 2)
+        .attr('y', 25)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-secondary)')
+        .attr('font-size', '18px');
+
+      // Animation state
+      let bits = [];
+      let currentBitIdx = 0;
+      let currentState = 'C';
+      let outputBits = [];
+      let visitCounts = { A: 0, B: 0, C: 0 };
+      let totalVisits = 0;
+      let currentN = 27;
+
+      function resetState(n) {
+        currentN = n;
+        evenMsg.style.display = 'none';
+
+        // Handle even: reduce to odd
+        let bn = BigInt(n);
+        if (bn > 0n && (bn & 1n) === 0n) {
+          let shifts = 0;
+          while ((bn & 1n) === 0n) { bn >>= 1n; shifts++; }
+          evenMsg.textContent = `${n} 是偶數，先除 2 共 ${shifts} 次得到奇數 ${bn}`;
+          evenMsg.style.display = 'block';
+          n = Number(bn);
+        }
+
+        if (n <= 0) n = 1;
+        const binStr = BigInt(n).toString(2);
+        bits = binStr.split('').reverse().map(Number); // LSB first
+        currentBitIdx = 0;
+        currentState = 'C'; // Initial state for odd n (carry=1)
+        outputBits = [];
+        visitCounts = { A: 0, B: 0, C: 0 };
+        totalVisits = 0;
+
+        // Reset visuals
+        highlightState(currentState, true);
+        highlightEdge(-1);
+        inputStreamText.text('輸入 (LSB→MSB): ' + bits.join(''));
+        outputStreamText.text('輸出: ');
+        v2Text.text('');
+        stateLabel.text(`處理 n = ${n} (二進位: ${binStr})`);
+        updateStats();
+      }
+
+      function highlightState(state, initial) {
+        ['A', 'B', 'C'].forEach(s => {
+          const isActive = s === state;
+          nodeCircles[s]
+            .transition().duration(200)
+            .attr('r', isActive ? nodeR + 8 : nodeR)
+            .attr('fill', isActive ? stateColorHex[s] : 'white')
+            .attr('stroke-width', isActive ? 4 : 3);
+          nodeLabels[s]
+            .transition().duration(200)
+            .attr('fill', isActive ? 'white' : stateColors[s])
+            .attr('font-size', isActive ? '24px' : '20px');
+        });
+      }
+
+      function highlightEdge(edgeIdx) {
+        edgeElems.forEach((el, i) => {
+          el.attr('stroke', i === edgeIdx ? stateColorHex[edges[edgeIdx]?.from] || 'var(--text-muted)' : 'var(--text-muted)')
+            .attr('stroke-width', i === edgeIdx ? 4 : 2);
+        });
+        edgeLabelElems.forEach((el, i) => {
+          el.attr('fill', i === edgeIdx ? stateColorHex[edges[edgeIdx]?.from] || 'var(--text-secondary)' : 'var(--text-secondary)')
+            .attr('font-size', i === edgeIdx ? '18px' : '16px');
+        });
+      }
+
+      function updateStats() {
+        ['A', 'B', 'C'].forEach(s => {
+          const pct = totalVisits > 0 ? (visitCounts[s] / totalVisits * 100).toFixed(1) : '0.0';
+          nodeStats[s].text(`${pct}%`);
+          // Grow node radius with visits
+          const extra = totalVisits > 0 ? (visitCounts[s] / totalVisits) * 15 : 0;
+          if (s !== currentState) {
+            nodeCircles[s].attr('r', nodeR + extra);
+          }
+        });
+      }
+
+      function processOneBit() {
+        if (currentBitIdx >= bits.length) return false;
+
+        const bit = bits[currentBitIdx];
+        const rule = rules[currentState][bit];
+
+        // Find matching edge
+        const edgeIdx = edges.findIndex(e => e.from === currentState && e.bit === bit);
+        highlightEdge(edgeIdx);
+
+        // Update state
+        currentState = rule.to;
+        outputBits.push(rule.out);
+        visitCounts[currentState]++;
+        totalVisits++;
+        currentBitIdx++;
+
+        // Update visuals
+        highlightState(currentState, false);
+        updateStats();
+
+        // Update streams - show processed vs remaining
+        const processed = bits.slice(0, currentBitIdx).join('');
+        const remaining = bits.slice(currentBitIdx).join('');
+        inputStreamText.text('輸入: [' + processed + '] ' + remaining);
+        outputStreamText.text('輸出: ' + outputBits.join(''));
+
+        // Count leading zeros in output (= v2)
+        let v2Count = 0;
+        for (let i = 0; i < outputBits.length; i++) {
+          if (outputBits[i] === 0) v2Count++;
+          else break;
+        }
+        v2Text.text('v\u2082(3n+1) = ' + v2Count + ' (輸出前導 0 的個數)');
+
+        if (currentBitIdx >= bits.length) {
+          stateLabel.text(`處理完成！最終狀態: ${currentState}`);
+          return false;
+        }
+        return true;
+      }
+
+      // Controls
+      playBtn.addEventListener('click', () => {
+        if (anim.paused) {
+          if (currentBitIdx >= bits.length) {
+            resetState(currentN);
+          }
+          anim.play(() => processOneBit());
+        }
+      });
+      pauseBtn.addEventListener('click', () => anim.pause());
+
+      speedBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          speedBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          anim.setSpeed(parseInt(btn.dataset.speed, 10));
+        });
+      });
+
+      // Input handling
+      input.value = GlobalN.n;
+
+      function applyLocalInput() {
+        const val = parseInt(input.value, 10);
+        if (!isNaN(val) && val >= 1) {
+          const n = Math.min(val, 1000000000);
+          input.value = n;
+          anim.pause();
+          resetState(n);
+        }
+      }
+
+      let inputTimer;
+      input.addEventListener('input', () => {
+        if (linked) { linked = false; input.classList.add('unlinked'); }
+        clearTimeout(inputTimer);
+        inputTimer = setTimeout(applyLocalInput, 300);
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { clearTimeout(inputTimer); applyLocalInput(); }
+      });
+
+      unlinkBtn.addEventListener('click', () => {
+        linked = true;
+        input.classList.remove('unlinked');
+        input.value = GlobalN.n;
+        anim.pause();
+        resetState(GlobalN.n);
+      });
+
+      unsub = GlobalN.subscribe('chart-2a', (n) => {
+        if (!linked) return;
+        input.value = n;
+        anim.pause();
+        resetState(n);
+      });
+
+      // Initial
+      resetState(GlobalN.n);
+
+      _chart2A = { unsub, anim, container };
+    }
+
+    function destroyChart2A() {
+      if (!_chart2A) return;
+      _chart2A.anim.pause();
+      if (_chart2A.unsub) _chart2A.unsub();
+      const svgEl = _chart2A.container.querySelector('.chart-2a-svg');
+      if (svgEl) svgEl.remove();
+      _chart2A = null;
+    }
+
+    /* ==================== CHART 2B: SPECTRAL CONVERGENCE ==================== */
+    let _chart2B = null;
+
+    function initChart2B(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const slider = document.getElementById('chart-2b-slider');
+      const tLabel = document.getElementById('chart-2b-t-label');
+      const initBtns = document.querySelectorAll('.chart-2b-init');
+
+      // Transition matrix M (row-stochastic: M[i][j] = P(i -> j))
+      // M = [[1/2, 1/2, 0], [1/2, 0, 1/2], [0, 1/2, 1/2]]
+      const M = [[0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]];
+
+      let currentInit = [1, 0, 0]; // Start "all A"
+      let maxT = 20;
+
+      // Multiply row vector by matrix: v * M
+      function vecMatMul(v, mat) {
+        const result = [0, 0, 0];
+        for (let j = 0; j < 3; j++) {
+          for (let i = 0; i < 3; i++) {
+            result[j] += v[i] * mat[i][j];
+          }
+        }
+        return result;
+      }
+
+      // Compute distributions for t steps
+      function computeDistributions(init, steps) {
+        const dists = [init.slice()];
+        let v = init.slice();
+        for (let t = 1; t <= steps; t++) {
+          v = vecMatMul(v, M);
+          dists.push(v.slice());
+        }
+        return dists;
+      }
+
+      // SVG setup
+      const margin = { top: 30, right: 30, bottom: 40, left: 60 };
+      const fullW = container.clientWidth - 48; // padding
+      const mainH = 200;
+      const subH = 120;
+      const gap = 50;
+      const w = Math.max(300, fullW - margin.left - margin.right);
+      const totalH = margin.top + mainH + gap + subH + margin.bottom;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-2b-svg')
+        .attr('viewBox', `0 0 ${w + margin.left + margin.right} ${totalH}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet');
+
+      // Main chart group
+      const mainG = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+      const mainXAxisG = mainG.append('g').attr('transform', `translate(0,${mainH})`);
+      const mainYAxisG = mainG.append('g');
+      const mainLinesG = mainG.append('g');
+      const mainRefLine = mainG.append('line');
+
+      // Sub chart group
+      const subTop = margin.top + mainH + gap;
+      const subG = svg.append('g').attr('transform', `translate(${margin.left},${subTop})`);
+      const subXAxisG = subG.append('g').attr('transform', `translate(0,${subH})`);
+      const subYAxisG = subG.append('g');
+      const subLinesG = subG.append('g');
+
+      // Labels
+      mainG.append('text')
+        .attr('x', w / 2).attr('y', -10)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-secondary)')
+        .attr('font-size', '18px')
+        .text('P(A), P(B), P(C) vs 步數 t');
+
+      subG.append('text')
+        .attr('x', w / 2).attr('y', -10)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-secondary)')
+        .attr('font-size', '18px')
+        .text('max|P_i(t) - 1/3| 衰減速度');
+
+      const lineColors = {
+        A: 'var(--color-critical)',
+        B: 'var(--color-medium)',
+        C: 'var(--color-low)'
+      };
+
+      function render() {
+        const dists = computeDistributions(currentInit, maxT);
+
+        // Main chart: x = step, y = probability
+        const xScale = d3.scaleLinear().domain([0, maxT]).range([0, w]);
+        const yScale = d3.scaleLinear().domain([0, 1]).range([mainH, 0]);
+
+        mainXAxisG.call(d3.axisBottom(xScale).ticks(Math.min(10, maxT)));
+        mainYAxisG.call(d3.axisLeft(yScale).ticks(5));
+
+        // Reference line at 1/3
+        mainRefLine
+          .attr('x1', 0).attr('x2', w)
+          .attr('y1', yScale(1 / 3)).attr('y2', yScale(1 / 3))
+          .attr('stroke', 'var(--text-muted)')
+          .attr('stroke-width', 1)
+          .attr('stroke-dasharray', '5,5');
+
+        // Draw 3 lines
+        mainLinesG.selectAll('*').remove();
+        const states = ['A', 'B', 'C'];
+        states.forEach((s, si) => {
+          const lineData = dists.map((d, t) => ({ t, p: d[si] }));
+          const line = d3.line()
+            .x(d => xScale(d.t))
+            .y(d => yScale(d.p));
+
+          mainLinesG.append('path')
+            .datum(lineData)
+            .attr('fill', 'none')
+            .attr('stroke', lineColors[s])
+            .attr('stroke-width', 2.5)
+            .attr('d', line);
+
+          // End label
+          const last = lineData[lineData.length - 1];
+          mainLinesG.append('text')
+            .attr('x', xScale(last.t) + 5)
+            .attr('y', yScale(last.p) + 5)
+            .attr('fill', lineColors[s])
+            .attr('font-size', '16px')
+            .attr('font-weight', '600')
+            .text(s);
+        });
+
+        // Sub chart: max deviation vs theoretical bound
+        const deviations = dists.map((d, t) => {
+          const maxDev = Math.max(
+            Math.abs(d[0] - 1 / 3),
+            Math.abs(d[1] - 1 / 3),
+            Math.abs(d[2] - 1 / 3)
+          );
+          return { t, dev: maxDev, bound: Math.pow(0.5, t) };
+        });
+
+        // Filter out zero deviations for log scale
+        const nonZeroDev = deviations.filter(d => d.dev > 0 && d.t > 0);
+
+        const subXScale = d3.scaleLinear().domain([0, maxT]).range([0, w]);
+        const subYMin = Math.min(1e-16, d3.min(nonZeroDev, d => Math.min(d.dev, d.bound)) || 1e-16);
+        const subYScale = d3.scaleLog()
+          .domain([Math.max(subYMin, 1e-16), 1])
+          .range([subH, 0])
+          .clamp(true);
+
+        subXAxisG.call(d3.axisBottom(subXScale).ticks(Math.min(10, maxT)));
+        subYAxisG.call(d3.axisLeft(subYScale).ticks(5, '.0e'));
+
+        subLinesG.selectAll('*').remove();
+
+        // Actual deviation line
+        if (nonZeroDev.length > 0) {
+          const devLine = d3.line()
+            .x(d => subXScale(d.t))
+            .y(d => subYScale(Math.max(d.dev, 1e-16)))
+            .defined(d => d.dev > 0);
+
+          subLinesG.append('path')
+            .datum(nonZeroDev)
+            .attr('fill', 'none')
+            .attr('stroke', 'var(--color-critical)')
+            .attr('stroke-width', 2.5)
+            .attr('d', devLine);
+
+          subLinesG.append('text')
+            .attr('x', w - 5)
+            .attr('y', subYScale(Math.max(nonZeroDev[nonZeroDev.length - 1].dev, 1e-16)) - 8)
+            .attr('text-anchor', 'end')
+            .attr('fill', 'var(--color-critical)')
+            .attr('font-size', '16px')
+            .text('實際偏差');
+        }
+
+        // Theoretical bound (1/2)^t dashed
+        const boundData = deviations.filter(d => d.t > 0);
+        const boundLine = d3.line()
+          .x(d => subXScale(d.t))
+          .y(d => subYScale(Math.max(d.bound, 1e-16)));
+
+        subLinesG.append('path')
+          .datum(boundData)
+          .attr('fill', 'none')
+          .attr('stroke', 'var(--color-low)')
+          .attr('stroke-width', 2)
+          .attr('stroke-dasharray', '6,4')
+          .attr('d', boundLine);
+
+        subLinesG.append('text')
+          .attr('x', w - 5)
+          .attr('y', subYScale(Math.max(boundData[boundData.length - 1].bound, 1e-16)) + 16)
+          .attr('text-anchor', 'end')
+          .attr('fill', 'var(--color-low)')
+          .attr('font-size', '16px')
+          .text('(1/2)^t 上界');
+
+        // Style all tick text
+        svg.selectAll('.tick text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+        svg.selectAll('.tick line').style('stroke', 'var(--border-subtle)');
+        svg.selectAll('.domain').style('stroke', 'var(--border-subtle)');
+      }
+
+      // Controls
+      slider.addEventListener('input', () => {
+        maxT = parseInt(slider.value, 10);
+        tLabel.textContent = maxT;
+        render();
+      });
+
+      initBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          initBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const type = btn.dataset.init;
+          if (type === 'A') currentInit = [1, 0, 0];
+          else if (type === 'B') currentInit = [0, 1, 0];
+          else if (type === 'C') currentInit = [0, 0, 1];
+          else currentInit = [1 / 3, 1 / 3, 1 / 3];
+          render();
+        });
+      });
+
+      // Initial render
+      render();
+
+      _chart2B = { container };
+    }
+
+    function destroyChart2B() {
+      if (!_chart2B) return;
+      const svgEl = _chart2B.container.querySelector('.chart-2b-svg');
+      if (svgEl) svgEl.remove();
+      _chart2B = null;
+    }
+
     /* ==================== BOOT ==================== */
     document.addEventListener('DOMContentLoaded', () => {
       // Init MathJax lazy observer
@@ -1860,6 +2636,8 @@
       // Register charts
       ChartRegistry.register('chart-1a-container', (el) => initChart1A(el), () => destroyChart1A(), 'epoch');
       ChartRegistry.register('chart-1b-container', (el) => initChart1B(el), () => destroyChart1B(), 'epoch');
+      ChartRegistry.register('chart-2a-container', (el) => initChart2A(el), () => destroyChart2A(), 'transducer');
+      ChartRegistry.register('chart-2b-container', (el) => initChart2B(el), () => destroyChart2B(), 'transducer');
 
       // Start observing chart containers
       ChartRegistry.observeAll();
