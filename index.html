@@ -831,8 +831,149 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
 
     <section class="section" id="sec-cfrac">
       <h2>4. 框架三：log&#x2082;3 的連分數收斂子</h2>
-      <div id="chart-3a-container"></div>
-      <div id="chart-3b-container"></div>
+
+      <!-- 白話引言 -->
+      <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>問題：</strong>log&#x2082;3 是一個無理數——永遠無法用整數比精確表示。那最接近的分數是哪些？
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>類比：</strong>像用不同精度的尺去量一根無理數長度的棍子——3/2 太短、2/1 太長、8/5 稍長……越來越精確。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>目標：</strong>找到 Collatz 軌道最壞情況中，v&#x2082; 的累積比率總是超過 log&#x2082;3 的數學原因。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary);">
+          <strong>結果：</strong>發現最壞情況精確命中 65/41 這個收斂子，但無法證明所有軌道都會命中它。
+        </p>
+      </div>
+
+      <!-- Chart 3A: 收斂子夾擊動畫 -->
+      <div class="chart-container" id="chart-3a-container" aria-label="收斂子夾擊動畫">
+        <div class="chart-title">圖 3A：連分數收斂子夾擊 log&#x2082;3</div>
+        <p style="font-size:var(--text-xs);color:var(--text-secondary)">每一步加入一個收斂子（上方紅 / 下方藍），逐步收緊區間逼近 log&#x2082;3</p>
+        <div class="chart-input-group">
+          <button class="btn btn-primary" id="chart-3a-play">&#9654;</button>
+          <button class="btn" id="chart-3a-pause">&#10074;&#10074;</button>
+          <button class="btn" id="chart-3a-skip">&#9209;</button>
+          <button class="btn" id="chart-3a-reset">&#8635;</button>
+        </div>
+      </div>
+
+      <!-- §4.1 連分數展開 -->
+      <h3>4.1 連分數展開</h3>
+      <p>log&#x2082;3 的連分數展開為：</p>
+      <div class="math-block">
+        \[ \log_2 3 = [1;\; 1, 1, 2, 2, 3, 1, 5, 2, 23, 2, 2, 1, 1, 55, \ldots] \]
+      </div>
+      <p style="font-size:var(--text-sm);">這個展開是無限不循環的（因為 log&#x2082;3 是超越數）。每一個部分商（partial quotient）\( a_i \) 產生一個收斂子 \( p_i/q_i \)，交替地從上方和下方逼近 log&#x2082;3。</p>
+
+      <!-- §4.2 收斂子表 -->
+      <h3>4.2 收斂子表</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>序號 \( k \)</th>
+              <th>\( a_k \)</th>
+              <th>\( p_k/q_k \)</th>
+              <th>值</th>
+              <th>與 log&#x2082;3 的差</th>
+              <th>方向</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>0</td><td>1</td><td>\( 1/1 \)</td>
+              <td>1.000000</td><td>\( -0.5850 \)</td><td>&#x2193;</td>
+            </tr>
+            <tr>
+              <td>1</td><td>1</td><td>\( 2/1 \)</td>
+              <td>2.000000</td><td>\( +0.4150 \)</td><td>&#x2191;</td>
+            </tr>
+            <tr>
+              <td>2</td><td>1</td><td>\( 3/2 \)</td>
+              <td>1.500000</td><td>\( -0.0850 \)</td><td>&#x2193;</td>
+            </tr>
+            <tr>
+              <td>3</td><td>2</td><td>\( 8/5 \)</td>
+              <td>1.600000</td><td>\( +0.0150 \)</td><td>&#x2191;</td>
+            </tr>
+            <tr>
+              <td>4</td><td>2</td><td>\( 19/12 \)</td>
+              <td>1.583333</td><td>\( -0.0016 \)</td><td>&#x2193;</td>
+            </tr>
+            <tr style="background:oklch(0.92 0.04 55); font-weight:700;">
+              <td>5</td><td>3</td><td>\( 65/41 \)</td>
+              <td>1.585366</td><td>\( +0.000403 \)</td><td>&#x2191;</td>
+            </tr>
+            <tr>
+              <td>6</td><td>1</td><td>\( 84/53 \)</td>
+              <td>1.584906</td><td>\( -0.000057 \)</td><td>&#x2193;</td>
+            </tr>
+            <tr>
+              <td>7</td><td>5</td><td>\( 485/306 \)</td>
+              <td>1.584967</td><td>\( +0.0000048 \)</td><td>&#x2191;</td>
+            </tr>
+            <tr>
+              <td>8</td><td>2</td><td>\( 1054/665 \)</td>
+              <td>1.584962</td><td>\( -0.000000095 \)</td><td>&#x2193;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- §4.3 與 Collatz 最壞情況的關聯 -->
+      <h3>4.3 與 Collatz 最壞情況的關聯</h3>
+      <p><strong>實驗發現</strong>：在所有測試的 \( k \) 值（\( k = 5 \) 到 \( k = 44 \)，涵蓋 14 位到 44 位整數），最壞情況的下降比率 \( B/T \) 幾乎全部精確等於 <strong>65/41</strong>。</p>
+      <p style="font-size:var(--text-sm);">這是 \( \log_2 3 \) 的第 6 個連分數收斂子（上方最近的）。</p>
+
+      <!-- §4.4 為什麼 65/41 是天然屏障 -->
+      <h3>4.4 為什麼 65/41 是天然屏障</h3>
+      <ul style="list-style:none; padding-left:1.5rem; font-size:var(--text-sm);">
+        <li>\( \log_2 3 \) 是無理數（由 Gelfond-Schneider 定理，它甚至是超越數）</li>
+        <li>因此不存在整數 \( B, T \) 使得 \( B/T = \log_2 3 \)</li>
+        <li>下降所需的最小整數 \( B = \lceil T \cdot \log_2 3 \rceil \) 永遠嚴格超過臨界值</li>
+        <li>對 \( T = 41 \)：\( \lceil 41 \times 1.58496 \rceil = 65 \)，且 \( 65/41 = 1.5854 > \log_2 3 \)</li>
+      </ul>
+
+      <!-- §4.5 數值驗證 -->
+      <h3>4.5 數值驗證</h3>
+      <p>\( 2^{64} &lt; 3^{41} &lt; 2^{65} \)：</p>
+      <div class="math-block">
+        \[ 2^{64} = 18{,}446{,}744{,}073{,}709{,}551{,}616 \]
+        \[ 3^{41} = 36{,}472{,}996{,}377{,}170{,}786{,}403 \]
+        \[ 2^{65} = 36{,}893{,}488{,}147{,}419{,}103{,}232 \]
+        \[ 2^{65} - 3^{41} = 420{,}491{,}770{,}248{,}316{,}829 > 0 \]
+      </div>
+      <p style="font-size:var(--text-sm);">所以 \( (T, B) = (41, 65) \) 的下降門檻 \( N_0 = 3^{41}/(2^{65} - 3^{41}) \approx 87 \)。</p>
+      <p><strong>含義</strong>：對所有 \( n > 87 \) 且命中 \( (41, 65) \) 窗口的數，\( S^{41}(n) &lt; n \)。</p>
+
+      <!-- Chart 3B: B/T Scatter Plot -->
+      <div class="chart-container" id="chart-3b-container" aria-label="B/T 散點圖">
+        <div class="chart-title">圖 3B：B/T 散點圖——每個 k-bit 奇數軌道的 v&#x2082; 平均值 vs 步數</div>
+        <p style="font-size:var(--text-xs);color:var(--text-secondary)">金虛線 = log&#x2082;3，紅線 = 65/41，藍線 = 84/53</p>
+        <div class="chart-input-group">
+          <label style="font-size:var(--text-xs)">k =</label>
+          <input type="range" id="chart-3b-slider" min="3" max="14" value="6" style="width:12rem;">
+          <span id="chart-3b-k-label" style="font-size:var(--text-xs);min-width:8rem;">k = 6 (16 個奇數)</span>
+          <div style="display:flex;gap:0.25rem;">
+            <button class="btn chart-3b-mode active" data-mode="scatter">散點雲</button>
+            <button class="btn chart-3b-mode" data-mode="envelope">最壞包絡線</button>
+          </div>
+        </div>
+        <div id="chart-3b-computing" style="font-size:var(--text-xs);color:var(--color-medium);display:none;">計算中...</div>
+      </div>
+
+      <!-- §4.6 Breakpoint -->
+      <div class="callout-break">
+        <h3>此框架的斷裂點</h3>
+        <p style="font-size:var(--text-sm);">65/41 屏障是<strong>觀察結果</strong>，非定理。無法證明所有 Collatz 軌道都會命中這個（或任何更好的）收斂子窗口。</p>
+        <p style="font-size:var(--text-sm); margin-top:0.75rem;">需要但未獲得的結果：</p>
+        <div style="background:var(--bg-surface); border-left:3px solid var(--color-medium); padding:1rem; margin-top:0.5rem; border-radius:0 0.375rem 0.375rem 0;">
+          <p style="font-size:var(--text-sm);"><strong>收斂子命中定理</strong>：對任意奇數 \( n > 1 \)，Collatz 軌道中存在長度 \( T = 41 \) 的窗口使得該窗口內的 \( \sum v_2 = 65 \)。</p>
+        </div>
+      </div>
     </section>
 
     <section class="section" id="sec-ordinal">
@@ -2627,6 +2768,544 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       _chart2B = null;
     }
 
+    /* ==================== CHART 3A: CONVERGENT PINCH ANIMATION ==================== */
+    let _chart3A = null;
+
+    function initChart3A(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const playBtn = document.getElementById('chart-3a-play');
+      const pauseBtn = document.getElementById('chart-3a-pause');
+      const skipBtn = document.getElementById('chart-3a-skip');
+      const resetBtn = document.getElementById('chart-3a-reset');
+
+      const convergents = [
+        { k: 0, p: 1, q: 1, a: 1, dir: 'below' },
+        { k: 1, p: 2, q: 1, a: 1, dir: 'above' },
+        { k: 2, p: 3, q: 2, a: 1, dir: 'below' },
+        { k: 3, p: 8, q: 5, a: 2, dir: 'above' },
+        { k: 4, p: 19, q: 12, a: 2, dir: 'below' },
+        { k: 5, p: 65, q: 41, a: 3, dir: 'above' },
+        { k: 6, p: 84, q: 53, a: 1, dir: 'below' },
+        { k: 7, p: 485, q: 306, a: 5, dir: 'above' },
+        { k: 8, p: 1054, q: 665, a: 2, dir: 'below' }
+      ];
+      const LOG2_3 = Math.log2(3);
+      const cfTerms = [1, 1, 1, 2, 2, 3, 1, 5, 2];
+
+      const anim = new AnimationController(1000);
+      let displayedCount = 0;
+
+      // SVG setup
+      const margin = { top: 50, right: 40, bottom: 50, left: 40 };
+      const width = Math.max(400, container.clientWidth - 48 - margin.left - margin.right);
+      const height = 260;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-3a-svg')
+        .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      // Groups
+      const axisG = svg.append('g').attr('transform', `translate(0,${height / 2})`);
+      const markersG = svg.append('g');
+      const labelsG = svg.append('g');
+      const log2Line = svg.append('line');
+      const log2Label = svg.append('text');
+      const intervalLabel = svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height + 30)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-secondary)')
+        .attr('font-size', '18px');
+
+      // Tooltip
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      function getRange(count) {
+        if (count === 0) return [0.8, 2.2];
+        const shown = convergents.slice(0, count);
+        let lo = Infinity, hi = -Infinity;
+        shown.forEach(c => {
+          const v = c.p / c.q;
+          if (v < lo) lo = v;
+          if (v > hi) hi = v;
+        });
+        // Pad around the interval
+        const pad = Math.max((hi - lo) * 0.3, 0.0001);
+        return [lo - pad, hi + pad];
+      }
+
+      function render(count) {
+        const [xMin, xMax] = getRange(count);
+        const xScale = d3.scaleLinear().domain([xMin, xMax]).range([0, width]);
+
+        // Axis
+        axisG.call(d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('.4f')));
+        svg.selectAll('.tick text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+        svg.selectAll('.tick line').style('stroke', 'var(--border-subtle)');
+        svg.selectAll('.domain').style('stroke', 'var(--border-subtle)');
+
+        // log₂3 reference line
+        const log2X = xScale(LOG2_3);
+        log2Line
+          .attr('x1', log2X).attr('x2', log2X)
+          .attr('y1', 0).attr('y2', height)
+          .attr('stroke', 'var(--color-medium)')
+          .attr('stroke-width', 2)
+          .attr('stroke-dasharray', '8,4');
+
+        log2Label
+          .attr('x', log2X)
+          .attr('y', -8)
+          .attr('text-anchor', 'middle')
+          .attr('fill', 'var(--color-medium)')
+          .attr('font-size', '18px')
+          .attr('font-weight', '600')
+          .text('log\u2082 3');
+
+        // Draw convergent markers
+        markersG.selectAll('*').remove();
+        labelsG.selectAll('*').remove();
+
+        const shown = convergents.slice(0, count);
+        const midY = height / 2;
+
+        shown.forEach((c, i) => {
+          const val = c.p / c.q;
+          const cx = xScale(val);
+          const isAbove = c.dir === 'above';
+          const isSpecial = c.k === 5;
+          const triSize = isSpecial ? 14 : 10;
+
+          // Triangle pointing toward the center line
+          let triPath;
+          if (isAbove) {
+            // Red triangle pointing down from above
+            const ty = midY - 30 - (i % 2) * 20;
+            triPath = `M ${cx} ${ty + triSize} L ${cx - triSize} ${ty - triSize} L ${cx + triSize} ${ty - triSize} Z`;
+
+            // Vertical connector line
+            markersG.append('line')
+              .attr('x1', cx).attr('x2', cx)
+              .attr('y1', ty + triSize).attr('y2', midY)
+              .attr('stroke', 'var(--color-critical)')
+              .attr('stroke-width', 1)
+              .attr('stroke-dasharray', '3,3')
+              .attr('opacity', 0.5);
+
+            markersG.append('path')
+              .attr('d', triPath)
+              .attr('fill', 'var(--color-critical)')
+              .attr('stroke', isSpecial ? 'var(--color-medium)' : 'none')
+              .attr('stroke-width', isSpecial ? 3 : 0)
+              .attr('class', isSpecial ? 'chart-3a-special' : '');
+
+            // Label above triangle
+            labelsG.append('text')
+              .attr('x', cx)
+              .attr('y', ty - triSize - 6)
+              .attr('text-anchor', 'middle')
+              .attr('fill', 'var(--color-critical)')
+              .attr('font-size', '18px')
+              .attr('font-weight', isSpecial ? '700' : '400')
+              .text(`${c.p}/${c.q}`);
+          } else {
+            // Blue triangle pointing up from below
+            const ty = midY + 30 + (i % 2) * 20;
+            triPath = `M ${cx} ${ty - triSize} L ${cx - triSize} ${ty + triSize} L ${cx + triSize} ${ty + triSize} Z`;
+
+            // Vertical connector line
+            markersG.append('line')
+              .attr('x1', cx).attr('x2', cx)
+              .attr('y1', midY).attr('y2', ty - triSize)
+              .attr('stroke', 'var(--color-low)')
+              .attr('stroke-width', 1)
+              .attr('stroke-dasharray', '3,3')
+              .attr('opacity', 0.5);
+
+            markersG.append('path')
+              .attr('d', triPath)
+              .attr('fill', 'var(--color-low)');
+
+            // Label below triangle
+            labelsG.append('text')
+              .attr('x', cx)
+              .attr('y', ty + triSize + 20)
+              .attr('text-anchor', 'middle')
+              .attr('fill', 'var(--color-low)')
+              .attr('font-size', '18px')
+              .text(`${c.p}/${c.q}`);
+          }
+
+          // Invisible hover area
+          markersG.append('rect')
+            .attr('x', cx - 20)
+            .attr('y', isAbove ? midY - 80 : midY)
+            .attr('width', 40)
+            .attr('height', 80)
+            .attr('fill', 'transparent')
+            .attr('cursor', 'pointer')
+            .on('mouseenter', function(event) {
+              const error = val - LOG2_3;
+              const cfStr = '[' + cfTerms.slice(0, c.k + 1).join('; ').replace('; ', '; ') + ']';
+              let html = `<strong>${c.p}/${c.q}</strong> = ${val.toFixed(6)}<br>`;
+              html += `\u8AA4\u5DEE: ${error >= 0 ? '+' : ''}${error.toExponential(4)}<br>`;
+              html += `\u9023\u5206\u6578: ${cfStr}`;
+              if (isSpecial) {
+                html += '<br><strong style="color:var(--color-medium)">\u9019\u5C31\u662F Collatz \u6700\u58DE\u60C5\u6CC1\u547D\u4E2D\u7684\u5C4F\u969C</strong>';
+              }
+              tooltip.classed('visible', true).html(html);
+            })
+            .on('mousemove', function(event) {
+              const rect = container.getBoundingClientRect();
+              tooltip
+                .style('left', (event.clientX - rect.left + 12) + 'px')
+                .style('top', (event.clientY - rect.top - 50) + 'px');
+            })
+            .on('mouseleave', () => tooltip.classed('visible', false));
+        });
+
+        // Special pulsing effect for k=5
+        if (count > 5) {
+          const special = markersG.select('.chart-3a-special');
+          if (!special.empty()) {
+            special
+              .style('filter', 'drop-shadow(0 0 6px var(--color-medium))');
+          }
+        }
+
+        // Interval label
+        if (count >= 2) {
+          const belows = shown.filter(c => c.dir === 'below');
+          const aboves = shown.filter(c => c.dir === 'above');
+          const lastBelow = belows.length > 0 ? belows[belows.length - 1] : null;
+          const lastAbove = aboves.length > 0 ? aboves[aboves.length - 1] : null;
+          if (lastBelow && lastAbove) {
+            const lo = (lastBelow.p / lastBelow.q).toFixed(6);
+            const hi = (lastAbove.p / lastAbove.q).toFixed(6);
+            intervalLabel.text(`\u5340\u9593 [${lastBelow.p}/${lastBelow.q}, ${lastAbove.p}/${lastAbove.q}] = [${lo}, ${hi}]`);
+          }
+        } else {
+          intervalLabel.text('');
+        }
+      }
+
+      function stepForward() {
+        if (displayedCount >= convergents.length) return false;
+        displayedCount++;
+        render(displayedCount);
+        return displayedCount < convergents.length;
+      }
+
+      function resetAnim() {
+        anim.pause();
+        displayedCount = 0;
+        render(0);
+      }
+
+      // Controls
+      playBtn.addEventListener('click', () => {
+        if (anim.paused) {
+          if (displayedCount >= convergents.length) {
+            displayedCount = 0;
+            render(0);
+          }
+          anim.play(() => stepForward());
+        }
+      });
+      pauseBtn.addEventListener('click', () => anim.pause());
+      skipBtn.addEventListener('click', () => {
+        anim.pause();
+        displayedCount = convergents.length;
+        render(displayedCount);
+      });
+      resetBtn.addEventListener('click', () => resetAnim());
+
+      // Initial render
+      render(0);
+
+      _chart3A = { anim, container };
+    }
+
+    function destroyChart3A() {
+      if (!_chart3A) return;
+      _chart3A.anim.pause();
+      const svgEl = _chart3A.container.querySelector('.chart-3a-svg');
+      if (svgEl) svgEl.remove();
+      const ttEl = _chart3A.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      _chart3A = null;
+    }
+
+    /* ==================== CHART 3B: B/T SCATTER PLOT ==================== */
+    let _chart3B = null;
+
+    function initChart3B(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const slider = document.getElementById('chart-3b-slider');
+      const kLabel = document.getElementById('chart-3b-k-label');
+      const modeBtns = document.querySelectorAll('.chart-3b-mode');
+      const computingMsg = document.getElementById('chart-3b-computing');
+
+      const LOG2_3 = Math.log2(3);
+      const BARRIER_65_41 = 65 / 41;
+      const BARRIER_84_53 = 84 / 53;
+      const SEMI_149_94 = 149 / 94;
+
+      let currentK = 6;
+      let currentMode = 'scatter';
+      let computeTimer = null;
+
+      // SVG setup
+      const margin = { top: 30, right: 80, bottom: 50, left: 70 };
+      const w = Math.max(400, container.clientWidth - 48 - margin.left - margin.right);
+      const h = 360;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-3b-svg')
+        .attr('viewBox', `0 0 ${w + margin.left + margin.right} ${h + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const xAxisG = svg.append('g').attr('transform', `translate(0,${h})`);
+      const yAxisG = svg.append('g');
+      const refLinesG = svg.append('g');
+      const dotsG = svg.append('g');
+
+      // Axis labels
+      svg.append('text')
+        .attr('x', w / 2).attr('y', h + 42)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-secondary)')
+        .attr('font-size', '18px')
+        .text('T (\u58D3\u7E2E\u6B65\u6578)');
+
+      svg.append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('x', -h / 2).attr('y', -55)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-secondary)')
+        .attr('font-size', '18px')
+        .text('B/T (v\u2082 \u5E73\u5747)');
+
+      // Tooltip
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      function computeScatter(k) {
+        const lo = (1 << (k - 1)) + 1;
+        const hi = (1 << k) - 1;
+        const points = [];
+        for (let n = lo; n <= hi; n += 2) {
+          const traj = Collatz.trajectory(n, 2000);
+          const T = traj.length - 1;
+          if (T === 0) continue;
+          let B = 0;
+          for (let j = 1; j < traj.length; j++) {
+            B += traj[j].v2;
+          }
+          points.push({ n, T, B, BoverT: B / T });
+        }
+        return points;
+      }
+
+      function computeEnvelope(maxK) {
+        const points = [];
+        for (let k = 3; k <= maxK; k++) {
+          const lo = (1 << (k - 1)) + 1;
+          const hi = (1 << k) - 1;
+          let worstN = lo, worstBT = 0, worstT = 0, worstB = 0;
+          for (let n = lo; n <= hi; n += 2) {
+            const traj = Collatz.trajectory(n, 2000);
+            const T = traj.length - 1;
+            if (T === 0) continue;
+            let B = 0;
+            for (let j = 1; j < traj.length; j++) {
+              B += traj[j].v2;
+            }
+            const bt = B / T;
+            if (bt > worstBT) {
+              worstBT = bt;
+              worstN = n;
+              worstT = T;
+              worstB = B;
+            }
+          }
+          points.push({ n: worstN, T: worstT, B: worstB, BoverT: worstBT, k });
+        }
+        return points;
+      }
+
+      function drawRefLines(yScale) {
+        refLinesG.selectAll('*').remove();
+
+        const refs = [
+          { val: LOG2_3, color: 'var(--color-medium)', dash: '8,4', label: 'log\u20822 3', lw: 2 },
+          { val: BARRIER_65_41, color: 'var(--color-critical)', dash: 'none', label: 'p\u2085/q\u2085', lw: 2 },
+          { val: BARRIER_84_53, color: 'var(--color-low)', dash: 'none', label: 'p\u2086/q\u2086', lw: 2 },
+          { val: SEMI_149_94, color: 'var(--text-muted)', dash: '4,4', label: '\u534A\u6536\u6582\u5B50', lw: 1.5 }
+        ];
+
+        refs.forEach(r => {
+          const y = yScale(r.val);
+          if (y < 0 || y > h) return;
+
+          refLinesG.append('line')
+            .attr('x1', 0).attr('x2', w)
+            .attr('y1', y).attr('y2', y)
+            .attr('stroke', r.color)
+            .attr('stroke-width', r.lw)
+            .attr('stroke-dasharray', r.dash === 'none' ? null : r.dash);
+
+          refLinesG.append('text')
+            .attr('x', w + 5)
+            .attr('y', y + 5)
+            .attr('fill', r.color)
+            .attr('font-size', '18px')
+            .attr('font-weight', '600')
+            .text(r.label);
+        });
+      }
+
+      function renderPoints(points) {
+        dotsG.selectAll('*').remove();
+
+        if (points.length === 0) return;
+
+        const tExtent = d3.extent(points, d => d.T);
+        const btExtent = d3.extent(points, d => d.BoverT);
+        // Pad y range to include reference lines
+        const yMin = Math.min(btExtent[0], BARRIER_84_53 - 0.002);
+        const yMax = Math.max(btExtent[1], BARRIER_65_41 + 0.002);
+
+        const xScale = d3.scaleLinear()
+          .domain([Math.max(0, tExtent[0] - 2), tExtent[1] + 2])
+          .range([0, w]);
+        const yScale = d3.scaleLinear()
+          .domain([yMin - 0.001, yMax + 0.001])
+          .range([h, 0]);
+
+        xAxisG.call(d3.axisBottom(xScale).ticks(8));
+        yAxisG.call(d3.axisLeft(yScale).ticks(6).tickFormat(d3.format('.4f')));
+
+        svg.selectAll('.tick text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+        svg.selectAll('.tick line').style('stroke', 'var(--border-subtle)');
+        svg.selectAll('.domain').style('stroke', 'var(--border-subtle)');
+
+        drawRefLines(yScale);
+
+        // Draw dots
+        const isEnvelope = currentMode === 'envelope';
+        dotsG.selectAll('circle')
+          .data(points)
+          .enter()
+          .append('circle')
+          .attr('cx', d => xScale(d.T))
+          .attr('cy', d => yScale(d.BoverT))
+          .attr('r', isEnvelope ? 5 : 3)
+          .attr('fill', d => {
+            if (d.BoverT > BARRIER_65_41) return 'var(--color-critical)';
+            if (d.BoverT > LOG2_3) return 'var(--color-medium)';
+            return 'var(--color-low)';
+          })
+          .attr('opacity', isEnvelope ? 0.9 : 0.6)
+          .attr('cursor', 'pointer')
+          .on('mouseenter', function(event, d) {
+            d3.select(this).attr('r', isEnvelope ? 8 : 5).attr('opacity', 1);
+            let html = `<strong>n = ${d.n}</strong><br>`;
+            html += `T = ${d.T}, B = ${d.B}<br>`;
+            html += `B/T = ${d.BoverT.toFixed(6)}`;
+            if (d.k !== undefined) html += `<br>k = ${d.k} bit`;
+            tooltip.classed('visible', true).html(html);
+          })
+          .on('mousemove', function(event) {
+            const rect = container.getBoundingClientRect();
+            tooltip
+              .style('left', (event.clientX - rect.left + 12) + 'px')
+              .style('top', (event.clientY - rect.top - 50) + 'px');
+          })
+          .on('mouseleave', function() {
+            d3.select(this).attr('r', isEnvelope ? 5 : 3).attr('opacity', isEnvelope ? 0.9 : 0.6);
+            tooltip.classed('visible', false);
+          });
+      }
+
+      function update() {
+        if (computeTimer) { clearTimeout(computeTimer); computeTimer = null; }
+
+        const k = currentK;
+
+        if (currentMode === 'scatter') {
+          const oddCount = Math.ceil(((1 << k) - 1 - ((1 << (k - 1)) + 1)) / 2) + 1;
+          kLabel.textContent = `k = ${k} (${oddCount} \u500B\u5947\u6578)`;
+
+          if (k <= 10) {
+            computingMsg.style.display = 'none';
+            const pts = computeScatter(k);
+            renderPoints(pts);
+          } else {
+            computingMsg.style.display = 'block';
+            computeTimer = setTimeout(() => {
+              const pts = computeScatter(k);
+              computingMsg.style.display = 'none';
+              renderPoints(pts);
+            }, 50);
+          }
+        } else {
+          // Envelope mode
+          kLabel.textContent = `k = 3..${k} (\u6700\u58DE\u5305\u7D61\u7DDA)`;
+
+          if (k <= 10) {
+            computingMsg.style.display = 'none';
+            const pts = computeEnvelope(k);
+            renderPoints(pts);
+          } else {
+            computingMsg.style.display = 'block';
+            computeTimer = setTimeout(() => {
+              const pts = computeEnvelope(k);
+              computingMsg.style.display = 'none';
+              renderPoints(pts);
+            }, 50);
+          }
+        }
+      }
+
+      // Controls
+      slider.addEventListener('input', () => {
+        currentK = parseInt(slider.value, 10);
+        update();
+      });
+
+      modeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          modeBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentMode = btn.dataset.mode;
+          update();
+        });
+      });
+
+      // Initial render
+      update();
+
+      _chart3B = { container };
+    }
+
+    function destroyChart3B() {
+      if (!_chart3B) return;
+      const svgEl = _chart3B.container.querySelector('.chart-3b-svg');
+      if (svgEl) svgEl.remove();
+      const ttEl = _chart3B.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      _chart3B = null;
+    }
+
     /* ==================== BOOT ==================== */
     document.addEventListener('DOMContentLoaded', () => {
       // Init MathJax lazy observer
@@ -2638,6 +3317,8 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       ChartRegistry.register('chart-1b-container', (el) => initChart1B(el), () => destroyChart1B(), 'epoch');
       ChartRegistry.register('chart-2a-container', (el) => initChart2A(el), () => destroyChart2A(), 'transducer');
       ChartRegistry.register('chart-2b-container', (el) => initChart2B(el), () => destroyChart2B(), 'transducer');
+      ChartRegistry.register('chart-3a-container', (el) => initChart3A(el), () => destroyChart3A(), 'cfrac');
+      ChartRegistry.register('chart-3b-container', (el) => initChart3B(el), () => destroyChart3B(), 'cfrac');
 
       // Start observing chart containers
       ChartRegistry.observeAll();
