@@ -1145,8 +1145,76 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
 
     <section class="section" id="sec-z2">
       <h2>7. 框架六：&#x2124;&#x2082; 上的 &times;3 混合性</h2>
-      <div id="chart-6a-container"></div>
-      <div id="chart-6b-container"></div>
+
+      <!-- 白話引言 -->
+      <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>問題：</strong>在 2-adic 整數的世界裡，乘以 3 會不會把數字「攪勻」？
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>類比：</strong>想像一副撲克牌——每次乘 3 就像洗一次牌。如果洗得夠均勻，v&#x2082; 的分佈就會像擲硬幣一樣隨機。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>目標：</strong>用 2-adic 遍歷性來證明 v&#x2082; 序列是「夠隨機的」。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary);">
+          <strong>結果：</strong>遍歷性在 &#x2124;&#x2082; 上成立，但自然數 &#x2115; 是測度零子集——遍歷定理不適用。
+        </p>
+      </div>
+
+      <!-- Chart 6A: ×3 mod 2^m Coverage Strip -->
+      <div class="chart-container" id="chart-6a-container" aria-label="×3 mod 2^m 覆蓋率條帶">
+        <div class="chart-title">圖 6A：&times;3 mod 2<sup>m</sup> 覆蓋率條帶</div>
+        <p style="font-size:var(--text-xs);color:var(--text-secondary)">3 的冪次恰好覆蓋一半的奇數殘基，且分佈均勻</p>
+        <div class="chart-input-group">
+          <label style="font-size:var(--text-xs)">m =</label>
+          <input type="range" id="chart-6a-m" min="3" max="12" value="5" style="width:10rem;">
+          <span id="chart-6a-m-val" style="font-size:var(--text-xs);min-width:2rem;">5</span>
+        </div>
+        <div id="chart-6a-info" style="font-size:var(--text-xs);color:var(--text-secondary);margin-top:0.5rem;"></div>
+      </div>
+
+      <!-- §7.1 2-adic 遍歷性 -->
+      <h3>7.1 2-adic 遍歷性</h3>
+      <p>在 \( \mathbb{Z}_2 \)（2-adic 整數）上，乘以 3 是一個<strong>保測自同構</strong>。</p>
+      <div class="math-block">
+        \[ \{3^k x \bmod 2^m\}_{k=0}^{2^{m-2}-1} \]
+      </div>
+      <p style="font-size:var(--text-sm);">對 Haar 測度幾乎所有 \( x \)，上述集合在 \( (\mathbb{Z}/2^m\mathbb{Z})^\times \) 中均勻分佈。具體而言，\( 3 \) 在模 \( 2^m \) 的乘法群中的階恰好是 \( 2^{m-2} \)（對 \( m \geq 3 \)），因此 \( 3 \) 的冪次遍歷了恰好一半的奇數殘基。</p>
+
+      <!-- §7.2 與 Collatz 的連接 -->
+      <h3>7.2 與 Collatz 的連接</h3>
+      <p>Collatz 映射在 \( \mathbb{Z}_2 \) 上連續且良定義。遍歷性意味著 \( v_2 \) 序列的經驗分佈趨向<strong>幾何分佈</strong>（均值 2）：</p>
+      <div class="math-block">
+        \[ \Pr[v_2 = k] = \left(\frac{1}{2}\right)^k, \quad k = 1, 2, 3, \ldots \]
+      </div>
+      <p style="font-size:var(--text-sm);">直觀理解：如果 \( \times 3 \) 的混合性夠強，那麼 \( 3n + 1 \) 的末尾位元看起來就像「隨機」的——恰好有 \( 1/2 \) 的機率末尾是 0（即被 2 整除），\( 1/4 \) 的機率末尾兩位是 00，以此類推。這就是幾何分佈 \( \text{Geo}(1/2) \)。</p>
+
+      <!-- Chart 6B: v₂ Empirical Distribution -->
+      <div class="chart-container" id="chart-6b-container" aria-label="v₂ 經驗分佈與理論分佈對照">
+        <div class="chart-title">圖 6B：v&#x2082; 經驗分佈 vs Geo(1/2)</div>
+        <p style="font-size:var(--text-xs);color:var(--text-secondary)">比較 Collatz 軌道中 v&#x2082; 的實際頻率與理論幾何分佈</p>
+        <div class="chart-input-group">
+          <label style="font-size:var(--text-xs)">n =</label>
+          <input type="text" class="chart-input" id="chart-6b-input" inputmode="numeric">
+          <button class="chart-unlink-btn" id="chart-6b-unlink" title="重新同步全域 n">&#128279;</button>
+          <label style="font-size:var(--text-xs);margin-left:1rem;">
+            <input type="checkbox" id="chart-6b-anim"> 動畫模式
+          </label>
+        </div>
+        <div id="chart-6b-stats" style="font-size:var(--text-xs);color:var(--text-secondary);margin-top:0.5rem;"></div>
+      </div>
+
+      <!-- §7.3 斷裂點 -->
+      <div class="callout-break">
+        <h3>此框架的斷裂點</h3>
+        <p style="font-size:var(--text-sm);">\( \mathbb{N} \subset \mathbb{Z}_2 \) 是測度零子集。遍歷定理不直接適用於自然數。</p>
+        <p style="font-size:var(--text-sm);">需要<strong>有效遍歷定理</strong>：對 \( \mathbb{N} \) 上的 \( \times 3 \) 映射建立有效等分佈，但此定理目前不存在。</p>
+        <p style="font-size:var(--text-sm); margin-top:0.75rem;">需要但未獲得的結果：</p>
+        <div style="background:var(--bg-surface); border-left:3px solid var(--color-medium); padding:1rem; margin-top:0.5rem; border-radius:0 0.375rem 0.375rem 0;">
+          <p style="font-size:var(--text-sm);"><strong>有效遍歷定理</strong>：對任意 \( n \in \mathbb{N} \)，Collatz 軌道中 \( v_2 \) 序列的前 \( T \) 步經驗分佈與 \( \text{Geo}(1/2) \) 的總變差距離為 \( O(T^{-1/2+\varepsilon}) \)。</p>
+        </div>
+      </div>
     </section>
 
     <section class="section" id="sec-kolmogorov">
@@ -4549,6 +4617,385 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       _chart5B = null;
     }
 
+    /* ==================== CHART 6A: ×3 mod 2^m COVERAGE STRIP ==================== */
+    let _chart6A = null;
+
+    function initChart6A(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const mSlider = document.getElementById('chart-6a-m');
+      const mValSpan = document.getElementById('chart-6a-m-val');
+      const infoDiv = document.getElementById('chart-6a-info');
+
+      const margin = { top: 10, right: 10, bottom: 10, left: 10 };
+      const svgWidth = container.clientWidth - 48;
+      // SVG height is dynamic based on m
+
+      const svgRoot = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-6a-svg')
+        .attr('preserveAspectRatio', 'xMidYMid meet');
+
+      const g = svgRoot.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      function render(m) {
+        m = parseInt(m, 10);
+        mValSpan.textContent = m;
+
+        const mod = Math.pow(2, m);        // 2^m
+        const totalOdd = Math.pow(2, m - 1); // number of odd residues mod 2^m
+        const period = Math.pow(2, m - 2);   // order of 3 mod 2^m for m >= 3
+
+        // Compute covered residues: {3^k mod 2^m : k = 0..period-1}
+        const covered = new Set();
+        let val = 1; // 3^0 = 1
+        for (let k = 0; k < period; k++) {
+          covered.add(val);
+          val = (val * 3) % mod;
+        }
+
+        // Build list of all odd residues in order
+        const oddResidues = [];
+        for (let r = 1; r < mod; r += 2) {
+          oddResidues.push(r);
+        }
+
+        // Adaptive cell sizing
+        const drawWidth = svgWidth - margin.left - margin.right;
+        const maxCols = Math.min(totalOdd, Math.floor(drawWidth / 4)); // at least 4px per cell
+        const cols = Math.min(totalOdd, Math.max(maxCols, 16));
+        const rows = Math.ceil(totalOdd / cols);
+        const cellW = Math.max(2, Math.floor(drawWidth / cols) - 1);
+        const cellH = Math.max(2, Math.min(cellW, 20));
+        const gap = Math.min(1, cellW > 6 ? 1 : 0);
+
+        const totalH = rows * (cellH + gap) + margin.top + margin.bottom;
+        svgRoot
+          .attr('viewBox', `0 0 ${svgWidth} ${totalH}`)
+          .style('max-height', Math.min(totalH, 400) + 'px');
+
+        g.selectAll('*').remove();
+
+        oddResidues.forEach((r, i) => {
+          const col = i % cols;
+          const row = Math.floor(i / cols);
+          g.append('rect')
+            .attr('x', col * (cellW + gap))
+            .attr('y', row * (cellH + gap))
+            .attr('width', cellW)
+            .attr('height', cellH)
+            .attr('rx', cellW > 6 ? 1 : 0)
+            .attr('fill', covered.has(r) ? '#1e8050' : '#e0e0e0')
+            .attr('stroke', 'none');
+        });
+
+        // Coverage info text
+        const pct = ((period / totalOdd) * 100).toFixed(0);
+        infoDiv.textContent =
+          '\u89BA\u84CB\u7387 = ' + pct + '% (\u2261 2^{' + (m - 2) + '} / 2^{' + (m - 1) + '} = ' +
+          period.toLocaleString() + ' / ' + totalOdd.toLocaleString() + ')';
+      }
+
+      mSlider.addEventListener('input', () => render(mSlider.value));
+      render(mSlider.value);
+
+      _chart6A = { container };
+    }
+
+    function destroyChart6A() {
+      if (!_chart6A) return;
+      const svgEl = _chart6A.container.querySelector('.chart-6a-svg');
+      if (svgEl) svgEl.remove();
+      _chart6A = null;
+    }
+
+    /* ==================== CHART 6B: v₂ EMPIRICAL DISTRIBUTION ==================== */
+    let _chart6B = null;
+
+    function initChart6B(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const input = document.getElementById('chart-6b-input');
+      const unlinkBtn = document.getElementById('chart-6b-unlink');
+      const animCheck = document.getElementById('chart-6b-anim');
+      const statsDiv = document.getElementById('chart-6b-stats');
+
+      let linked = true;
+      let unsub = null;
+      let animTimer = null;
+
+      const margin = { top: 20, right: 30, bottom: 50, left: 70 };
+      const width = container.clientWidth - margin.left - margin.right - 48;
+      const height = 320;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-6b-svg')
+        .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const barsG = svg.append('g').attr('class', 'bars');
+      const xAxisG = svg.append('g').attr('transform', `translate(0,${height})`);
+      const yAxisG = svg.append('g');
+
+      // Tooltip
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      // v2 bucket labels
+      const bucketLabels = ['1', '2', '3', '4', '5', '6+'];
+      const numBuckets = bucketLabels.length;
+
+      function computeV2Distribution(n, maxStep) {
+        const traj = Collatz.trajectory(n, maxStep || 2000);
+        const counts = [0, 0, 0, 0, 0, 0]; // buckets for v2 = 1..5 and 6+
+        let totalSteps = 0;
+        for (let i = 1; i < traj.length; i++) {
+          const v = traj[i].v2;
+          if (v >= 1) {
+            totalSteps++;
+            if (v <= 5) {
+              counts[v - 1]++;
+            } else {
+              counts[5]++;
+            }
+          }
+        }
+        return { counts, totalSteps, trajLen: traj.length };
+      }
+
+      function geoProb(k) {
+        // Geo(1/2): P(X = k) = (1/2)^k for k = 1,2,...
+        // For k = 6+: P(X >= 6) = (1/2)^5 = 1/32
+        if (k <= 5) return Math.pow(0.5, k);
+        return Math.pow(0.5, 5); // sum of tail = (1/2)^5
+      }
+
+      function renderBars(counts, totalSteps) {
+        barsG.selectAll('*').remove();
+
+        if (totalSteps === 0) {
+          statsDiv.textContent = '';
+          return;
+        }
+
+        const empirical = counts.map(c => c / totalSteps);
+        const theoretical = bucketLabels.map((_, i) => geoProb(i + 1));
+
+        const data = bucketLabels.map((label, i) => ({
+          label,
+          empirical: empirical[i],
+          theoretical: theoretical[i],
+          count: counts[i],
+          idx: i
+        }));
+
+        // Grouped bar chart
+        const x0 = d3.scaleBand()
+          .domain(bucketLabels)
+          .range([0, width])
+          .padding(0.25);
+
+        const x1 = d3.scaleBand()
+          .domain(['empirical', 'theoretical'])
+          .range([0, x0.bandwidth()])
+          .padding(0.08);
+
+        const yMax = Math.max(
+          d3.max(empirical) || 0.5,
+          d3.max(theoretical) || 0.5
+        ) * 1.15;
+
+        const y = d3.scaleLinear()
+          .domain([0, yMax])
+          .range([height, 0]);
+
+        // Axes
+        xAxisG.call(d3.axisBottom(x0).tickFormat(d => 'v\u2082=' + d));
+        yAxisG.call(d3.axisLeft(y).ticks(6).tickFormat(d3.format('.0%')));
+        svg.selectAll('.tick text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+        svg.selectAll('.tick line').style('stroke', 'var(--border-subtle)');
+        svg.selectAll('.domain').style('stroke', 'var(--border-subtle)');
+
+        // Bars
+        data.forEach(d => {
+          // Empirical bar (teal)
+          barsG.append('rect')
+            .attr('x', x0(d.label) + x1('empirical'))
+            .attr('y', y(d.empirical))
+            .attr('width', x1.bandwidth())
+            .attr('height', Math.max(0, height - y(d.empirical)))
+            .attr('fill', '#1a8a8a')
+            .attr('rx', 2)
+            .on('mouseenter', function(event) {
+              tooltip.classed('visible', true)
+                .html('v\u2082=' + d.label + '<br>\u5BE6\u969B: ' + (d.empirical * 100).toFixed(1) + '%' +
+                      '<br>\u7406\u8AD6: ' + (d.theoretical * 100).toFixed(1) + '%' +
+                      '<br>\u6B21\u6578: ' + d.count);
+            })
+            .on('mousemove', function(event) {
+              const rect = container.getBoundingClientRect();
+              tooltip
+                .style('left', (event.clientX - rect.left + 10) + 'px')
+                .style('top', (event.clientY - rect.top - 40) + 'px');
+            })
+            .on('mouseleave', () => tooltip.classed('visible', false));
+
+          // Theoretical bar (gray)
+          barsG.append('rect')
+            .attr('x', x0(d.label) + x1('theoretical'))
+            .attr('y', y(d.theoretical))
+            .attr('width', x1.bandwidth())
+            .attr('height', Math.max(0, height - y(d.theoretical)))
+            .attr('fill', '#999999')
+            .attr('rx', 2)
+            .on('mouseenter', function(event) {
+              tooltip.classed('visible', true)
+                .html('v\u2082=' + d.label + ' \u7406\u8AD6\u503C<br>Geo(1/2) = ' + (d.theoretical * 100).toFixed(1) + '%');
+            })
+            .on('mousemove', function(event) {
+              const rect = container.getBoundingClientRect();
+              tooltip
+                .style('left', (event.clientX - rect.left + 10) + 'px')
+                .style('top', (event.clientY - rect.top - 40) + 'px');
+            })
+            .on('mouseleave', () => tooltip.classed('visible', false));
+
+          // Star label for v2 = 1
+          if (d.idx === 0) {
+            barsG.append('text')
+              .attr('x', x0(d.label) + x1('empirical') + x1.bandwidth() / 2)
+              .attr('y', y(d.empirical) - 6)
+              .attr('text-anchor', 'middle')
+              .attr('font-size', '18px')
+              .attr('fill', '#1a8a8a')
+              .text('\u2605');
+            barsG.append('text')
+              .attr('x', x0(d.label) + x0.bandwidth() / 2)
+              .attr('y', height + 42)
+              .attr('text-anchor', 'middle')
+              .attr('font-size', '18px')
+              .attr('fill', 'var(--color-critical)')
+              .text('\u58DE\u6B65\u6838\u5FC3');
+          }
+        });
+
+        // Legend
+        const legendG = barsG.append('g').attr('transform', `translate(${width - 180}, 0)`);
+        legendG.append('rect').attr('x', 0).attr('y', 0).attr('width', 14).attr('height', 14).attr('fill', '#1a8a8a').attr('rx', 2);
+        legendG.append('text').attr('x', 20).attr('y', 12).attr('font-size', '18px').attr('fill', 'var(--text-secondary)').text('\u5BE6\u969B\u983B\u7387');
+        legendG.append('rect').attr('x', 0).attr('y', 22).attr('width', 14).attr('height', 14).attr('fill', '#999999').attr('rx', 2);
+        legendG.append('text').attr('x', 20).attr('y', 34).attr('font-size', '18px').attr('fill', 'var(--text-secondary)').text('Geo(1/2) \u7406\u8AD6');
+
+        // Chi-squared statistic
+        let chi2 = 0;
+        for (let i = 0; i < numBuckets; i++) {
+          const expected = theoretical[i] * totalSteps;
+          if (expected > 0) {
+            chi2 += Math.pow(counts[i] - expected, 2) / expected;
+          }
+        }
+        statsDiv.textContent = '\u03C7\u00B2 = ' + chi2.toFixed(3) + '  (\u8D8A\u5C0F\u4EE3\u8868\u8D8A\u543B\u5408\uFF0C\u5171 ' + totalSteps + ' \u6B65)';
+      }
+
+      function loadN(n) {
+        if (animCheck && animCheck.checked) {
+          // Animation mode: grow bars step by step
+          stopAnim();
+          const traj = Collatz.trajectory(n, 2000);
+          const counts = [0, 0, 0, 0, 0, 0];
+          let totalSteps = 0;
+          let stepIdx = 1;
+
+          function animStep() {
+            if (stepIdx >= traj.length) {
+              animTimer = null;
+              return;
+            }
+            const v = traj[stepIdx].v2;
+            if (v >= 1) {
+              totalSteps++;
+              if (v <= 5) counts[v - 1]++;
+              else counts[5]++;
+            }
+            renderBars([...counts], totalSteps);
+            stepIdx++;
+            animTimer = setTimeout(animStep, Math.max(20, 300 - totalSteps));
+          }
+          animStep();
+        } else {
+          // Immediate mode
+          const { counts, totalSteps } = computeV2Distribution(n);
+          renderBars(counts, totalSteps);
+        }
+      }
+
+      function stopAnim() {
+        if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+      }
+
+      // Input handling
+      input.value = GlobalN.n;
+
+      function applyLocalInput() {
+        const val = parseInt(input.value, 10);
+        if (!isNaN(val) && val >= 1) {
+          const n = Math.min(val, 1000000000);
+          input.value = n;
+          loadN(n);
+        }
+      }
+
+      let inputTimer;
+      input.addEventListener('input', () => {
+        if (linked) { linked = false; input.classList.add('unlinked'); }
+        clearTimeout(inputTimer);
+        inputTimer = setTimeout(applyLocalInput, 300);
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { clearTimeout(inputTimer); applyLocalInput(); }
+      });
+
+      // Unlink/relink
+      unlinkBtn.addEventListener('click', () => {
+        linked = true;
+        input.classList.remove('unlinked');
+        input.value = GlobalN.n;
+        loadN(GlobalN.n);
+      });
+
+      // Subscribe to GlobalN
+      unsub = GlobalN.subscribe('chart-6b', (n) => {
+        if (!linked) return;
+        input.value = n;
+        loadN(n);
+      });
+
+      // Animation checkbox change: re-render
+      animCheck.addEventListener('change', () => {
+        stopAnim();
+        applyLocalInput();
+      });
+
+      // Initial load
+      loadN(GlobalN.n);
+
+      _chart6B = { unsub, container, stopAnim };
+    }
+
+    function destroyChart6B() {
+      if (!_chart6B) return;
+      _chart6B.stopAnim();
+      if (_chart6B.unsub) _chart6B.unsub();
+      const svgEl = _chart6B.container.querySelector('.chart-6b-svg');
+      if (svgEl) svgEl.remove();
+      const ttEl = _chart6B.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      _chart6B = null;
+    }
+
     /* ==================== BOOT ==================== */
     document.addEventListener('DOMContentLoaded', () => {
       // Init MathJax lazy observer
@@ -4566,6 +5013,8 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       ChartRegistry.register('chart-4b-container', (el) => initChart4B(el), () => destroyChart4B(), 'ordinal');
       ChartRegistry.register('chart-5a-container', (el) => initChart5A(el), () => destroyChart5A(), 'tree');
       ChartRegistry.register('chart-5b-container', (el) => initChart5B(el), () => destroyChart5B(), 'tree');
+      ChartRegistry.register('chart-6a-container', (el) => initChart6A(el), () => destroyChart6A());
+      ChartRegistry.register('chart-6b-container', (el) => initChart6B(el), () => destroyChart6B());
 
       // Start observing chart containers
       ChartRegistry.observeAll();
