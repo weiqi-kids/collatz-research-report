@@ -1219,8 +1219,80 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
 
     <section class="section" id="sec-kolmogorov">
       <h2>8. 框架七：Kolmogorov 複雜度與資訊論</h2>
-      <div id="chart-7a-container"></div>
-      <div id="chart-7b-container"></div>
+
+      <!-- 白話引言 -->
+      <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>問題：</strong>如果一個很大的數能用很短的規則生成（例如「從 27 做 50 步 Collatz」），它就是高度可壓縮的。發散軌道產生的大數全都具有這種性質——這很可疑。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>類比：</strong>就像一個巨大的 zip 檔——看起來很大，但裡面其實是用很短的指令就能產生的內容。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>目標：</strong>利用可壓縮性來排除發散軌道的可能性。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary);">
+          <strong>結果：</strong>可壓縮性是觀察，但不能直接推出「好的 v&#x2082; 值」——carry 攪動可能保持某些壓縮結構。
+        </p>
+      </div>
+
+      <!-- Chart 7A: Bit Structure Regularity Trace -->
+      <div class="chart-container" id="chart-7a-container" aria-label="位元結構規律性追蹤">
+        <div class="chart-title">圖 7A：位元結構的規律性隨迭代的變化</div>
+        <p style="font-size:var(--text-xs);color:var(--text-secondary)">如果一個很大的數能用簡短規則生成，它就是高度可壓縮的</p>
+        <div class="chart-input-group">
+          <label style="font-size:var(--text-xs)">n =</label>
+          <input type="text" class="chart-input" id="chart-7a-input" inputmode="numeric">
+          <button class="chart-unlink-btn" id="chart-7a-unlink" title="重新同步全域 n">&#128279;</button>
+          <label style="font-size:var(--text-xs);margin-left:1rem;">
+            <input type="radio" name="chart7a-metric" value="rle" id="chart-7a-rle" checked> RLE 比率
+          </label>
+          <label style="font-size:var(--text-xs);margin-left:0.5rem;">
+            <input type="radio" name="chart7a-metric" value="density" id="chart-7a-density"> 1-bit 密度
+          </label>
+        </div>
+      </div>
+
+      <!-- §8.1 觀察 -->
+      <h3>8.1 觀察</h3>
+      <p>正整數 \( n \) 的 Kolmogorov 複雜度 \( K(n) \leq \log_2 n + O(1) \)。</p>
+      <p style="font-size:var(--text-sm);">發散軌道 \( S^T(n) \to \infty \) 意味著 \( \log_2 S^T(n) \to \infty \)，但：</p>
+      <div class="math-block">
+        \[ K(S^T(n)) \leq K(n) + K(T) + O(1) = O(\log n + \log T) \]
+      </div>
+      <p style="font-size:var(--text-sm);">所以發散軌道的數值<strong>高度可壓縮</strong>——它們的位元長度不斷增長，但描述它們所需的資訊量卻只有 \( O(\log n + \log T) \)。</p>
+
+      <!-- §8.2 嘗試 -->
+      <h3>8.2 嘗試</h3>
+      <p style="font-size:var(--text-sm);">可壓縮數（低 Kolmogorov 複雜度）具有結構化的位元模式。carry 攪動應破壞此結構。</p>
+      <p style="font-size:var(--text-sm);">直觀理解：如果一個數的二進位表示高度規律（例如很多連續的 0 或 1），那麼乘以 3 再加 1 時的進位（carry）傳播會把這些規律「打亂」。但問題是——打亂到什麼程度？</p>
+
+      <!-- Chart 7B: Bit Pattern Heatmap -->
+      <div class="chart-container" id="chart-7b-container" aria-label="位元模式熱力圖">
+        <div class="chart-title">圖 7B：位元模式熱力圖</div>
+        <p style="font-size:var(--text-xs);color:var(--text-secondary)">每列 = 位元位置（MSB 在左），每行 = 迭代步驟，深色 = 1，淺色 = 0</p>
+        <div class="chart-input-group">
+          <label style="font-size:var(--text-xs)">n =</label>
+          <input type="text" class="chart-input" id="chart-7b-input" inputmode="numeric">
+          <button class="chart-unlink-btn" id="chart-7b-unlink" title="重新同步全域 n">&#128279;</button>
+          <label style="font-size:var(--text-xs);margin-left:1rem;">
+            <input type="checkbox" id="chart-7b-carry"> 高亮 carry 路徑
+          </label>
+          <button class="chart-unlink-btn" id="chart-7b-reset" style="margin-left:0.5rem;font-size:var(--text-xs);color:var(--color-link);text-decoration:underline;display:none;">重置</button>
+        </div>
+        <div id="chart-7b-warning" style="font-size:var(--text-xs);color:var(--color-critical);min-height:1.25rem;"></div>
+      </div>
+
+      <!-- §8.3 斷裂點 -->
+      <div class="callout-break">
+        <h3>此框架的斷裂點</h3>
+        <p style="font-size:var(--text-sm);">可壓縮性不直接蘊含「好的 v&#x2082; 值」。轉換器可能保持某些類型的壓縮結構。</p>
+        <p style="font-size:var(--text-sm);">Kolmogorov 複雜度告訴我們發散軌道上的數「很有結構」，但結構化不等於<strong>數值會下降</strong>。存在高度結構化卻持續增長的序列（例如 \( 2^n \)）。</p>
+        <p style="font-size:var(--text-sm); margin-top:0.75rem;">需要但未獲得的結果：</p>
+        <div style="background:var(--bg-surface); border-left:3px solid var(--color-medium); padding:1rem; margin-top:0.5rem; border-radius:0 0.375rem 0.375rem 0;">
+          <p style="font-size:var(--text-sm);"><strong>壓縮結構衰減定理</strong>：Collatz 映射的 carry 傳播在 \( O(\log T) \) 步後破壞初始的位元結構，使得 \( v_2 \) 的分佈回歸 \( \text{Geo}(1/2) \)。</p>
+        </div>
+      </div>
     </section>
 
     <section class="section" id="sec-experiments">
@@ -4996,6 +5068,564 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       _chart6B = null;
     }
 
+    /* ==================== CHART 7A: Bit Structure Regularity Trace ==================== */
+    let _chart7A = null;
+
+    function initChart7A(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const input = document.getElementById('chart-7a-input');
+      const unlinkBtn = document.getElementById('chart-7a-unlink');
+      const rleRadio = document.getElementById('chart-7a-rle');
+      const densityRadio = document.getElementById('chart-7a-density');
+
+      let linked = true;
+      let unsub = null;
+      let currentMetric = 'rle'; // 'rle' or 'density'
+
+      // SVG setup
+      const margin = { top: 20, right: 30, bottom: 50, left: 70 };
+      const width = container.clientWidth - margin.left - margin.right - 48;
+      const height = 300;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-7a-svg')
+        .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const xAxisG = svg.append('g').attr('transform', `translate(0,${height})`);
+      const yAxisG = svg.append('g');
+      const linePath = svg.append('path')
+        .attr('fill', 'none')
+        .attr('stroke', 'var(--color-link)')
+        .attr('stroke-width', 2);
+      const refLine = svg.append('line')
+        .attr('stroke', 'var(--text-secondary)')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '6,4');
+      const refLabel = svg.append('text')
+        .attr('font-size', '18px')
+        .attr('fill', 'var(--text-secondary)');
+      const dotsG = svg.append('g');
+
+      // Tooltip
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      // Edge case message
+      const edgeMsg = svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height / 2)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-secondary)')
+        .attr('font-size', '18px')
+        .style('display', 'none');
+
+      function render(n) {
+        edgeMsg.style('display', 'none');
+        dotsG.selectAll('*').remove();
+
+        const traj = Collatz.trajectory(n, 2000);
+
+        if (traj.length <= 1) {
+          linePath.attr('d', null);
+          refLine.attr('x1', 0).attr('x2', 0);
+          refLabel.text('');
+          edgeMsg.text('軌道過短，無法繪製').style('display', null);
+          return;
+        }
+
+        // Compute metric at each step
+        const data = traj.map((d, i) => {
+          const val = currentMetric === 'rle'
+            ? Collatz.rleRatio(d.value)
+            : Collatz.bitDensity(d.value);
+          return { step: i, metric: val };
+        });
+
+        const xScale = d3.scaleLinear()
+          .domain([0, data.length - 1])
+          .range([0, width]);
+
+        const yMin = d3.min(data, d => d.metric) || 0;
+        const yMax = d3.max(data, d => d.metric) || 1;
+        const yPad = (yMax - yMin) * 0.1 || 0.05;
+        const yScale = d3.scaleLinear()
+          .domain([Math.max(0, yMin - yPad), Math.min(1, yMax + yPad)])
+          .range([height, 0]);
+
+        // Axes
+        xAxisG.call(d3.axisBottom(xScale).ticks(Math.min(10, data.length)));
+        yAxisG.call(d3.axisLeft(yScale).ticks(6).tickFormat(d3.format('.2f')));
+        svg.selectAll('.tick text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+        svg.selectAll('.tick line').style('stroke', 'var(--border-subtle)');
+        svg.selectAll('.domain').style('stroke', 'var(--border-subtle)');
+
+        // X-axis label
+        svg.selectAll('.x-label-7a').remove();
+        svg.append('text')
+          .attr('class', 'x-label-7a')
+          .attr('x', width / 2)
+          .attr('y', height + 45)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '18px')
+          .attr('fill', 'var(--text-secondary)')
+          .text('\u8FED\u4EE3\u6B65\u9A5F T');
+
+        // Line
+        const line = d3.line()
+          .x(d => xScale(d.step))
+          .y(d => yScale(d.metric));
+        linePath.attr('d', line(data));
+
+        // Reference line
+        const refVal = currentMetric === 'rle' ? 0.5 : 0.5;
+        const refText = currentMetric === 'rle' ? '\u96A8\u6A5F\u7406\u8AD6\u503C \u2248 0.5' : '\u6700\u5927\u96A8\u6A5F\u5BC6\u5EA6 0.5';
+        refLine
+          .attr('x1', 0).attr('x2', width)
+          .attr('y1', yScale(refVal)).attr('y2', yScale(refVal));
+        refLabel
+          .attr('x', width - 5)
+          .attr('y', yScale(refVal) - 6)
+          .attr('text-anchor', 'end')
+          .text(refText);
+
+        // Interactive dots (invisible but catch mouse)
+        data.forEach(d => {
+          dotsG.append('circle')
+            .attr('cx', xScale(d.step))
+            .attr('cy', yScale(d.metric))
+            .attr('r', 4)
+            .attr('fill', 'transparent')
+            .attr('stroke', 'none')
+            .on('mouseenter', function(event) {
+              const metricName = currentMetric === 'rle' ? 'RLE \u6BD4\u7387' : '1-bit \u5BC6\u5EA6';
+              tooltip.classed('visible', true)
+                .html('\u7B2C ' + d.step + ' \u6B65<br>' + metricName + ': ' + d.metric.toFixed(4) +
+                      '<br>\u503C: ' + traj[d.step].value.toString());
+            })
+            .on('mousemove', function(event) {
+              const rect = container.getBoundingClientRect();
+              tooltip
+                .style('left', (event.clientX - rect.left + 10) + 'px')
+                .style('top', (event.clientY - rect.top - 40) + 'px');
+            })
+            .on('mouseleave', () => tooltip.classed('visible', false));
+        });
+      }
+
+      function loadN(n) {
+        render(n);
+      }
+
+      // Metric toggle
+      rleRadio.addEventListener('change', () => { currentMetric = 'rle'; applyLocalInput(); });
+      densityRadio.addEventListener('change', () => { currentMetric = 'density'; applyLocalInput(); });
+
+      // Input handling
+      input.value = GlobalN.n;
+
+      function applyLocalInput() {
+        const val = parseInt(input.value, 10);
+        if (!isNaN(val) && val >= 1) {
+          const n = Math.min(val, 1000000000);
+          input.value = n;
+          loadN(n);
+        }
+      }
+
+      let inputTimer;
+      input.addEventListener('input', () => {
+        if (linked) { linked = false; input.classList.add('unlinked'); }
+        clearTimeout(inputTimer);
+        inputTimer = setTimeout(applyLocalInput, 300);
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { clearTimeout(inputTimer); applyLocalInput(); }
+      });
+
+      // Unlink/relink
+      unlinkBtn.addEventListener('click', () => {
+        linked = true;
+        input.classList.remove('unlinked');
+        input.value = GlobalN.n;
+        loadN(GlobalN.n);
+      });
+
+      // Subscribe to GlobalN
+      unsub = GlobalN.subscribe('chart-7a', (n) => {
+        if (!linked) return;
+        input.value = n;
+        loadN(n);
+      });
+
+      // Initial load
+      loadN(GlobalN.n);
+
+      _chart7A = { unsub, container };
+    }
+
+    function destroyChart7A() {
+      if (!_chart7A) return;
+      if (_chart7A.unsub) _chart7A.unsub();
+      const svgEl = _chart7A.container.querySelector('.chart-7a-svg');
+      if (svgEl) svgEl.remove();
+      const ttEl = _chart7A.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      _chart7A = null;
+    }
+
+    /* ==================== CHART 7B: Bit Pattern Heatmap ==================== */
+    let _chart7B = null;
+
+    function initChart7B(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const input = document.getElementById('chart-7b-input');
+      const unlinkBtn = document.getElementById('chart-7b-unlink');
+      const carryCheck = document.getElementById('chart-7b-carry');
+      const resetBtn = document.getElementById('chart-7b-reset');
+      const warningDiv = document.getElementById('chart-7b-warning');
+
+      let linked = true;
+      let unsub = null;
+      let zoomRange = null; // null = full view, { r0, r1, c0, c1 } = zoomed sub-region
+
+      // We'll create the SVG dynamically since dimensions depend on data
+      const svgContainer = d3.select(container);
+      let svgRoot = null;
+
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      // Store current data for re-render (carry toggle, zoom)
+      let currentTraj = null;
+      let currentBitMatrix = null;
+      let currentMaxBits = 0;
+      let currentEpochs = [];
+
+      function buildBitMatrix(traj) {
+        // Find max bit length
+        let maxBits = 0;
+        for (const d of traj) {
+          const blen = d.value.toString(2).length;
+          if (blen > maxBits) maxBits = blen;
+        }
+
+        // Build matrix: rows = steps, cols = bit positions (MSB left)
+        const matrix = [];
+        for (let r = 0; r < traj.length; r++) {
+          const bin = traj[r].value.toString(2);
+          const row = new Array(maxBits).fill(-1); // -1 = non-existent high bit
+          const offset = maxBits - bin.length;
+          for (let c = 0; c < bin.length; c++) {
+            row[offset + c] = parseInt(bin[c], 10);
+          }
+          matrix.push(row);
+        }
+        return { matrix, maxBits };
+      }
+
+      function render() {
+        if (!currentTraj || currentTraj.length <= 1) return;
+
+        // Remove previous SVG
+        container.querySelectorAll('.chart-7b-svg').forEach(el => el.remove());
+
+        const traj = currentTraj;
+        const fullMatrix = currentBitMatrix;
+        const fullMaxBits = currentMaxBits;
+        const epochs = currentEpochs;
+        const showCarry = carryCheck.checked;
+
+        // Determine view range
+        let r0 = 0, r1 = traj.length - 1, c0 = 0, c1 = fullMaxBits - 1;
+        if (zoomRange) {
+          r0 = zoomRange.r0;
+          r1 = zoomRange.r1;
+          c0 = zoomRange.c0;
+          c1 = zoomRange.c1;
+        }
+        const numRows = r1 - r0 + 1;
+        const numCols = c1 - c0 + 1;
+
+        // Adaptive cell size
+        const maxWidth = container.clientWidth - 48;
+        let cellW, cellH;
+        if (numRows <= 20 && numCols <= 15) {
+          cellW = cellH = 20;
+        } else {
+          cellW = Math.max(2, Math.min(20, Math.floor(maxWidth / numCols) - 1));
+          cellH = Math.max(2, Math.min(20, cellW));
+        }
+
+        // Margins for axis labels
+        const marginLeft = 50;
+        const marginTop = 25;
+        const marginBottom = 10;
+        const marginRight = 10;
+
+        const gridW = numCols * cellW;
+        const gridH = numRows * cellH;
+        const svgW = gridW + marginLeft + marginRight;
+        const svgH = gridH + marginTop + marginBottom;
+
+        svgRoot = svgContainer
+          .append('svg')
+          .attr('class', 'chart-svg chart-7b-svg')
+          .attr('viewBox', `0 0 ${svgW} ${svgH}`)
+          .attr('preserveAspectRatio', 'xMidYMid meet')
+          .style('max-height', Math.min(svgH, 600) + 'px');
+
+        // Defs for hatched pattern (non-existent bits)
+        const defs = svgRoot.append('defs');
+        const pat = defs.append('pattern')
+          .attr('id', 'hatch7b')
+          .attr('patternUnits', 'userSpaceOnUse')
+          .attr('width', 4)
+          .attr('height', 4);
+        pat.append('rect').attr('width', 4).attr('height', 4).attr('fill', '#d5d6da');
+        pat.append('path').attr('d', 'M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2')
+          .attr('stroke', '#bbbcc0').attr('stroke-width', 0.5);
+
+        const g = svgRoot.append('g')
+          .attr('transform', `translate(${marginLeft},${marginTop})`);
+
+        // Draw cells
+        for (let ri = 0; ri < numRows; ri++) {
+          const row = r0 + ri;
+          for (let ci = 0; ci < numCols; ci++) {
+            const col = c0 + ci;
+            const val = fullMatrix[row][col];
+
+            let fill;
+            if (val === -1) {
+              fill = 'url(#hatch7b)';
+            } else if (val === 1) {
+              fill = '#1e2030'; // --text-primary fallback
+            } else {
+              fill = '#ecedf0'; // --bg-surface fallback
+            }
+
+            const rect = g.append('rect')
+              .attr('x', ci * cellW)
+              .attr('y', ri * cellH)
+              .attr('width', cellW - (cellW > 3 ? 1 : 0))
+              .attr('height', cellH - (cellH > 3 ? 1 : 0))
+              .attr('fill', fill)
+              .attr('rx', cellW > 8 ? 1 : 0);
+
+            // Carry highlight: amber border if bit changed from previous step
+            if (showCarry && row > 0 && val !== -1) {
+              const prevVal = fullMatrix[row - 1][col];
+              if (prevVal !== -1 && prevVal !== val) {
+                rect
+                  .attr('stroke', '#d4a017')
+                  .attr('stroke-width', cellW > 6 ? 2 : 1);
+              }
+            }
+
+            // Tooltip on hover (only if cells big enough)
+            if (cellW >= 4 && cellH >= 4) {
+              rect
+                .on('mouseenter', function(event) {
+                  const bitLabel = val === -1 ? '\u4E0D\u5B58\u5728' : val.toString();
+                  tooltip.classed('visible', true)
+                    .html('\u7B2C ' + row + ' \u6B65\uFF0C\u7B2C ' + col + ' \u4F4D\uFF0C\u503C = ' + bitLabel);
+                })
+                .on('mousemove', function(event) {
+                  const cr = container.getBoundingClientRect();
+                  tooltip
+                    .style('left', (event.clientX - cr.left + 10) + 'px')
+                    .style('top', (event.clientY - cr.top - 40) + 'px');
+                })
+                .on('mouseleave', () => tooltip.classed('visible', false));
+            }
+          }
+        }
+
+        // Y-axis labels (step numbers)
+        const yLabelInterval = numRows > 100 ? 20 : (numRows > 40 ? 10 : (numRows > 20 ? 5 : 1));
+        for (let ri = 0; ri < numRows; ri += yLabelInterval) {
+          g.append('text')
+            .attr('x', -5)
+            .attr('y', ri * cellH + cellH / 2 + 5)
+            .attr('text-anchor', 'end')
+            .attr('font-size', '18px')
+            .attr('fill', 'var(--text-secondary)')
+            .text(r0 + ri);
+        }
+
+        // X-axis labels (bit positions) — show selectively to avoid overlap
+        const xLabelInterval = numCols > 60 ? 10 : (numCols > 30 ? 5 : (numCols > 15 ? 2 : 1));
+        for (let ci = 0; ci < numCols; ci += xLabelInterval) {
+          g.append('text')
+            .attr('x', ci * cellW + cellW / 2)
+            .attr('y', -5)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', Math.min(18, cellW * 1.2) + 'px')
+            .attr('fill', 'var(--text-secondary)')
+            .text(c0 + ci);
+        }
+
+        // Epoch markers on y-axis
+        epochs.forEach(ep => {
+          const startR = ep.startStep - r0;
+          if (startR >= 0 && startR < numRows) {
+            g.append('line')
+              .attr('x1', -marginLeft + 5)
+              .attr('x2', -3)
+              .attr('y1', startR * cellH)
+              .attr('y2', startR * cellH)
+              .attr('stroke', '#c93135')
+              .attr('stroke-width', 2);
+          }
+        });
+
+        // Drag-to-zoom selection
+        let dragStart = null;
+        const selRect = g.append('rect')
+          .attr('class', 'zoom-sel')
+          .attr('fill', 'rgba(30,90,184,0.15)')
+          .attr('stroke', 'var(--color-link)')
+          .attr('stroke-width', 1)
+          .attr('stroke-dasharray', '4,2')
+          .style('display', 'none');
+
+        // Overlay rect to capture mouse events
+        const overlay = g.append('rect')
+          .attr('width', gridW)
+          .attr('height', gridH)
+          .attr('fill', 'transparent')
+          .style('cursor', 'crosshair');
+
+        overlay.on('mousedown', function(event) {
+          const [mx, my] = d3.pointer(event);
+          dragStart = { x: mx, y: my };
+          selRect.style('display', null);
+          event.preventDefault();
+        });
+
+        overlay.on('mousemove', function(event) {
+          if (!dragStart) return;
+          const [mx, my] = d3.pointer(event);
+          const x0 = Math.min(dragStart.x, mx);
+          const y0 = Math.min(dragStart.y, my);
+          const w = Math.abs(mx - dragStart.x);
+          const h = Math.abs(my - dragStart.y);
+          selRect.attr('x', x0).attr('y', y0).attr('width', w).attr('height', h);
+        });
+
+        overlay.on('mouseup', function(event) {
+          if (!dragStart) return;
+          const [mx, my] = d3.pointer(event);
+          const x0 = Math.min(dragStart.x, mx);
+          const y0 = Math.min(dragStart.y, my);
+          const x1 = Math.max(dragStart.x, mx);
+          const y1 = Math.max(dragStart.y, my);
+          dragStart = null;
+          selRect.style('display', 'none');
+
+          // Convert pixel to cell indices
+          const newC0 = c0 + Math.floor(x0 / cellW);
+          const newC1 = c0 + Math.min(numCols - 1, Math.floor(x1 / cellW));
+          const newR0 = r0 + Math.floor(y0 / cellH);
+          const newR1 = r0 + Math.min(numRows - 1, Math.floor(y1 / cellH));
+
+          if (newC1 - newC0 >= 1 && newR1 - newR0 >= 1) {
+            zoomRange = { r0: newR0, r1: newR1, c0: newC0, c1: newC1 };
+            resetBtn.style.display = 'inline';
+            render();
+          }
+        });
+      }
+
+      function loadN(n) {
+        warningDiv.textContent = '';
+        zoomRange = null;
+        resetBtn.style.display = 'none';
+
+        if (n > 1000000) {
+          warningDiv.textContent = '\u8B66\u544A\uFF1A\u71B1\u529B\u5716\u50C5\u652F\u63F4 n \u2264 10\u2076\uFF0C\u8ACB\u8F38\u5165\u8F03\u5C0F\u7684\u6578\u5B57';
+          container.querySelectorAll('.chart-7b-svg').forEach(el => el.remove());
+          currentTraj = null;
+          return;
+        }
+
+        const traj = Collatz.trajectory(n, 2000);
+        currentTraj = traj;
+        const { matrix, maxBits } = buildBitMatrix(traj);
+        currentBitMatrix = matrix;
+        currentMaxBits = maxBits;
+        currentEpochs = Collatz.epochs(traj);
+        render();
+      }
+
+      // Carry toggle
+      carryCheck.addEventListener('change', () => {
+        if (currentTraj) render();
+      });
+
+      // Reset zoom
+      resetBtn.addEventListener('click', () => {
+        zoomRange = null;
+        resetBtn.style.display = 'none';
+        if (currentTraj) render();
+      });
+
+      // Input handling
+      input.value = GlobalN.n;
+
+      function applyLocalInput() {
+        const val = parseInt(input.value, 10);
+        if (!isNaN(val) && val >= 1) {
+          const n = Math.min(val, 1000000000);
+          input.value = n;
+          loadN(n);
+        }
+      }
+
+      let inputTimer;
+      input.addEventListener('input', () => {
+        if (linked) { linked = false; input.classList.add('unlinked'); }
+        clearTimeout(inputTimer);
+        inputTimer = setTimeout(applyLocalInput, 300);
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { clearTimeout(inputTimer); applyLocalInput(); }
+      });
+
+      // Unlink/relink
+      unlinkBtn.addEventListener('click', () => {
+        linked = true;
+        input.classList.remove('unlinked');
+        input.value = GlobalN.n;
+        loadN(GlobalN.n);
+      });
+
+      // Subscribe to GlobalN
+      unsub = GlobalN.subscribe('chart-7b', (n) => {
+        if (!linked) return;
+        input.value = n;
+        loadN(n);
+      });
+
+      // Initial load
+      loadN(GlobalN.n);
+
+      _chart7B = { unsub, container };
+    }
+
+    function destroyChart7B() {
+      if (!_chart7B) return;
+      if (_chart7B.unsub) _chart7B.unsub();
+      _chart7B.container.querySelectorAll('.chart-7b-svg').forEach(el => el.remove());
+      const ttEl = _chart7B.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      _chart7B = null;
+    }
+
     /* ==================== BOOT ==================== */
     document.addEventListener('DOMContentLoaded', () => {
       // Init MathJax lazy observer
@@ -5015,6 +5645,8 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       ChartRegistry.register('chart-5b-container', (el) => initChart5B(el), () => destroyChart5B(), 'tree');
       ChartRegistry.register('chart-6a-container', (el) => initChart6A(el), () => destroyChart6A());
       ChartRegistry.register('chart-6b-container', (el) => initChart6B(el), () => destroyChart6B());
+      ChartRegistry.register('chart-7a-container', (el) => initChart7A(el), () => destroyChart7A(), 'kolmogorov');
+      ChartRegistry.register('chart-7b-container', (el) => initChart7B(el), () => destroyChart7B(), 'kolmogorov');
 
       // Start observing chart containers
       ChartRegistry.observeAll();
