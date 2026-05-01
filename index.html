@@ -957,6 +957,229 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     })();
+
+    /* ==================== HERO INPUT ==================== */
+    (function initHeroInput() {
+      const input = document.getElementById('hero-n-input');
+      const error = document.getElementById('hero-error');
+
+      function validate(val) {
+        const n = parseInt(val, 10);
+        if (val.trim() === '' || isNaN(n)) {
+          return { valid: false, msg: '請輸入 1 至 1,000,000,000 的正整數' };
+        }
+        if (n < 1) {
+          return { valid: false, msg: '請輸入 1 至 1,000,000,000 的正整數' };
+        }
+        if (n > 1000000000) {
+          return { valid: true, n: 1000000000, msg: '超出上限，已截斷至 10\u2079' };
+        }
+        if (!/^\d+$/.test(val.trim())) {
+          return { valid: false, msg: '請輸入 1 至 1,000,000,000 的正整數' };
+        }
+        return { valid: true, n };
+      }
+
+      function applyInput() {
+        const result = validate(input.value);
+        if (!result.valid) {
+          input.classList.add('invalid');
+          error.textContent = result.msg;
+          error.classList.add('visible');
+          return;
+        }
+        input.classList.remove('invalid');
+        if (result.msg) {
+          error.textContent = result.msg;
+          error.classList.add('visible');
+          input.value = result.n;
+        } else {
+          error.classList.remove('visible');
+        }
+        GlobalN.set(result.n);
+      }
+
+      // Debounced input
+      let timer;
+      input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(applyInput, 300);
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { clearTimeout(timer); applyInput(); }
+      });
+
+      // Set initial value
+      GlobalN.set(27);
+    })();
+
+    /* ==================== HERO CHART ==================== */
+    (function initHeroChart() {
+      const container = document.getElementById('hero-chart');
+      const fallback = document.getElementById('hero-chart-fallback');
+      const playBtn = document.getElementById('hero-play');
+      const pauseBtn = document.getElementById('hero-pause');
+      const skipBtn = document.getElementById('hero-skip');
+      const scaleToggle = document.getElementById('hero-scale-toggle');
+
+      // Check D3 availability
+      if (typeof d3 === 'undefined') {
+        fallback.style.display = 'block';
+        return;
+      }
+
+      let useLog = false;
+      let trajectory = [];
+      let displayedSteps = 0;
+      const anim = new AnimationController(500);
+
+      // SVG setup
+      const margin = { top: 20, right: 30, bottom: 40, left: 70 };
+      const width = container.clientWidth - margin.left - margin.right - 48; // 48 = padding
+      const height = 280;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg')
+        .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      // Axes groups
+      const xAxisG = svg.append('g').attr('transform', `translate(0,${height})`);
+      const yAxisG = svg.append('g');
+      const linePath = svg.append('path')
+        .attr('fill', 'none')
+        .attr('stroke', 'var(--color-link)')
+        .attr('stroke-width', 2);
+      const dots = svg.append('g');
+
+      // Tooltip
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      function render(steps) {
+        if (!trajectory.length) return;
+        const data = trajectory.slice(0, steps + 1);
+
+        const xScale = d3.scaleLinear()
+          .domain([0, trajectory.length - 1])
+          .range([0, width]);
+
+        const values = trajectory.map(d => Number(d.value));
+        const yScale = useLog
+          ? d3.scaleLog().domain([1, d3.max(values) || 2]).range([height, 0]).clamp(true)
+          : d3.scaleLinear().domain([0, d3.max(values) || 1]).range([height, 0]);
+
+        xAxisG.call(d3.axisBottom(xScale).ticks(Math.min(10, trajectory.length))
+          .tickFormat(d => d));
+        yAxisG.call(d3.axisLeft(yScale).ticks(6));
+
+        // Style axes
+        svg.selectAll('.tick text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+        svg.selectAll('.tick line').style('stroke', 'var(--border-subtle)');
+        svg.selectAll('.domain').style('stroke', 'var(--border-subtle)');
+
+        const line = d3.line()
+          .x((d, i) => xScale(i))
+          .y(d => yScale(Number(d.value)));
+
+        linePath.datum(data).attr('d', line);
+
+        // Current dot
+        dots.selectAll('circle').remove();
+        if (data.length > 0) {
+          const last = data[data.length - 1];
+          const lastIdx = data.length - 1;
+          dots.append('circle')
+            .attr('cx', xScale(lastIdx))
+            .attr('cy', yScale(Number(last.value)))
+            .attr('r', 5)
+            .attr('fill', 'var(--color-link)');
+        }
+
+        // Hover interaction
+        const overlay = svg.selectAll('.overlay-rect').data([null]);
+        overlay.enter().append('rect').attr('class', 'overlay-rect')
+          .attr('width', width).attr('height', height)
+          .attr('fill', 'transparent')
+          .merge(overlay)
+          .on('mousemove', function(event) {
+            const [mx] = d3.pointer(event);
+            const idx = Math.round(xScale.invert(mx));
+            if (idx >= 0 && idx < data.length) {
+              const d = data[idx];
+              tooltip.classed('visible', true)
+                .style('left', (xScale(idx) + margin.left + 10) + 'px')
+                .style('top', (yScale(Number(d.value)) + margin.top - 10) + 'px')
+                .html(`步 ${idx}<br>值 = ${d.value.toLocaleString()}<br>v\u2082 = ${d.v2}`);
+            }
+          })
+          .on('mouseleave', () => tooltip.classed('visible', false));
+      }
+
+      function loadTrajectory(n) {
+        anim.pause();
+        trajectory = Collatz.trajectory(n);
+        displayedSteps = trajectory.length - 1;
+        render(displayedSteps);
+      }
+
+      // Play animation
+      playBtn.addEventListener('click', () => {
+        if (anim.paused) {
+          displayedSteps = 0;
+          render(0);
+          const autoSpeed = trajectory.length > 200 ? 4 : 1;
+          anim.setSpeed(autoSpeed);
+          anim.play(() => {
+            displayedSteps++;
+            render(displayedSteps);
+            return displayedSteps < trajectory.length - 1;
+          });
+        }
+      });
+
+      pauseBtn.addEventListener('click', () => anim.pause());
+
+      skipBtn.addEventListener('click', () => {
+        anim.pause();
+        displayedSteps = trajectory.length - 1;
+        render(displayedSteps);
+      });
+
+      scaleToggle.addEventListener('click', () => {
+        useLog = !useLog;
+        scaleToggle.classList.toggle('active', useLog);
+        render(displayedSteps);
+      });
+
+      // Listen to global n
+      GlobalN.subscribe('hero-chart', (n) => loadTrajectory(n));
+
+      // Initial render
+      loadTrajectory(27);
+
+      // Resize
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          // Recalculate on resize (SVG viewBox handles most of it)
+          render(displayedSteps);
+        }, 200);
+      });
+    })();
+
+    /* ==================== BOOT ==================== */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Init MathJax lazy observer
+      MathLazy.init();
+      document.querySelectorAll('.math-block, .math-inline').forEach(el => MathLazy.observe(el));
+
+      // Start observing chart containers
+      ChartRegistry.observeAll();
+    });
   </script>
 
 </body>
