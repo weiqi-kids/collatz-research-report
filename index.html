@@ -12,16 +12,7 @@
   <!-- MathJax 3 -->
   <script>
     window.MathJax = {
-      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
-      startup: {
-        pageReady: () => {
-          // Delay: only typeset visible formulas on load
-          const visible = document.querySelectorAll('.section:first-of-type .math-block');
-          if (visible.length && window.MathJax.typesetPromise) {
-            return MathJax.typesetPromise([...visible]);
-          }
-        }
-      }
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
