@@ -1071,8 +1071,76 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
 
     <section class="section" id="sec-tree">
       <h2>6. 框架五：反向樹與密度論證</h2>
-      <div id="chart-5a-container"></div>
-      <div id="chart-5b-container"></div>
+
+      <!-- 白話引言 -->
+      <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>問題：</strong>如果從 1 出發，倒著走 Collatz——能到達所有正整數嗎？
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>類比：</strong>想像一棵樹，根是 1，每個節點的子節點是「誰能經過 Collatz 到達我？」。如果這棵樹能長到覆蓋所有正整數，猜想就成立。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>目標：</strong>證明反向 Collatz 樹覆蓋所有正整數。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary);">
+          <strong>結果：</strong>樹確實長得很茂密——覆蓋的比例趨近 100%。但密度為零的遺漏集不代表空集，無法排除非平凡循環。
+        </p>
+      </div>
+
+      <!-- Chart 5A: Inverse Collatz Tree -->
+      <div class="chart-container" id="chart-5a-container" aria-label="反向 Collatz 樹互動視覺化">
+        <div class="chart-title">圖 5A：反向 Collatz 樹</div>
+        <p style="font-size:var(--text-xs);color:var(--text-secondary)">根節點為 1，子節點是「誰能經過一步標準 Collatz 到達我？」。點擊節點展開/收合，拖曳滑桿控制最大深度。</p>
+        <div class="chart-input-group">
+          <label style="font-size:var(--text-xs)">最大深度</label>
+          <input type="range" id="chart-5a-depth" min="1" max="8" value="4" style="width:10rem;">
+          <span id="chart-5a-depth-val" style="font-size:var(--text-xs);min-width:2rem;">4</span>
+          <button class="btn" id="chart-5a-layout-toggle" style="margin-left:1rem;">切換放射狀</button>
+          <label style="font-size:var(--text-xs);margin-left:1rem;">搜尋節點</label>
+          <input type="text" class="chart-input" id="chart-5a-search" inputmode="numeric" placeholder="輸入數字" style="width:6rem;">
+        </div>
+        <div id="chart-5a-msg" style="font-size:var(--text-xs);color:var(--color-critical);margin-bottom:0.5rem;min-height:1.25rem;"></div>
+      </div>
+
+      <!-- §6.1 反向 Collatz 樹 -->
+      <h3>6.1 反向 Collatz 樹</h3>
+      <p>定義樹 \( \mathcal{T} \)，根為 1。每個奇數 \( m \) 的前驅（standard mapping, NOT compressed）：</p>
+      <div class="math-block">
+        \[ \text{predecessors}(m) = \{2m\} \cup \left\{ \frac{m-1}{3} \;\middle|\; 3 \mid (m-1) \text{ 且 } \frac{m-1}{3} \text{ 為正奇數} \right\} \]
+      </div>
+      <p style="font-size:var(--text-sm);">猜想等價於 \( \mathcal{T} \) 覆蓋所有正整數——如果每個正整數都出現在這棵樹上，表示所有數的 Collatz 軌道最終都會抵達 1。</p>
+
+      <!-- §6.2 遺漏集的性質 -->
+      <h3>6.2 「遺漏集」的性質</h3>
+      <p>若遺漏集 \( S = \mathbb{N}_{\text{odd}} \setminus \mathcal{T} \neq \emptyset \)，則 \( S \) 必須滿足：</p>
+      <ol style="font-size:var(--text-sm); padding-left:1.5rem;">
+        <li><strong>正向不變</strong>：\( S(S) \subseteq S \)——遺漏集中的數經過 Collatz 步驟後仍留在遺漏集中。</li>
+        <li><strong>自然密度為 0</strong>：由 Tao (2019) 的結果，幾乎所有正整數的 Collatz 軌道都趨近任意小的值。遺漏集的密度必為 0。</li>
+        <li><strong>包含完整 2-tower</strong>：若奇數 \( n \in S \)，則 \( \{n, 2n, 4n, 8n, \ldots\} \) 全部屬於 \( S \)（偶數版本的完整倍數塔）。</li>
+      </ol>
+
+      <!-- Chart 5B: Coverage Curve -->
+      <div class="chart-container" id="chart-5b-container" aria-label="反向樹覆蓋率曲線">
+        <div class="chart-title">圖 5B：覆蓋率曲線</div>
+        <p style="font-size:var(--text-xs);color:var(--text-secondary)">隨著反向樹深度增加，\([1,N]\) 中奇數的覆蓋比例如何增長？每次改變 N 會新增一條曲線（最多 5 條）。</p>
+        <div class="chart-input-group">
+          <label style="font-size:var(--text-xs)">N =</label>
+          <input type="range" id="chart-5b-n" min="50" max="500" value="200" step="50" style="width:10rem;">
+          <span id="chart-5b-n-val" style="font-size:var(--text-xs);min-width:3rem;">200</span>
+        </div>
+      </div>
+
+      <!-- §6.3 斷裂點 -->
+      <div class="callout-break">
+        <h3>此框架的斷裂點</h3>
+        <p style="font-size:var(--text-sm);">密度為 0 的正向不變集完全可以存在——例如非平凡循環的元素集。</p>
+        <p style="font-size:var(--text-sm);">樹確實覆蓋了「幾乎所有」正整數，但<strong>密度為零不蘊含空集</strong>。就像有理數在實數中密度為零卻無處不在一樣，我們無法從「遺漏集很小」推出「遺漏集為空」。</p>
+        <p style="font-size:var(--text-sm); margin-top:0.75rem;">需要但未獲得的結果：</p>
+        <div style="background:var(--bg-surface); border-left:3px solid var(--color-medium); padding:1rem; margin-top:0.5rem; border-radius:0 0.375rem 0.375rem 0;">
+          <p style="font-size:var(--text-sm);"><strong>遺漏集空集證明</strong>：直接證明滿足正向不變、密度 0、完整 2-tower 三個條件的集合只能是空集。</p>
+        </div>
+      </div>
     </section>
 
     <section class="section" id="sec-z2">
@@ -3933,6 +4001,554 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       _chart4B = null;
     }
 
+    /* ==================== CHART 5A: INVERSE COLLATZ TREE ==================== */
+    let _chart5A = null;
+
+    function initChart5A(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const depthSlider = document.getElementById('chart-5a-depth');
+      const depthVal = document.getElementById('chart-5a-depth-val');
+      const layoutToggle = document.getElementById('chart-5a-layout-toggle');
+      const searchInput = document.getElementById('chart-5a-search');
+      const msgDiv = document.getElementById('chart-5a-msg');
+
+      let maxDepth = +depthSlider.value;
+      let useRadial = false;
+      let totalNodes = 0;
+      const NODE_LIMIT = 500;
+
+      // Color by n mod 6 using hex (6 hues at L=0.65, C=0.12 in OKLCH, pre-converted to hex)
+      const nodeColors = [
+        '#c75a5a', // H=0
+        '#c78a2e', // H=60
+        '#6aad3e', // H=120
+        '#2ea8a8', // H=180
+        '#5a7ac7', // H=240
+        '#a85ac7'  // H=300
+      ];
+      function nodeColor(n) { return nodeColors[n % 6]; }
+
+      /** Compute standard Collatz predecessors of m (NOT compressed).
+       *  predecessors(m) = {2m} ∪ {(m-1)/3 if (m-1)%3==0 and (m-1)/3 is a positive odd integer}
+       */
+      function predecessors(m) {
+        const preds = [2 * m];
+        if ((m - 1) % 3 === 0) {
+          const p = (m - 1) / 3;
+          if (p > 0 && p % 2 === 1 && p !== m) {
+            preds.push(p);
+          }
+        }
+        return preds.sort((a, b) => a - b);
+      }
+
+      /** Count steps to reach 1 via standard Collatz */
+      function stepsToOne(n) {
+        let steps = 0;
+        let v = n;
+        while (v !== 1 && steps < 1000) {
+          if (v % 2 === 0) v = v / 2;
+          else v = 3 * v + 1;
+          steps++;
+        }
+        return steps;
+      }
+
+      /** Build tree data (hierarchical JSON for d3.hierarchy) */
+      function buildTree(root, maxD) {
+        totalNodes = 0;
+        function expand(val, depth) {
+          totalNodes++;
+          const node = { name: val, value: val, children: [] };
+          if (depth >= maxD || totalNodes >= NODE_LIMIT) return node;
+          const preds = predecessors(val);
+          // Filter: exclude trivial loop at root (4->2->1->4)
+          const filtered = (val === 1)
+            ? preds.filter(p => p !== 2 || depth > 0) // allow 2 as child of 1 only once
+            : preds;
+          // Show at most 5 children, rest as collapsed
+          const shown = filtered.slice(0, 5);
+          const rest = filtered.length - shown.length;
+          for (const p of shown) {
+            if (totalNodes >= NODE_LIMIT) break;
+            node.children.push(expand(p, depth + 1));
+          }
+          if (rest > 0) {
+            node.children.push({ name: `+${rest}`, value: null, children: [] });
+          }
+          return node;
+        }
+        return expand(root, 0);
+      }
+
+      // SVG setup
+      const margin = { top: 50, right: 50, bottom: 50, left: 50 };
+      const svgW = container.clientWidth - 48;
+      const svgH = 620;
+
+      const svgEl = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-5a-svg')
+        .attr('viewBox', `0 0 ${svgW} ${svgH}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet');
+
+      const gMain = svgEl.append('g');
+
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      // Pulsing ring CSS (injected once)
+      if (!document.getElementById('pulse-ring-style')) {
+        const style = document.createElement('style');
+        style.id = 'pulse-ring-style';
+        style.textContent = `
+          @keyframes pulseRing {
+            0% { r: 32; opacity: 0.8; }
+            100% { r: 46; opacity: 0; }
+          }
+          .pulse-ring {
+            fill: none;
+            stroke: var(--color-critical);
+            stroke-width: 3;
+            animation: pulseRing 1s ease-out infinite;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      /** Render the tree */
+      function render() {
+        const treeData = buildTree(1, maxDepth);
+
+        if (totalNodes >= NODE_LIMIT) {
+          msgDiv.textContent = '已達顯示上限（500 節點），請縮小深度';
+        } else {
+          msgDiv.textContent = '';
+        }
+
+        const root = d3.hierarchy(treeData, d => d.children);
+
+        gMain.selectAll('*').remove();
+
+        if (useRadial) {
+          // Radial layout
+          const radius = Math.min(svgW, svgH) / 2 - 60;
+          const treeLayout = d3.tree()
+            .size([2 * Math.PI, radius])
+            .separation((a, b) => (a.parent === b.parent ? 1 : 2) / a.depth || 1);
+
+          treeLayout(root);
+
+          const g = gMain.attr('transform', `translate(${svgW / 2},${svgH / 2})`);
+
+          // Links
+          g.selectAll('.tree-link')
+            .data(root.links())
+            .join('path')
+            .attr('class', 'tree-link')
+            .attr('fill', 'none')
+            .attr('stroke', 'var(--border-subtle)')
+            .attr('stroke-width', 1.5)
+            .attr('d', d3.linkRadial()
+              .angle(d => d.x)
+              .radius(d => d.y));
+
+          // Nodes
+          const nodeG = g.selectAll('.tree-node')
+            .data(root.descendants())
+            .join('g')
+            .attr('class', 'tree-node')
+            .attr('transform', d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`);
+
+          nodeG.append('circle')
+            .attr('r', d => d.children && d.children.length > 0 ? 28 : 24)
+            .attr('fill', d => d.data.value !== null ? nodeColor(d.data.value) : 'var(--bg-overlay)')
+            .attr('stroke', 'var(--text-primary)')
+            .attr('stroke-width', 1)
+            .attr('cursor', 'pointer');
+
+          nodeG.append('text')
+            .attr('dy', '0.35em')
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '18px')
+            .attr('fill', 'white')
+            .attr('pointer-events', 'none')
+            .text(d => d.data.name);
+
+          addInteractions(nodeG);
+
+        } else {
+          // Top-down tree layout
+          const innerW = svgW - margin.left - margin.right;
+          const innerH = svgH - margin.top - margin.bottom;
+          const treeLayout = d3.tree().size([innerW, innerH]);
+
+          treeLayout(root);
+
+          const g = gMain.attr('transform', `translate(${margin.left},${margin.top})`);
+
+          // Links
+          g.selectAll('.tree-link')
+            .data(root.links())
+            .join('path')
+            .attr('class', 'tree-link')
+            .attr('fill', 'none')
+            .attr('stroke', 'var(--border-subtle)')
+            .attr('stroke-width', 1.5)
+            .attr('d', d3.linkVertical()
+              .x(d => d.x)
+              .y(d => d.y));
+
+          // Nodes
+          const nodeG = g.selectAll('.tree-node')
+            .data(root.descendants())
+            .join('g')
+            .attr('class', 'tree-node')
+            .attr('transform', d => `translate(${d.x},${d.y})`);
+
+          nodeG.append('circle')
+            .attr('r', d => d.children && d.children.length > 0 ? 28 : 24)
+            .attr('fill', d => d.data.value !== null ? nodeColor(d.data.value) : 'var(--bg-overlay)')
+            .attr('stroke', 'var(--text-primary)')
+            .attr('stroke-width', 1)
+            .attr('cursor', 'pointer');
+
+          nodeG.append('text')
+            .attr('dy', '0.35em')
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '18px')
+            .attr('fill', 'white')
+            .attr('pointer-events', 'none')
+            .text(d => d.data.name);
+
+          addInteractions(nodeG);
+        }
+
+        // Notify 5B
+        if (_chart5B && _chart5B.updateFromTree) {
+          _chart5B.updateFromTree();
+        }
+      }
+
+      function addInteractions(nodeG) {
+        nodeG.select('circle')
+          .on('mouseenter', function(event, d) {
+            if (d.data.value === null) return;
+            const steps = stepsToOne(d.data.value);
+            tooltip.classed('visible', true)
+              .html(`n = ${d.data.value}<br>到 1 的步數：${steps}`);
+          })
+          .on('mousemove', function(event) {
+            const rect = container.getBoundingClientRect();
+            tooltip.style('left', (event.clientX - rect.left + 12) + 'px')
+              .style('top', (event.clientY - rect.top - 28) + 'px');
+          })
+          .on('mouseleave', function() {
+            tooltip.classed('visible', false);
+          });
+      }
+
+      function highlightSearch(val) {
+        // Remove existing pulse rings
+        gMain.selectAll('.pulse-ring').remove();
+        if (!val || isNaN(val)) return;
+        const num = parseInt(val, 10);
+        if (num <= 0) return;
+        // Find matching node
+        gMain.selectAll('.tree-node').each(function(d) {
+          if (d.data.value === num) {
+            d3.select(this).append('circle')
+              .attr('class', 'pulse-ring')
+              .attr('r', 18);
+          }
+        });
+      }
+
+      // Event listeners
+      depthSlider.addEventListener('input', () => {
+        maxDepth = +depthSlider.value;
+        depthVal.textContent = maxDepth;
+        render();
+        highlightSearch(searchInput.value);
+      });
+
+      layoutToggle.addEventListener('click', () => {
+        useRadial = !useRadial;
+        layoutToggle.textContent = useRadial ? '切換樹狀' : '切換放射狀';
+        render();
+        highlightSearch(searchInput.value);
+      });
+
+      searchInput.addEventListener('input', () => {
+        highlightSearch(searchInput.value);
+      });
+
+      // Initial render
+      render();
+
+      _chart5A = { container, render, buildTree: () => buildTree(1, maxDepth) };
+    }
+
+    function destroyChart5A() {
+      if (!_chart5A) return;
+      const svgEl = _chart5A.container.querySelector('.chart-5a-svg');
+      if (svgEl) svgEl.remove();
+      const ttEl = _chart5A.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      const pulseStyle = document.getElementById('pulse-ring-style');
+      if (pulseStyle) pulseStyle.remove();
+      _chart5A = null;
+    }
+
+    /* ==================== CHART 5B: COVERAGE CURVE ==================== */
+    let _chart5B = null;
+
+    function initChart5B(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const nSlider = document.getElementById('chart-5b-n');
+      const nVal = document.getElementById('chart-5b-n-val');
+
+      // Curve history (max 5)
+      const curves = [];
+      const curveHues = [240, 150, 25, 330, 80]; // hex-friendly hues
+      const curveColors = ['#5a7ac7', '#3aad6e', '#c7823a', '#c75aa8', '#7ac75a'];
+      let curveIndex = 0;
+
+      const margin = { top: 30, right: 120, bottom: 50, left: 70 };
+      const width = container.clientWidth - margin.left - margin.right - 48;
+      const height = 320;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-5b-svg')
+        .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      /** Build inverse tree to given depth, return set of all reached numbers */
+      function buildInverseTreeSet(maxD) {
+        const reached = new Set([1]);
+        let frontier = [1];
+        for (let d = 0; d < maxD; d++) {
+          const nextFrontier = [];
+          for (const m of frontier) {
+            // predecessor 1: 2m (always)
+            const p1 = 2 * m;
+            if (!reached.has(p1)) {
+              reached.add(p1);
+              nextFrontier.push(p1);
+            }
+            // predecessor 2: (m-1)/3 if valid
+            if ((m - 1) % 3 === 0) {
+              const p2 = (m - 1) / 3;
+              if (p2 > 0 && p2 % 2 === 1 && p2 !== m && !reached.has(p2)) {
+                reached.add(p2);
+                nextFrontier.push(p2);
+              }
+            }
+          }
+          frontier = nextFrontier;
+        }
+        return reached;
+      }
+
+      /** Compute coverage data for a given N */
+      function computeCoverage(N) {
+        // Count odd numbers in [1,N]
+        const oddCount = Math.ceil(N / 2);
+        const maxD = 20; // compute up to depth 20
+        const data = [];
+        const reached = new Set([1]);
+        let frontier = [1];
+
+        // depth 0
+        let coveredOdd = 0;
+        reached.forEach(v => { if (v <= N && v % 2 === 1) coveredOdd++; });
+        data.push({ depth: 0, ratio: coveredOdd / oddCount });
+
+        for (let d = 1; d <= maxD; d++) {
+          const nextFrontier = [];
+          for (const m of frontier) {
+            const p1 = 2 * m;
+            if (p1 <= N * 4 && !reached.has(p1)) { // allow some headroom
+              reached.add(p1);
+              nextFrontier.push(p1);
+            }
+            if ((m - 1) % 3 === 0) {
+              const p2 = (m - 1) / 3;
+              if (p2 > 0 && p2 % 2 === 1 && p2 !== m && !reached.has(p2)) {
+                reached.add(p2);
+                nextFrontier.push(p2);
+              }
+            }
+          }
+          frontier = nextFrontier;
+          // Recount odd numbers in [1,N] that are reached
+          coveredOdd = 0;
+          reached.forEach(v => { if (v <= N && v % 2 === 1) coveredOdd++; });
+          data.push({ depth: d, ratio: coveredOdd / oddCount });
+        }
+        return data;
+      }
+
+      // Scales
+      const xScale = d3.scaleLinear().domain([0, 20]).range([0, width]);
+      const yScale = d3.scaleLinear().domain([0, 1]).range([height, 0]);
+
+      // Axes
+      const xAxisG = svg.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(xScale).ticks(10).tickFormat(d3.format('d')));
+
+      xAxisG.selectAll('text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+      xAxisG.selectAll('line').style('stroke', 'var(--border-subtle)');
+      xAxisG.select('.domain').style('stroke', 'var(--border-subtle)');
+
+      svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height + 42)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-secondary)')
+        .attr('font-size', '18px')
+        .text('反向樹深度');
+
+      const yAxisG = svg.append('g')
+        .call(d3.axisLeft(yScale).ticks(5).tickFormat(d3.format('.0%')));
+
+      yAxisG.selectAll('text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+      yAxisG.selectAll('line').style('stroke', 'var(--border-subtle)');
+      yAxisG.select('.domain').style('stroke', 'var(--border-subtle)');
+
+      // Grid lines
+      svg.append('g')
+        .attr('class', 'grid')
+        .selectAll('line')
+        .data(yScale.ticks(5))
+        .join('line')
+        .attr('x1', 0).attr('x2', width)
+        .attr('y1', d => yScale(d)).attr('y2', d => yScale(d))
+        .attr('stroke', 'var(--border-subtle)')
+        .attr('stroke-dasharray', '3,3')
+        .attr('opacity', 0.5);
+
+      // 100% reference line
+      svg.append('line')
+        .attr('x1', 0).attr('x2', width)
+        .attr('y1', yScale(1)).attr('y2', yScale(1))
+        .attr('stroke', 'var(--color-pass)')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '6,3')
+        .attr('opacity', 0.6);
+
+      const curvesG = svg.append('g').attr('class', 'curves-group');
+      const legendG = svg.append('g').attr('class', 'legend-group');
+
+      function renderCurves() {
+        curvesG.selectAll('*').remove();
+        legendG.selectAll('*').remove();
+
+        curves.forEach((curve, i) => {
+          const line = d3.line()
+            .x(d => xScale(d.depth))
+            .y(d => yScale(d.ratio));
+
+          curvesG.append('path')
+            .datum(curve.data)
+            .attr('fill', 'none')
+            .attr('stroke', curve.color)
+            .attr('stroke-width', i === curves.length - 1 ? 2.5 : 1.5)
+            .attr('opacity', i === curves.length - 1 ? 1 : 0.5)
+            .attr('d', line);
+
+          // Dots
+          curvesG.selectAll(`.dot-${i}`)
+            .data(curve.data)
+            .join('circle')
+            .attr('class', `dot-${i}`)
+            .attr('cx', d => xScale(d.depth))
+            .attr('cy', d => yScale(d.ratio))
+            .attr('r', 3)
+            .attr('fill', curve.color)
+            .attr('opacity', i === curves.length - 1 ? 1 : 0.4)
+            .on('mouseenter', function(event, d) {
+              tooltip.classed('visible', true)
+                .html(`N = ${curve.N}<br>深度 ${d.depth}<br>覆蓋率 ${(d.ratio * 100).toFixed(1)}%`);
+            })
+            .on('mousemove', function(event) {
+              const rect = container.getBoundingClientRect();
+              tooltip.style('left', (event.clientX - rect.left + 12) + 'px')
+                .style('top', (event.clientY - rect.top - 28) + 'px');
+            })
+            .on('mouseleave', function() {
+              tooltip.classed('visible', false);
+            });
+
+          // Legend
+          legendG.append('rect')
+            .attr('x', width + 10)
+            .attr('y', i * 28)
+            .attr('width', 16)
+            .attr('height', 3)
+            .attr('fill', curve.color)
+            .attr('opacity', i === curves.length - 1 ? 1 : 0.5);
+
+          legendG.append('text')
+            .attr('x', width + 32)
+            .attr('y', i * 28 + 5)
+            .attr('fill', 'var(--text-secondary)')
+            .attr('font-size', '18px')
+            .text(`N=${curve.N}`);
+        });
+      }
+
+      function addCurve(N) {
+        const data = computeCoverage(N);
+        const color = curveColors[curveIndex % curveColors.length];
+        curveIndex++;
+        curves.push({ N, data, color });
+        // Keep max 5
+        while (curves.length > 5) curves.shift();
+        renderCurves();
+      }
+
+      // Slider event
+      nSlider.addEventListener('input', () => {
+        const N = +nSlider.value;
+        nVal.textContent = N;
+      });
+      nSlider.addEventListener('change', () => {
+        const N = +nSlider.value;
+        nVal.textContent = N;
+        addCurve(N);
+      });
+
+      // Initial curve
+      addCurve(+nSlider.value);
+
+      // Expose update method for 5A connection
+      _chart5B = {
+        container,
+        updateFromTree() {
+          // Re-render current curve (the latest) based on current 5A state
+          // Since 5A tree changes don't change the mathematical coverage,
+          // we just keep the curves as is. The coverage is a mathematical property.
+        }
+      };
+    }
+
+    function destroyChart5B() {
+      if (!_chart5B) return;
+      const svgEl = _chart5B.container.querySelector('.chart-5b-svg');
+      if (svgEl) svgEl.remove();
+      const ttEl = _chart5B.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      _chart5B = null;
+    }
+
     /* ==================== BOOT ==================== */
     document.addEventListener('DOMContentLoaded', () => {
       // Init MathJax lazy observer
@@ -3948,6 +4564,8 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       ChartRegistry.register('chart-3b-container', (el) => initChart3B(el), () => destroyChart3B(), 'cfrac');
       ChartRegistry.register('chart-4a-container', (el) => initChart4A(el), () => destroyChart4A(), 'ordinal');
       ChartRegistry.register('chart-4b-container', (el) => initChart4B(el), () => destroyChart4B(), 'ordinal');
+      ChartRegistry.register('chart-5a-container', (el) => initChart5A(el), () => destroyChart5A(), 'tree');
+      ChartRegistry.register('chart-5b-container', (el) => initChart5B(el), () => destroyChart5B(), 'tree');
 
       // Start observing chart containers
       ChartRegistry.observeAll();
