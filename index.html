@@ -1297,27 +1297,282 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
 
     <section class="section" id="sec-experiments">
       <h2>9. 計算實驗</h2>
+
+      <!-- White-language introduction -->
+      <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>一句話問題：</strong>理論分析說「只要某個窗口的 B/T 比率超過 log<sub>2</sub>3，軌道就會下降」——實際計算結果如何？
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary);">
+          <strong>結果：</strong>六項實驗一致顯示，最壞情況的 B/T 比率精確命中 65/41 = 1.5854，始終 &gt; log<sub>2</sub>3 = 1.5850，但差距極小。
+        </p>
+      </div>
+
+      <!-- §9.1 -->
+      <h3>9.1 實驗一：每個位元長度 k 的最壞情況平均 v<sub>2</sub></h3>
+      <p>完整枚舉所有 \( k \)-位奇數（\( k \leq 18 \)），計算 descent 軌跡的平均 \( v_2 \)。</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>k</th><th>最差 avg v<sub>2</sub></th><th>最差 n</th><th>B/T</th><th>對應收斂子</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>5</td><td>1.5946</td><td>27</td><td>59/37</td><td>近 8/5</td></tr>
+            <tr><td>6</td><td>1.5882</td><td>63</td><td>54/34</td><td>近 65/41</td></tr>
+            <tr><td>13</td><td>1.5854</td><td>4591</td><td><strong>65/41</strong></td><td><strong>精確</strong></td></tr>
+            <tr><td>14</td><td>1.5882</td><td>8255</td><td>27/17</td><td>近 65/41</td></tr>
+            <tr><td>15&ndash;18</td><td>1.5854</td><td>各異</td><td><strong>65/41</strong></td><td><strong>精確</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>關鍵發現</strong>：最壞情況的 B/T 比率穩定在 \( 65/41 = 1.5854 \)，始終 \( > \log_2 3 = 1.5850 \)。</p>
+
+      <!-- §9.2 -->
+      <h3>9.2 實驗二：Mersenne 數 \( (2^k - 1) \) 的軌道</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>k</th><th>n</th><th>步數</th><th>avg v<sub>2</sub></th><th>v<sub>2</sub>=1 比例</th><th>到 1?</th><th>峰值/n</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>5</td><td>31</td><td>39</td><td>1.718</td><td>0.590</td><td>&checkmark;</td><td>99.3</td></tr>
+            <tr><td>10</td><td>1023</td><td>20</td><td>2.100</td><td>0.550</td><td>&checkmark;</td><td>38.5</td></tr>
+            <tr><td>15</td><td>32767</td><td>44</td><td>1.932</td><td>0.591</td><td>&checkmark;</td><td>291.9</td></tr>
+            <tr><td>20</td><td>1048575</td><td>61</td><td>1.918</td><td>0.541</td><td>&checkmark;</td><td>2216.8</td></tr>
+            <tr><td>25</td><td>33554431</td><td>162</td><td>1.741</td><td>0.624</td><td>&checkmark;</td><td>91006.9</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>所有 Mersenne 數均到達 1，平均 \( v_2 \) 始終 \( > \log_2 3 \)。</p>
+
+      <!-- §9.3 -->
+      <h3>9.3 實驗三：大 k 值的最壞情況搜尋</h3>
+      <p>使用智慧抽樣（Mersenne + 尾隨 1 模式 + 前輪最壞擴展 + 隨機），搜尋 \( k = 5 \) 到 \( k = 44 \)。</p>
+      <p><strong>結果</strong>：所有測試的 \( k \) 值中，最壞情況的 B/T 始終 \( \geq 65/41 > \log_2 3 \)。</p>
+      <p>偶見 \( B/T = 149/94 \approx 1.5851 \)（\( k = 19, 29, 31 \)），這是 \( 65/41 \) 和 \( 84/53 \) 的中位分數，仍 \( > \log_2 3 \)。</p>
+
+      <!-- §9.4 -->
+      <h3>9.4 實驗四：累積比率 \( R(T) = \Sigma v_2 / (T \cdot \log_2 3) \)</h3>
+      <ul style="list-style:disc; padding-left:1.5rem; font-size:var(--text-sm);">
+        <li>全局最小 \( R = 1/\log_2 3 \approx 0.6309 \)，總是出現在第 1 步（\( v_2 = 1 \)）</li>
+        <li>\( R \) 在初始壞步段下降，之後回升</li>
+        <li><strong>最終 \( R \) 始終 &gt; 1</strong>（軌道始終最終下降）</li>
+      </ul>
+
+      <!-- §9.5 -->
+      <h3>9.5 實驗五：v<sub>2</sub> = 1 比例的 Expander Mixing 驗證</h3>
+      <p>即使 \( v_2 = 1 \) 的比例高達 68%，偶發的大 \( v_2 \)（3, 6）足以補償：</p>
+      <pre><code>n = 154079 的 v₂ 分佈（41 步下降軌跡）：
+  v₂=1: 28 步 (68.3%)
+  v₂=2:  5 步 (12.2%)
+  v₂=3:  7 步 (17.1%)
+  v₂=6:  1 步 (2.4%)
+  總和: 28 + 10 + 21 + 6 = 65 = B  ✓</code></pre>
+      <p>一次 \( v_2 = 6 \) 的步驟補償了 5 次 \( v_2 = 1 \) 的損失。</p>
+
+      <!-- §9.6 -->
+      <h3>9.6 實驗六：v<sub>2</sub> 序列可視化</h3>
+      <p>Mersenne 數的 \( v_2 \) 序列示例：</p>
+      <pre><code>2⁸-1 = 255:    111111163331234
+2¹²-1 = 4095:  11111111111511111211322212321215122312242111111243331234
+2²⁰-1:         111111111111111111152125132232212251111113146422312412241123</code></pre>
+      <p>可見：初始長串 \( v_2=1 \)（尾隨 1-bit 造成），然後出現 \( v_2 \geq 2 \) 的補償步驟。</p>
+
+      <!-- Playground will be added in Phase 4 -->
       <div id="playground-container"></div>
     </section>
 
     <section class="section" id="sec-reduction">
       <h2>10. 等價化約鏈</h2>
-      <div id="chart-a1-container"></div>
+
+      <!-- White-language introduction -->
+      <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary);">
+          所有框架嘗試的核心可以化約為一個簡單的<strong>引理 D</strong>：對任意 \( n > 1 \)，存在某個步數使得軌道值下降。如果這個引理成立，Collatz 猜想就成立。
+        </p>
+      </div>
+
+      <!-- Chart A-1: Logic flow diagram -->
+      <div class="chart-container" id="chart-a1-container" aria-label="等價化約鏈邏輯流程圖">
+        <div class="chart-title">圖 A-1：引理 D 到 Collatz 猜想的邏輯鏈</div>
+      </div>
+
+      <!-- §10.1 Descent Lemma D -->
+      <h3>10.1 下降引理 D</h3>
+      <div style="background:var(--bg-surface); border-left:3px solid var(--color-low); padding:1rem; border-radius:0 0.375rem 0.375rem 0;">
+        <p style="font-size:var(--text-sm);"><strong>引理 D</strong>：對任意奇數 \( n > 1 \)，存在 \( T \geq 1 \) 使得 \( S^T(n) < n \)。</p>
+      </div>
+
+      <!-- §10.2 D implies Collatz -->
+      <h3>10.2 引理 D &rArr; Collatz 猜想</h3>
+      <p><strong>步驟一</strong>（無非平凡循環）：</p>
+      <p style="font-size:var(--text-sm);">假設存在循環 \( \{c_1 < c_2 < \cdots < c_P\} \)。取最小元 \( c_1 \)。引理 D 說存在 \( k \) 使得 \( S^k(c_1) < c_1 \)。但 \( S^k(c_1) \) 在循環中，所有元素 \( \geq c_1 \)。矛盾。\( \square \)</p>
+      <p><strong>步驟二</strong>（無發散軌道）：</p>
+      <p style="font-size:var(--text-sm);">從 \( n \) 出發，由引理 D 得 \( n_1 = S^{k_1}(n) < n \)。再由引理 D 得 \( n_2 = S^{k_2}(n_1) < n_1 \)。嚴格遞減的正奇數序列 \( n > n_1 > n_2 > \cdots \) 由 \( \mathbb{N} \) 的良序性必終止於 1。\( \square \)</p>
+
+      <!-- §10.3 Arithmetic equivalence -->
+      <h3>10.3 引理 D 的算術等價</h3>
+      <p>\( S^T(n) < n \) 等價於 \( B_T > T \cdot \log_2 3 \)，其中 \( B_T = \sum_{i=1}^T v_i \)。</p>
+      <p><strong>精確表述</strong>：</p>
+      <div class="math-block">
+        \[ S^T(n) = \frac{3^T n + C_T}{2^{B_T}} \]
+      </div>
+      <div class="math-block">
+        \[ S^T(n) < n \iff n(2^{B_T} - 3^T) > C_T \]
+      </div>
+      <p style="font-size:var(--text-sm);">若 \( B_T > T \cdot \log_2 3 \)：\( 2^{B_T} > 3^T \)，故左邊 \( > 0 \)，右邊 \( > 0 \)。對充分大的 \( n \)（\( n > C_T/(2^{B_T} - 3^T) \)）成立。</p>
+
+      <!-- §10.4 Converse -->
+      <h3>10.4 逆向</h3>
+      <p>Collatz 猜想 &rArr; 引理 D 是平凡的（軌道到 1 途中必有下降）。</p>
+      <p>因此：<strong>引理 D &hArr; Collatz 猜想</strong>。</p>
     </section>
 
     <section class="section" id="sec-bounded">
       <h2>11. 有界軌道分析</h2>
-      <div id="chart-b1-container"></div>
+
+      <!-- White-language introduction -->
+      <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary);">
+          如果軌道不發散但也不到 1，它必然進入循環。循環方程告訴我們循環元素必須有多大。
+        </p>
+      </div>
+
+      <!-- Chart B-1: Cycle equation bar chart -->
+      <div class="chart-container" id="chart-b1-container" aria-label="循環方程最小元素柱狀圖">
+        <div class="chart-title">圖 B-1：循環長度 P 對應的最小循環元素下界</div>
+      </div>
+
+      <!-- §11.1 -->
+      <h3>11.1 有界軌道 &rarr; 循環</h3>
+      <div style="background:var(--bg-surface); border-left:3px solid var(--color-low); padding:1rem; border-radius:0 0.375rem 0.375rem 0;">
+        <p style="font-size:var(--text-sm);"><strong>引理</strong>：若 \( S^T(n) \leq M \) 對所有 \( T \)，則軌道進入循環。</p>
+      </div>
+      <p style="font-size:var(--text-sm);"><strong>證明</strong>：軌道是有限集 \( \{m \in \mathbb{N}_{\text{odd}} : n \leq m \leq M\} \) 中的序列，由鴿巢原理必重複。\( \square \)</p>
+
+      <!-- §11.2 -->
+      <h3>11.2 循環方程</h3>
+      <p>壓縮 Collatz 映射的 \( P \)-循環 \( S^P(m) = m \)：</p>
+      <div class="math-block">
+        \[ m = \frac{3^P m + C}{2^B} \implies m(2^B - 3^P) = C \]
+      </div>
+      <p style="font-size:var(--text-sm);">其中 \( C = \sum_{j=0}^{P-1} 3^{P-1-j} \cdot 2^{B - B_{j+1}} > 0 \)。</p>
+
+      <!-- §11.3 -->
+      <h3>11.3 循環蘊含 \( 2^B > 3^P \)</h3>
+      <p style="font-size:var(--text-sm);">由 \( C > 0 \) 和 \( m > 0 \)：\( 2^B - 3^P > 0 \)，即 \( 2^B > 3^P \)，即 \( B > P \cdot \log_2 3 \)。</p>
+      <p style="font-size:var(--text-sm);">由 \( \log_2 3 \) 是無理數（超越數，Gelfond-Schneider 定理）：\( 2^B \neq 3^P \) 對所有正整數 \( B, P \)。</p>
+      <p style="font-size:var(--text-sm);">所以 \( 2^B - 3^P \geq 1 \)（它們是不同的正整數）。</p>
+
+      <!-- §11.4 -->
+      <h3>11.4 循環元素的上界</h3>
+      <p>\( m = C/(2^B - 3^P) \)。</p>
+      <div class="math-block">
+        \[ C \leq \sum_{j=0}^{P-1} 3^{P-1-j} \cdot 2^B = 2^B \cdot \frac{3^P - 1}{2} < \frac{2^B \cdot 3^P}{2} \]
+      </div>
+      <div class="math-block">
+        \[ m < \frac{2^B \cdot 3^P}{2(2^B - 3^P)} \]
+      </div>
+
+      <!-- §11.5 -->
+      <h3>11.5 未解決部分</h3>
+      <div style="background:var(--bg-surface); border-left:3px solid var(--color-critical); padding:1rem; border-radius:0 0.375rem 0.375rem 0;">
+        <p style="font-size:var(--text-sm);">即使有上界，也無法無條件排除所有非平凡循環。Baker 型定理（線性形式的對數）給出 \( |2^B - 3^P| \) 的下界，但不足以將 \( m \) 約束到可計算驗證的範圍。</p>
+      </div>
     </section>
 
     <section class="section" id="sec-obstacle">
       <h2>12. 結構性障礙分析</h2>
-      <div id="chart-c1-container"></div>
+
+      <!-- White-language introduction -->
+      <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary);">
+          所有框架都在同一個地方卡住——Collatz 映射同時混合了乘法、加法和二進位三種不可通約的結構。
+        </p>
+      </div>
+
+      <!-- Chart C-1: Triangle incommensurability diagram -->
+      <div class="chart-container" id="chart-c1-container" aria-label="三重不可通約性三角圖">
+        <div class="chart-title">圖 C-1：三重不可通約性</div>
+      </div>
+
+      <!-- §12.1 -->
+      <h3>12.1 三重不可通約性</h3>
+      <p>Collatz 映射同時涉及三種不可通約的數學結構：</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>操作</th><th>結構</th><th>有效工具</th><th>被什麼摧毀</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>\( \times 3 \)</td><td>乘法/因數</td><td>p-adic 分析、因式分解</td><td>\( +1 \) 完全破壞因數結構</td></tr>
+            <tr><td>\( +1 \)</td><td>加法/平移</td><td>模算術、群論</td><td>\( \div 2^v \) 的可變性使模約化失效</td></tr>
+            <tr><td>\( \div 2^v \)</td><td>二進位/2-adic</td><td>有限自動機、位操作</td><td>\( \times 3 \) 的進位傳播產生非局部效應</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- §12.2 -->
+      <h3>12.2 所有框架的共同失敗模式</h3>
+      <p>每個框架都能處理這三種結構中的一到兩種，但在第三種面前失敗：</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>框架</th><th>處理的結構</th><th>失敗於</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Epoch 分解</td><td>二進位 + 乘法</td><td>加法（\( C_T \) 的控制）</td></tr>
+            <tr><td>轉換器 + 譜間隙</td><td>二進位 + 加法</td><td>確定性 vs 隨機</td></tr>
+            <tr><td>連分數</td><td>乘法（\( 3^T \) vs \( 2^B \)）</td><td>動力學（哪些 \( (T,B) \) 可達）</td></tr>
+            <tr><td>序數</td><td>二進位結構</td><td>乘法（carry 增加 block）</td></tr>
+            <tr><td>反向樹</td><td>加法 + 乘法</td><td>覆蓋性（密度 &ne; 全覆蓋）</td></tr>
+            <tr><td>\( \mathbb{Z}_2 \) 混合性</td><td>乘法 + 二進位</td><td>\( \mathbb{N} \) 是測度零子集</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- §12.3 -->
+      <h3>12.3 核心不可化約的困難</h3>
+      <p>所有路線最終都化約為同一個陳述：</p>
+      <div style="background:var(--bg-surface); border-left:3px solid var(--color-critical); padding:1rem; border-radius:0 0.375rem 0.375rem 0;">
+        <p style="font-size:var(--text-sm);"><strong>對任意確定性二進位字串，3 態 Collatz 轉換器不能持續產生偏低的 \( v_2 \) 平均值。</strong></p>
+      </div>
+      <p style="font-size:var(--text-sm); margin-top:0.75rem;">此陳述等價於 Collatz 猜想本身，因此不構成「簡化」。</p>
     </section>
 
     <section class="section" id="sec-conclusion">
       <h2>13. 結論</h2>
-      <div id="chart-d1-container"></div>
+
+      <!-- Chart D-1: Radar chart -->
+      <div class="chart-container" id="chart-d1-container" aria-label="七大框架雷達圖">
+        <div class="chart-title">圖 D-1：七大框架的理論推進與已解決程度</div>
+      </div>
+
+      <!-- §13.1 -->
+      <h3>13.1 本研究的貢獻</h3>
+      <ol style="padding-left:1.5rem; font-size:var(--text-sm);">
+        <li style="margin-bottom:0.5rem;"><strong>精確公式</strong> \( T^{t-1}(n) = (3/2)^{t-1}(n+1) - 1 \)：在位移座標 \( x = n+1 \) 下，壞步段是純粹的乘以 \( (3/2)^{t-1} \)。</li>
+        <li style="margin-bottom:0.5rem;"><strong>3 態轉換器模型</strong>：將 Collatz 映射的 carry 傳播化約為 3 態自動機 \( \{A, B, C\} \)。</li>
+        <li style="margin-bottom:0.5rem;"><strong>譜間隙 = 1/2</strong>：精確計算轉移矩陣的特徵值 \( \{1, 1/2, -1/2\} \)。</li>
+        <li style="margin-bottom:0.5rem;"><strong>65/41 收斂子屏障</strong>：實驗發現最壞情況的 B/T 比率精確命中 \( \log_2 3 \) 的第 6 個連分數收斂子。</li>
+        <li style="margin-bottom:0.5rem;"><strong>等價化約</strong>：引理 D（某個窗口 \( B/T > \log_2 3 \)）\( \Leftrightarrow \) Collatz 猜想。</li>
+        <li style="margin-bottom:0.5rem;"><strong>有界情形分析</strong>：有界軌道 &rarr; 循環 &rarr; \( 2^B > 3^P \)（由 \( \log_2 3 \) 的無理性）。</li>
+        <li><strong>計算驗證</strong>：對所有 \( k \leq 18 \)（完整枚舉）和 \( k \leq 44 \)（抽樣），最壞情況始終滿足 \( B/T > \log_2 3 \)。</li>
+      </ol>
+
+      <!-- §13.2 -->
+      <h3>13.2 未解決的部分</h3>
+      <ol style="padding-left:1.5rem; font-size:var(--text-sm);">
+        <li style="margin-bottom:0.5rem;"><strong>無非平凡循環</strong>：已知 \( m = C/(2^B - 3^P) \)，但無法無條件證明此方程在正整數中無解。</li>
+        <li><strong>無發散軌道</strong>：需要排除 \( B_T/T \to \log_2 3 \)（從下方）的軌道，這要求一個尚不存在的確定性 Expander Mixing 定理。</li>
+      </ol>
+
+      <!-- §13.3 -->
+      <h3>13.3 最終判斷</h3>
+      <div style="background:var(--bg-surface); border-left:3px solid var(--color-critical); padding:1rem; border-radius:0 0.375rem 0.375rem 0;">
+        <p style="font-size:var(--text-sm);"><strong>Collatz 猜想仍然是一個未解決的數學問題。</strong></p>
+      </div>
+      <p style="font-size:var(--text-sm); margin-top:0.75rem;">本研究從多個角度攻擊此問題，建立了新的分析框架，但所有路線最終收斂至同一結構性障礙：Collatz 映射同時混合了乘法、加法和二進位三種不可通約的數學結構，而目前數學中不存在能同時處理這三者的統一框架。</p>
     </section>
 
     <section class="section" id="sec-appendix" style="border-bottom:none;">
@@ -5626,6 +5881,630 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       _chart7B = null;
     }
 
+    /* ==================== CHART A-1: REDUCTION LOGIC FLOW ==================== */
+    let _chartA1 = null;
+
+    function initChartA1(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const nodes = [
+        { id: 'lemmaD', label: '引理 D', math: '\\(\\forall n>1,\\;\\exists T:\\; S^T(n)<n\\)', proof: '對任意奇數 n > 1，存在步數 T 使得軌道值嚴格下降。', x: 0 },
+        { id: 'noCycle', label: '無非平凡循環', math: '不存在 \\(\\{c_1,\\dots,c_P\\}\\) 循環', proof: '若有循環，取最小元 c₁，引理 D 給出 S^k(c₁) < c₁，但循環中所有元素 ≥ c₁，矛盾。', x: 1 },
+        { id: 'noDiverg', label: '無發散軌道', math: '\\(\\nexists\\) 軌道趨向 \\(\\infty\\)', proof: '反覆應用引理 D 得到嚴格遞減的正奇數序列，由良序性必終止於 1。', x: 2 },
+        { id: 'collatz', label: 'Collatz 猜想成立', math: '\\(\\forall n,\\;\\exists k:\\; T^k(n)=1\\)', proof: '無循環 + 無發散 = 所有軌道必達 1。', x: 3 }
+      ];
+
+      const edges = [
+        { source: 'lemmaD', target: 'noCycle', label: '步驟一' },
+        { source: 'lemmaD', target: 'noDiverg', label: '步驟二' },
+        { source: 'noCycle', target: 'collatz', label: '' },
+        { source: 'noDiverg', target: 'collatz', label: '' },
+        { source: 'collatz', target: 'lemmaD', label: '平凡', dashed: true }
+      ];
+
+      const W = Math.min(container.clientWidth - 48, 800);
+      const H = 260;
+      const nodeW = 160, nodeH = 56, nodeR = 12;
+      const padX = 40, padY = 40;
+
+      // Layout: lemmaD(left) -> noCycle(mid-top), noDiverg(mid-bot) -> collatz(right)
+      const positions = {
+        lemmaD:   { x: padX + nodeW / 2, y: H / 2 },
+        noCycle:  { x: padX + nodeW / 2 + (W - 2 * padX - nodeW) * 0.45, y: H / 2 - 55 },
+        noDiverg: { x: padX + nodeW / 2 + (W - 2 * padX - nodeW) * 0.45, y: H / 2 + 55 },
+        collatz:  { x: W - padX - nodeW / 2, y: H / 2 }
+      };
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-a1-svg')
+        .attr('viewBox', `0 0 ${W} ${H}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet');
+
+      // Arrowhead marker
+      svg.append('defs').append('marker')
+        .attr('id', 'arrow-a1')
+        .attr('viewBox', '0 0 10 10')
+        .attr('refX', 10).attr('refY', 5)
+        .attr('markerWidth', 8).attr('markerHeight', 8)
+        .attr('orient', 'auto-start-reverse')
+        .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z').attr('fill', '#5e6070');
+
+      svg.append('defs').append('marker')
+        .attr('id', 'arrow-a1-dash')
+        .attr('viewBox', '0 0 10 10')
+        .attr('refX', 10).attr('refY', 5)
+        .attr('markerWidth', 8).attr('markerHeight', 8)
+        .attr('orient', 'auto-start-reverse')
+        .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z').attr('fill', '#c93135');
+
+      // Tooltip
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      // Draw edges
+      edges.forEach(e => {
+        const s = positions[e.source], t = positions[e.target];
+        const isDashed = !!e.dashed;
+
+        // Compute intersection with node rectangles
+        const dx = t.x - s.x, dy = t.y - s.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const ux = dx / len, uy = dy / len;
+
+        // Clip at source boundary
+        const sx = s.x + ux * (nodeW / 2 + 4);
+        const sy = s.y + uy * (nodeH / 2 + 4);
+        // Clip at target boundary
+        const tx = t.x - ux * (nodeW / 2 + 8);
+        const ty = t.y - uy * (nodeH / 2 + 8);
+
+        const line = svg.append('line')
+          .attr('x1', sx).attr('y1', sy)
+          .attr('x2', tx).attr('y2', ty)
+          .attr('stroke', isDashed ? '#c93135' : '#5e6070')
+          .attr('stroke-width', 2)
+          .attr('marker-end', isDashed ? 'url(#arrow-a1-dash)' : 'url(#arrow-a1)');
+
+        if (isDashed) line.attr('stroke-dasharray', '6,4');
+
+        if (e.label) {
+          const mx = (sx + tx) / 2, my = (sy + ty) / 2;
+          svg.append('text')
+            .attr('x', mx).attr('y', my - 6)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '14px')
+            .attr('fill', isDashed ? '#c93135' : '#5e6070')
+            .text(e.label);
+        }
+      });
+
+      // Draw nodes
+      const nodeGroups = svg.selectAll('.node-a1')
+        .data(nodes)
+        .enter().append('g')
+        .attr('class', 'node-a1')
+        .attr('transform', d => `translate(${positions[d.id].x}, ${positions[d.id].y})`)
+        .style('cursor', 'pointer');
+
+      nodeGroups.append('rect')
+        .attr('x', -nodeW / 2).attr('y', -nodeH / 2)
+        .attr('width', nodeW).attr('height', nodeH)
+        .attr('rx', nodeR).attr('ry', nodeR)
+        .attr('fill', d => d.id === 'lemmaD' ? '#ecedf0' : (d.id === 'collatz' ? '#ecedf0' : '#f5f6f8'))
+        .attr('stroke', d => d.id === 'lemmaD' ? '#c93135' : '#5e6070')
+        .attr('stroke-width', d => d.id === 'lemmaD' ? 2.5 : 1.5)
+        .attr('stroke-dasharray', d => d.id === 'lemmaD' ? '6,3' : 'none');
+
+      nodeGroups.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .attr('font-size', '18px')
+        .attr('font-weight', '600')
+        .attr('fill', '#1e2030')
+        .text(d => d.label);
+
+      // Expanded proof text below chart
+      const proofDiv = d3.select(container).append('div')
+        .attr('class', 'chart-a1-proof')
+        .style('font-size', '18px')
+        .style('color', '#5e6070')
+        .style('padding', '0.75rem 1rem')
+        .style('min-height', '2.5rem')
+        .style('transition', 'opacity 200ms')
+        .text('（點擊或懸停節點查看證明摘要）');
+
+      // Interactions
+      nodeGroups
+        .on('mouseenter', function(event, d) {
+          tooltip.html(`<strong>${d.label}</strong><br>${d.math}`)
+            .classed('visible', true)
+            .style('left', (event.offsetX + 12) + 'px')
+            .style('top', (event.offsetY - 20) + 'px');
+          // Typeset tooltip math
+          if (window.MathJax && MathJax.typesetPromise) {
+            MathJax.typesetPromise([tooltip.node()]);
+          }
+        })
+        .on('mouseleave', function() {
+          tooltip.classed('visible', false);
+        })
+        .on('click', function(event, d) {
+          proofDiv.style('opacity', 0);
+          setTimeout(() => {
+            proofDiv.html(`<strong>${d.label}</strong>：${d.proof}`);
+            proofDiv.style('opacity', 1);
+          }, 200);
+        });
+
+      _chartA1 = { container };
+    }
+
+    function destroyChartA1() {
+      if (!_chartA1) return;
+      _chartA1.container.querySelectorAll('.chart-a1-svg').forEach(el => el.remove());
+      const ttEl = _chartA1.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      const proofEl = _chartA1.container.querySelector('.chart-a1-proof');
+      if (proofEl) proofEl.remove();
+      _chartA1 = null;
+    }
+
+    /* ==================== CHART B-1: CYCLE EQUATION BAR CHART ==================== */
+    let _chartB1 = null;
+
+    function initChartB1(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const margin = { top: 20, right: 30, bottom: 55, left: 80 };
+      const totalW = Math.min(container.clientWidth - 48, 800);
+      const width = totalW - margin.left - margin.right;
+      const height = 360;
+
+      // Compute data
+      const log2_3 = Math.log2(3);
+      let pMin = 1, pMax = 50;
+      function computeData(lo, hi) {
+        const data = [];
+        for (let P = lo; P <= hi; P++) {
+          const B = Math.ceil(P * log2_3);
+          const pow3 = Math.pow(3, P);
+          const pow2 = Math.pow(2, B);
+          const diff = pow2 - pow3;
+          if (diff > 0) {
+            const mMin = Math.ceil(pow3 / diff);
+            data.push({ P, B, mMin, logM: Math.log10(Math.max(mMin, 1)) });
+          }
+        }
+        return data;
+      }
+
+      let data = computeData(pMin, pMax);
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-b1-svg')
+        .attr('viewBox', `0 0 ${totalW} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      // Scales
+      const x = d3.scaleBand().range([0, width]).padding(0.15);
+      const y = d3.scaleLog().range([height, 0]).clamp(true);
+
+      const xAxisG = svg.append('g').attr('transform', `translate(0,${height})`);
+      const yAxisG = svg.append('g');
+      const barsG = svg.append('g');
+
+      // Eliahou bound line
+      const eliLine = svg.append('line')
+        .attr('stroke', '#c93135')
+        .attr('stroke-width', 2)
+        .attr('stroke-dasharray', '6,3');
+      const eliLabel = svg.append('text')
+        .attr('font-size', '14px')
+        .attr('fill', '#c93135');
+
+      // Annotation
+      const annoText = svg.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '14px')
+        .attr('fill', '#5e6070');
+
+      function render(data) {
+        x.domain(data.map(d => d.P));
+        const yMax = d3.max(data, d => d.logM) || 30;
+        y.domain([1, Math.pow(10, Math.ceil(yMax) + 1)]);
+
+        xAxisG.call(d3.axisBottom(x).tickValues(data.filter(d => d.P % 5 === 0 || d.P === 1).map(d => d.P)));
+        yAxisG.call(d3.axisLeft(y).ticks(6, '.0e'));
+
+        svg.selectAll('.tick text').style('font-size', '14px').style('fill', '#5e6070');
+        svg.selectAll('.tick line').style('stroke', '#d5d6da');
+        svg.selectAll('.domain').style('stroke', '#d5d6da');
+
+        // x-axis label
+        svg.selectAll('.x-label-b1').remove();
+        svg.append('text').attr('class', 'x-label-b1')
+          .attr('x', width / 2).attr('y', height + 45)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '18px').attr('fill', '#5e6070')
+          .text('循環長度 P');
+
+        // y-axis label
+        svg.selectAll('.y-label-b1').remove();
+        svg.append('text').attr('class', 'y-label-b1')
+          .attr('transform', 'rotate(-90)')
+          .attr('x', -height / 2).attr('y', -60)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '18px').attr('fill', '#5e6070')
+          .text('最小循環元素 m_min');
+
+        // Bars
+        const bars = barsG.selectAll('rect').data(data, d => d.P);
+        bars.exit().remove();
+        bars.enter().append('rect')
+          .merge(bars)
+          .attr('x', d => x(d.P))
+          .attr('y', d => y(Math.pow(10, d.logM)))
+          .attr('width', x.bandwidth())
+          .attr('height', d => Math.max(0, height - y(Math.pow(10, d.logM))))
+          .attr('fill', '#2a6bb8')
+          .attr('rx', 2)
+          .on('mouseenter', function(event, d) {
+            d3.select(this).attr('fill', '#1e5ab8');
+            tooltip.html(`P=${d.P}, B=${d.B}<br>m_min = ${d.mMin.toExponential(2)}`)
+              .classed('visible', true)
+              .style('left', (event.offsetX + 12) + 'px')
+              .style('top', (event.offsetY - 20) + 'px');
+          })
+          .on('mouseleave', function() {
+            d3.select(this).attr('fill', '#2a6bb8');
+            tooltip.classed('visible', false);
+          });
+
+        // Eliahou bound
+        const eliY = y(1e10);
+        eliLine.attr('x1', 0).attr('x2', width).attr('y1', eliY).attr('y2', eliY);
+        eliLabel.attr('x', width - 5).attr('y', eliY - 6).attr('text-anchor', 'end').text('Eliahou bound: 10^10');
+
+        // Annotation
+        annoText.attr('x', width / 2).attr('y', 18)
+          .text('循環越短，最小元素越大，而計算已排除至 10^10');
+      }
+
+      render(data);
+
+      // Slider
+      const sliderDiv = d3.select(container).append('div')
+        .style('text-align', 'center').style('padding', '0.5rem 0');
+
+      sliderDiv.append('label').style('font-size', '18px').style('color', '#5e6070').text('P 範圍：1 - ');
+      const slider = sliderDiv.append('input')
+        .attr('type', 'range').attr('min', 10).attr('max', 80).attr('value', pMax)
+        .style('width', '200px').style('vertical-align', 'middle');
+      const sliderVal = sliderDiv.append('span').style('font-size', '18px').style('color', '#5e6070').text(` ${pMax}`);
+
+      slider.on('input', function() {
+        pMax = +this.value;
+        sliderVal.text(` ${pMax}`);
+        data = computeData(pMin, pMax);
+        render(data);
+      });
+
+      _chartB1 = { container };
+    }
+
+    function destroyChartB1() {
+      if (!_chartB1) return;
+      _chartB1.container.querySelectorAll('.chart-b1-svg').forEach(el => el.remove());
+      const ttEl = _chartB1.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      // Remove slider div (last child div added)
+      const divs = _chartB1.container.querySelectorAll('div:not(.chart-title)');
+      divs.forEach(d => { if (d.querySelector('input[type=range]')) d.remove(); });
+      _chartB1 = null;
+    }
+
+    /* ==================== CHART C-1: TRIANGLE INCOMMENSURABILITY ==================== */
+    let _chartC1 = null;
+
+    function initChartC1(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const W = Math.min(container.clientWidth - 48, 500);
+      const H = W * 0.95;
+      const cx = W / 2, cy = H / 2 + 10;
+      const R = W * 0.32;
+
+      // Equilateral triangle vertices (top, bottom-left, bottom-right)
+      const vertices = [
+        { id: 'mult', label: '乘法 (x3)', angle: -Math.PI / 2, tools: 'p-adic 分析、因式分解', destroyed: '+1 完全破壞因數結構' },
+        { id: 'add',  label: '加法 (+1)', angle: -Math.PI / 2 + 2 * Math.PI / 3, tools: '模算術、群論', destroyed: '÷2^v 的可變性使模約化失效' },
+        { id: 'bin',  label: '二進位 (÷2^v)', angle: -Math.PI / 2 + 4 * Math.PI / 3, tools: '有限自動機、位操作', destroyed: 'x3 的進位傳播產生非局部效應' }
+      ];
+
+      vertices.forEach(v => {
+        v.x = cx + R * Math.cos(v.angle);
+        v.y = cy + R * Math.sin(v.angle);
+      });
+
+      const edgesData = [
+        { s: 'mult', t: 'bin',  label: 'Epoch, Z₂', success: 'Epoch 分解處理乘法+二進位結構', failure: '失敗於加法 (C_T 的控制)' },
+        { s: 'add',  t: 'bin',  label: '轉換器', success: '轉換器處理加法+二進位結構', failure: '失敗於確定性 vs 隨機' },
+        { s: 'mult', t: 'add',  label: '反向樹', success: '反向樹處理乘法+加法結構', failure: '失敗於覆蓋性 (密度 ≠ 全覆蓋)' }
+      ];
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-c1-svg')
+        .attr('viewBox', `0 0 ${W} ${H}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet');
+
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      // Draw edges
+      const vMap = {};
+      vertices.forEach(v => vMap[v.id] = v);
+
+      edgesData.forEach(e => {
+        const s = vMap[e.s], t = vMap[e.t];
+        const mx = (s.x + t.x) / 2, my = (s.y + t.y) / 2;
+
+        svg.append('line')
+          .attr('x1', s.x).attr('y1', s.y)
+          .attr('x2', t.x).attr('y2', t.y)
+          .attr('stroke', '#5e6070')
+          .attr('stroke-width', 3)
+          .attr('stroke-opacity', 0.6)
+          .style('cursor', 'pointer')
+          .on('mouseenter', function(event) {
+            d3.select(this).attr('stroke-opacity', 1).attr('stroke-width', 5);
+            tooltip.html(`<strong>${e.label}</strong><br>成功：${e.success}<br>失敗：${e.failure}`)
+              .classed('visible', true)
+              .style('left', (event.offsetX + 12) + 'px')
+              .style('top', (event.offsetY - 20) + 'px');
+          })
+          .on('mouseleave', function() {
+            d3.select(this).attr('stroke-opacity', 0.6).attr('stroke-width', 3);
+            tooltip.classed('visible', false);
+          });
+
+        // Edge label
+        // offset label slightly away from center
+        const offX = mx - cx, offY = my - cy;
+        const offLen = Math.sqrt(offX * offX + offY * offY) || 1;
+        const labelX = mx - (offX / offLen) * 24;
+        const labelY = my - (offY / offLen) * 24;
+
+        svg.append('text')
+          .attr('x', labelX).attr('y', labelY)
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'middle')
+          .attr('font-size', '14px')
+          .attr('fill', '#5e6070')
+          .attr('pointer-events', 'none')
+          .text(e.label);
+      });
+
+      // Draw vertices
+      const vr = 40;
+      const nodeG = svg.selectAll('.vert-c1')
+        .data(vertices)
+        .enter().append('g')
+        .attr('class', 'vert-c1')
+        .attr('transform', d => `translate(${d.x},${d.y})`)
+        .style('cursor', 'pointer');
+
+      nodeG.append('circle')
+        .attr('r', vr)
+        .attr('fill', '#ecedf0')
+        .attr('stroke', '#2a6bb8')
+        .attr('stroke-width', 2.5);
+
+      nodeG.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .attr('font-size', '14px')
+        .attr('font-weight', '600')
+        .attr('fill', '#1e2030')
+        .text(d => d.label.split(' ')[0]);
+
+      nodeG.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '1.6em')
+        .attr('font-size', '12px')
+        .attr('fill', '#5e6070')
+        .text(d => '(' + d.label.split('(')[1]);
+
+      nodeG.on('mouseenter', function(event, d) {
+        d3.select(this).select('circle').attr('stroke-width', 4);
+        tooltip.html(`<strong>${d.label}</strong><br>有效工具：${d.tools}<br>被什麼摧毀：${d.destroyed}`)
+          .classed('visible', true)
+          .style('left', (event.offsetX + 12) + 'px')
+          .style('top', (event.offsetY - 20) + 'px');
+      })
+      .on('mouseleave', function() {
+        d3.select(this).select('circle').attr('stroke-width', 2.5);
+        tooltip.classed('visible', false);
+      });
+
+      // Center text
+      svg.append('text')
+        .attr('x', cx).attr('y', cy)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('font-size', '16px')
+        .attr('fill', '#8a7020')
+        .text('? 能同時處理三者的工具');
+
+      _chartC1 = { container };
+    }
+
+    function destroyChartC1() {
+      if (!_chartC1) return;
+      _chartC1.container.querySelectorAll('.chart-c1-svg').forEach(el => el.remove());
+      const ttEl = _chartC1.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      _chartC1 = null;
+    }
+
+    /* ==================== CHART D-1: RADAR CHART ==================== */
+    let _chartD1 = null;
+
+    function initChartD1(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const W = 400, H = 400;
+      const cx = W / 2, cy = H / 2;
+      const R = 140;
+
+      const frameworks = [
+        { name: 'Epoch',   theory: 0.7, solved: 0.7, tip: '精確公式 (3/2)^{t-1}(n+1)-1；失敗於 C_T 控制' },
+        { name: '轉換器',  theory: 0.8, solved: 0.8, tip: '3 態模型 + 譜間隙 1/2；失敗於確定性 vs 隨機' },
+        { name: '連分數',  theory: 0.6, solved: 0.6, tip: '65/41 收斂子屏障；失敗於動力學可達性' },
+        { name: '序數',    theory: 0.3, solved: 0.1, tip: '位元結構 block 數；失敗於 carry 增加 block' },
+        { name: '反向樹',  theory: 0.5, solved: 0.3, tip: '密度論證覆蓋率；失敗於密度 ≠ 全覆蓋' },
+        { name: 'Z₂',     theory: 0.6, solved: 0.2, tip: 'x3 混合性分析；失敗於 N 是測度零子集' },
+        { name: 'K 複雜度', theory: 0.4, solved: 0.1, tip: '資訊論壓縮；失敗於結構化 ≠ 下降' }
+      ];
+
+      const n = frameworks.length;
+      const angleSlice = (2 * Math.PI) / n;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-d1-svg')
+        .attr('viewBox', `0 0 ${W} ${H}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .append('g')
+        .attr('transform', `translate(${cx},${cy})`);
+
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      // Concentric circles (grid)
+      const levels = 5;
+      for (let lv = 1; lv <= levels; lv++) {
+        const r = R * lv / levels;
+        svg.append('circle')
+          .attr('r', r)
+          .attr('fill', 'none')
+          .attr('stroke', '#d5d6da')
+          .attr('stroke-width', 0.5);
+      }
+
+      // Axes
+      frameworks.forEach((f, i) => {
+        const angle = angleSlice * i - Math.PI / 2;
+        const lx = R * Math.cos(angle);
+        const ly = R * Math.sin(angle);
+
+        svg.append('line')
+          .attr('x1', 0).attr('y1', 0)
+          .attr('x2', lx).attr('y2', ly)
+          .attr('stroke', '#d5d6da')
+          .attr('stroke-width', 1);
+
+        // Label
+        const labelR = R + 24;
+        const labelX = labelR * Math.cos(angle);
+        const labelY = labelR * Math.sin(angle);
+        svg.append('text')
+          .attr('x', labelX).attr('y', labelY)
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'middle')
+          .attr('font-size', '14px')
+          .attr('fill', '#1e2030')
+          .attr('font-weight', '600')
+          .text(f.name);
+      });
+
+      // Helper: polygon points
+      function radarPoints(accessor) {
+        return frameworks.map((f, i) => {
+          const angle = angleSlice * i - Math.PI / 2;
+          const r = R * accessor(f);
+          return [r * Math.cos(angle), r * Math.sin(angle)];
+        });
+      }
+
+      // Theory layer (outer)
+      const theoryPts = radarPoints(f => f.theory);
+      svg.append('polygon')
+        .attr('points', theoryPts.map(p => p.join(',')).join(' '))
+        .attr('fill', '#2a6bb8')
+        .attr('fill-opacity', 0.15)
+        .attr('stroke', '#2a6bb8')
+        .attr('stroke-width', 2);
+
+      // Solved layer (inner)
+      const solvedPts = radarPoints(f => f.solved);
+      svg.append('polygon')
+        .attr('points', solvedPts.map(p => p.join(',')).join(' '))
+        .attr('fill', '#1e8050')
+        .attr('fill-opacity', 0.15)
+        .attr('stroke', '#1e8050')
+        .attr('stroke-width', 2);
+
+      // Dots on axes (for interaction)
+      frameworks.forEach((f, i) => {
+        const angle = angleSlice * i - Math.PI / 2;
+
+        // Theory dot
+        const tr = R * f.theory;
+        svg.append('circle')
+          .attr('cx', tr * Math.cos(angle))
+          .attr('cy', tr * Math.sin(angle))
+          .attr('r', 4)
+          .attr('fill', '#2a6bb8');
+
+        // Solved dot
+        const sr = R * f.solved;
+        svg.append('circle')
+          .attr('cx', sr * Math.cos(angle))
+          .attr('cy', sr * Math.sin(angle))
+          .attr('r', 4)
+          .attr('fill', '#1e8050');
+
+        // Invisible larger hit area on axis for tooltip
+        const hitR = R * 1.05;
+        svg.append('line')
+          .attr('x1', 0).attr('y1', 0)
+          .attr('x2', hitR * Math.cos(angle)).attr('y2', hitR * Math.sin(angle))
+          .attr('stroke', 'transparent')
+          .attr('stroke-width', 20)
+          .style('cursor', 'pointer')
+          .on('mouseenter', function(event) {
+            tooltip.html(`<strong>${f.name}</strong><br>理論推進：${(f.theory * 100).toFixed(0)}%<br>已解決：${(f.solved * 100).toFixed(0)}%<br>${f.tip}`)
+              .classed('visible', true)
+              .style('left', (event.offsetX + 12) + 'px')
+              .style('top', (event.offsetY - 20) + 'px');
+          })
+          .on('mouseleave', function() {
+            tooltip.classed('visible', false);
+          });
+      });
+
+      // Legend
+      const legend = svg.append('g').attr('transform', `translate(${-R - 20}, ${R + 10})`);
+      legend.append('rect').attr('width', 14).attr('height', 14).attr('fill', '#2a6bb8').attr('fill-opacity', 0.4);
+      legend.append('text').attr('x', 20).attr('y', 12).attr('font-size', '14px').attr('fill', '#5e6070').text('理論推進');
+      legend.append('rect').attr('y', 20).attr('width', 14).attr('height', 14).attr('fill', '#1e8050').attr('fill-opacity', 0.4);
+      legend.append('text').attr('x', 20).attr('y', 32).attr('font-size', '14px').attr('fill', '#5e6070').text('已解決程度');
+
+      _chartD1 = { container };
+    }
+
+    function destroyChartD1() {
+      if (!_chartD1) return;
+      _chartD1.container.querySelectorAll('.chart-d1-svg').forEach(el => el.remove());
+      const ttEl = _chartD1.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      _chartD1 = null;
+    }
+
     /* ==================== BOOT ==================== */
     document.addEventListener('DOMContentLoaded', () => {
       // Init MathJax lazy observer
@@ -5647,6 +6526,10 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       ChartRegistry.register('chart-6b-container', (el) => initChart6B(el), () => destroyChart6B());
       ChartRegistry.register('chart-7a-container', (el) => initChart7A(el), () => destroyChart7A(), 'kolmogorov');
       ChartRegistry.register('chart-7b-container', (el) => initChart7B(el), () => destroyChart7B(), 'kolmogorov');
+      ChartRegistry.register('chart-a1-container', (el) => initChartA1(el), () => destroyChartA1());
+      ChartRegistry.register('chart-b1-container', (el) => initChartB1(el), () => destroyChartB1());
+      ChartRegistry.register('chart-c1-container', (el) => initChartC1(el), () => destroyChartC1());
+      ChartRegistry.register('chart-d1-container', (el) => initChartD1(el), () => destroyChartD1());
 
       // Start observing chart containers
       ChartRegistry.observeAll();
