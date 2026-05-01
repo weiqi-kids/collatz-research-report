@@ -445,6 +445,128 @@
       font-size: var(--text-sm);
     }
 
+    /* ==================== PLAYGROUND ==================== */
+    .playground {
+      margin-top: 2rem;
+    }
+    .playground-tabs {
+      display: flex;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid var(--border-subtle);
+      padding-bottom: 0.5rem;
+    }
+    .playground-tab {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.375rem 0.375rem 0 0;
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 200ms, color 200ms;
+    }
+    .playground-tab:hover {
+      background: var(--bg-hover);
+    }
+    .playground-tab.active {
+      background: var(--color-link);
+      color: white;
+      border-color: var(--color-link);
+    }
+    .playground-panel { display: none; }
+    .playground-panel.active { display: block; }
+
+    .pg-description {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+    .pg-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .pg-controls label {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .pg-controls input[type="range"] {
+      width: 200px;
+    }
+    .pg-controls input[type="number"] {
+      font-size: var(--text-xs);
+      padding: 0.375rem 0.75rem;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.375rem;
+      background: white;
+      color: var(--text-primary);
+      width: 10rem;
+      outline: none;
+    }
+    .pg-controls input[type="number"]:focus {
+      border-color: var(--color-link);
+    }
+    .pg-value-display {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--color-link);
+      min-width: 3rem;
+    }
+    .pg-chart-area {
+      background: var(--bg-surface);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      min-height: 300px;
+      position: relative;
+    }
+    .pg-stats {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .pg-stat-card {
+      background: var(--bg-overlay);
+      border-radius: 0.375rem;
+      padding: 0.75rem 1rem;
+      flex: 1;
+      min-width: 120px;
+    }
+    .pg-stat-card .pg-stat-label {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+    .pg-stat-card .pg-stat-value {
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .pg-progress {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      padding: 2rem;
+      text-align: center;
+    }
+    .pg-jump-link {
+      display: inline-block;
+      margin-top: 0.75rem;
+      font-size: var(--text-xs);
+      color: var(--color-link);
+      cursor: pointer;
+    }
+    .pg-jump-link:hover {
+      text-decoration: underline;
+    }
+
     /* ==================== REDUCED MOTION ==================== */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -459,6 +581,8 @@
       .hero-input-group { flex-direction: column; align-items: stretch; }
       .hero-input { width: 100%; }
       .chart-input-group { flex-direction: column; align-items: stretch; }
+      .pg-controls { flex-direction: column; align-items: stretch; }
+      .pg-controls input[type="range"] { width: 100%; }
     }
 
     @media (max-width: 480px) {
@@ -1378,7 +1502,9 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
 2²⁰-1:         111111111111111111152125132232212251111113146422312412241123</code></pre>
       <p>可見：初始長串 \( v_2=1 \)（尾隨 1-bit 造成），然後出現 \( v_2 \geq 2 \) 的補償步驟。</p>
 
-      <!-- Playground will be added in Phase 4 -->
+      <!-- Interactive Playground -->
+      <h3>9.7 互動實驗場</h3>
+      <p>以下提供六個互動實驗，可自行調整參數，即時觀察計算結果。</p>
       <div id="playground-container"></div>
     </section>
 
@@ -6505,6 +6631,924 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       _chartD1 = null;
     }
 
+    /* ==================== PLAYGROUND ==================== */
+    let _playground = null;
+
+    function initPlayground(container) {
+      if (typeof d3 === 'undefined') return;
+
+      // Build the playground HTML structure
+      container.innerHTML = `
+        <div class="playground">
+          <div class="playground-tabs">
+            <button class="playground-tab active" data-tab="1">實驗 1</button>
+            <button class="playground-tab" data-tab="2">實驗 2</button>
+            <button class="playground-tab" data-tab="3">實驗 3</button>
+            <button class="playground-tab" data-tab="4">實驗 4</button>
+            <button class="playground-tab" data-tab="5">實驗 5</button>
+            <button class="playground-tab" data-tab="6">實驗 6</button>
+          </div>
+          <div class="playground-panel active" id="pg-tab-1">
+            <div class="pg-description">
+              每個位元長度 k 的所有 k-bit 奇數中，找出 descent 軌跡中平均 v<sub>2</sub> 最差（最低）的那個數。
+            </div>
+            <div class="pg-controls">
+              <label>k = <span id="pg1-k-val">8</span></label>
+              <input type="range" id="pg1-k" min="3" max="14" value="8">
+            </div>
+            <div class="pg-chart-area" id="pg1-chart"></div>
+            <div class="pg-stats" id="pg1-stats"></div>
+          </div>
+          <div class="playground-panel" id="pg-tab-2">
+            <div class="pg-description">
+              Mersenne 數 (2<sup>k</sup> &minus; 1) 的完整壓縮 Collatz 軌道。
+            </div>
+            <div class="pg-controls">
+              <label>k = <span id="pg2-k-val">10</span></label>
+              <input type="range" id="pg2-k" min="3" max="25" value="10">
+            </div>
+            <div class="pg-chart-area" id="pg2-chart"></div>
+            <div class="pg-stats" id="pg2-stats"></div>
+          </div>
+          <div class="playground-panel" id="pg-tab-3">
+            <div class="pg-description">
+              對所有 k-bit 奇數，統計其軌跡中 v<sub>2</sub> = 1 步驟佔比的分佈，驗證 expander mixing 預測。
+            </div>
+            <div class="pg-controls">
+              <label>k = <span id="pg3-k-val">8</span></label>
+              <input type="range" id="pg3-k" min="5" max="14" value="8">
+            </div>
+            <div class="pg-chart-area" id="pg3-chart"></div>
+            <div class="pg-stats" id="pg3-stats"></div>
+          </div>
+          <div class="playground-panel" id="pg-tab-4">
+            <div class="pg-description">
+              計算軌道中 v<sub>2</sub> 的滑動窗口平均值，觀察局部波動是否圍繞 log<sub>2</sub>3 上下振盪。
+            </div>
+            <div class="pg-controls">
+              <label>n =</label>
+              <input type="number" id="pg4-n" value="27" min="3" step="2">
+              <label>窗口 w = <span id="pg4-w-val">10</span></label>
+              <input type="range" id="pg4-w" min="5" max="50" value="10">
+            </div>
+            <div class="pg-chart-area" id="pg4-chart"></div>
+          </div>
+          <div class="playground-panel" id="pg-tab-5">
+            <div class="pg-description">
+              累積比率 R(T) = B(T) / (T &middot; log<sub>2</sub>3)，其中 B(T) 是前 T 步的 v<sub>2</sub> 總和。R &gt; 1 表示軌道正在下降。
+            </div>
+            <div class="pg-controls">
+              <label>n =</label>
+              <input type="number" id="pg5-n" value="27" min="3" step="2">
+            </div>
+            <div class="pg-chart-area" id="pg5-chart"></div>
+            <div class="pg-stats" id="pg5-stats"></div>
+          </div>
+          <div class="playground-panel" id="pg-tab-6">
+            <div class="pg-description">
+              對每個 k-bit 奇數，計算其軌跡中 R(T) 的最小值並繪製散佈圖。R &gt; 1 表示始終收斂。
+            </div>
+            <div class="pg-controls">
+              <label>k = <span id="pg6-k-val">8</span></label>
+              <input type="range" id="pg6-k" min="5" max="12" value="8">
+            </div>
+            <div class="pg-chart-area" id="pg6-chart"></div>
+            <div class="pg-stats" id="pg6-stats"></div>
+          </div>
+        </div>
+      `;
+
+      const LOG2_3 = Math.log2(3);
+      const tabState = { initialized: new Set() };
+      let currentTab = '1';
+      let computeAbort = null; // to abort chunked computations
+
+      // Tab switching
+      const tabs = container.querySelectorAll('.playground-tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          if (computeAbort) { computeAbort(); computeAbort = null; }
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          container.querySelectorAll('.playground-panel').forEach(p => p.classList.remove('active'));
+          const tabId = tab.dataset.tab;
+          const panel = container.querySelector('#pg-tab-' + tabId);
+          if (panel) panel.classList.add('active');
+          currentTab = tabId;
+          // Lazy init
+          if (!tabState.initialized.has(tabId)) {
+            tabState.initialized.add(tabId);
+            initTab(tabId);
+          }
+        });
+      });
+
+      // Helper: descent trajectory for an odd n (only the descent part before reaching < n)
+      // Actually, we use the full trajectory to 1 (or maxSteps)
+      function descentV2Stats(n) {
+        const traj = Collatz.trajectory(n, 2000);
+        if (traj.length <= 1) return { avgV2: 0, steps: 0, totalV2: 0, v2Ones: 0 };
+        let totalV2 = 0;
+        let v2Ones = 0;
+        for (let i = 1; i < traj.length; i++) {
+          totalV2 += traj[i].v2;
+          if (traj[i].v2 === 1) v2Ones++;
+        }
+        const steps = traj.length - 1;
+        return { avgV2: totalV2 / steps, steps, totalV2, v2Ones, traj };
+      }
+
+      // Helper: make n odd
+      function ensureOdd(n) {
+        n = Number(n);
+        if (n < 3) n = 3;
+        if (n % 2 === 0) n = n + 1;
+        return n;
+      }
+
+      // Helper: create responsive SVG
+      function createSVG(parentId, w, h, margin) {
+        const parent = container.querySelector('#' + parentId);
+        if (!parent) return null;
+        parent.innerHTML = '';
+        const fullW = w + margin.left + margin.right;
+        const fullH = h + margin.top + margin.bottom;
+        const svg = d3.select(parent)
+          .append('svg')
+          .attr('class', 'chart-svg')
+          .attr('viewBox', `0 0 ${fullW} ${fullH}`)
+          .attr('preserveAspectRatio', 'xMidYMid meet');
+        const g = svg.append('g')
+          .attr('transform', `translate(${margin.left},${margin.top})`);
+        return { svg, g, width: w, height: h };
+      }
+
+      // Style axes
+      function styleAxes(svg) {
+        svg.selectAll('.tick text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+        svg.selectAll('.tick line').style('stroke', 'var(--border-subtle)');
+        svg.selectAll('.domain').style('stroke', 'var(--border-subtle)');
+      }
+
+      // Helper: jump link HTML
+      function jumpLinkHTML(n) {
+        return '<span class="pg-jump-link" data-jump-n="' + n + '">跳轉至圖 1A 查看 n=' + n + '</span>';
+      }
+
+      // Delegate jump link clicks
+      container.addEventListener('click', (e) => {
+        const jumpEl = e.target.closest('.pg-jump-link');
+        if (jumpEl) {
+          const n = Number(jumpEl.dataset.jumpN);
+          if (n && !isNaN(n)) {
+            GlobalN.set(n);
+            const epochSection = document.getElementById('sec-epoch');
+            if (epochSection) epochSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      });
+
+      // ==================== TAB 1: Worst-case avg v2 per bit-length ====================
+      function initTab1() {
+        const slider = container.querySelector('#pg1-k');
+        const valDisplay = container.querySelector('#pg1-k-val');
+        function runTab1(k) {
+          valDisplay.textContent = k;
+          const chartArea = container.querySelector('#pg1-chart');
+          const statsArea = container.querySelector('#pg1-stats');
+          if (computeAbort) { computeAbort(); computeAbort = null; }
+
+          const lo = (1 << (k - 1)) + 1; // smallest k-bit odd
+          const hi = (1 << k) - 1; // largest k-bit odd
+          const total = (hi - lo) / 2 + 1;
+
+          if (k > 10) {
+            // Chunked computation
+            chartArea.innerHTML = '<div class="pg-progress" id="pg1-progress">計算中... 0/' + total + '</div>';
+            statsArea.innerHTML = '';
+            const results = [];
+            let idx = 0;
+            let aborted = false;
+            computeAbort = () => { aborted = true; };
+
+            function processChunk() {
+              if (aborted) return;
+              const chunkSize = 1000;
+              const startN = lo + idx * 2;
+              for (let c = 0; c < chunkSize && idx < total; c++, idx++) {
+                const n = lo + idx * 2;
+                const stats = descentV2Stats(n);
+                results.push({ n, avgV2: stats.avgV2, totalV2: stats.totalV2, steps: stats.steps });
+              }
+              const progressEl = chartArea.querySelector('#pg1-progress');
+              if (progressEl) progressEl.textContent = '計算中... ' + Math.min(idx, total) + '/' + total;
+              if (idx < total) {
+                setTimeout(processChunk, 0);
+              } else {
+                renderTab1(results, k, chartArea, statsArea);
+              }
+            }
+            setTimeout(processChunk, 0);
+          } else {
+            // Compute all at once
+            const results = [];
+            for (let n = lo; n <= hi; n += 2) {
+              const stats = descentV2Stats(n);
+              results.push({ n, avgV2: stats.avgV2, totalV2: stats.totalV2, steps: stats.steps });
+            }
+            renderTab1(results, k, chartArea, statsArea);
+          }
+        }
+
+        function renderTab1(results, k, chartArea, statsArea) {
+          // Find worst (lowest avg v2)
+          let worst = results[0];
+          results.forEach(r => { if (r.avgV2 < worst.avgV2) worst = r; });
+
+          // Sort by avg v2 for histogram
+          const binCount = 20;
+          const minV = d3.min(results, d => d.avgV2);
+          const maxV = d3.max(results, d => d.avgV2);
+          const binWidth = (maxV - minV) / binCount || 0.01;
+          const bins = Array.from({ length: binCount }, (_, i) => ({
+            x0: minV + i * binWidth,
+            x1: minV + (i + 1) * binWidth,
+            count: 0
+          }));
+          results.forEach(r => {
+            let bi = Math.floor((r.avgV2 - minV) / binWidth);
+            if (bi >= binCount) bi = binCount - 1;
+            if (bi < 0) bi = 0;
+            bins[bi].count++;
+          });
+
+          const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+          const w = 600, h = 280;
+          const chart = createSVG('pg1-chart', w, h, margin);
+          if (!chart) return;
+          const { g, width, height } = chart;
+
+          const xScale = d3.scaleLinear()
+            .domain([minV, maxV])
+            .range([0, width]);
+          const yScale = d3.scaleLinear()
+            .domain([0, d3.max(bins, d => d.count) * 1.1])
+            .range([height, 0]);
+
+          g.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('.3f')));
+          g.append('g').call(d3.axisLeft(yScale).ticks(6));
+          styleAxes(chart.svg);
+
+          // X label
+          g.append('text')
+            .attr('x', width / 2).attr('y', height + 42)
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-secondary)').attr('font-size', '18px')
+            .text('平均 v\u2082');
+
+          // Bars
+          bins.forEach(bin => {
+            g.append('rect')
+              .attr('x', xScale(bin.x0))
+              .attr('y', yScale(bin.count))
+              .attr('width', Math.max(1, xScale(bin.x1) - xScale(bin.x0) - 1))
+              .attr('height', height - yScale(bin.count))
+              .attr('fill', '#2a6bb8')
+              .attr('fill-opacity', 0.7)
+              .attr('rx', 1);
+          });
+
+          // Mark worst with vertical line
+          g.append('line')
+            .attr('x1', xScale(worst.avgV2)).attr('x2', xScale(worst.avgV2))
+            .attr('y1', 0).attr('y2', height)
+            .attr('stroke', '#c93135')
+            .attr('stroke-width', 2)
+            .attr('stroke-dasharray', '4,3');
+          g.append('text')
+            .attr('x', xScale(worst.avgV2) + 5).attr('y', 18)
+            .attr('fill', '#c93135').attr('font-size', '18px')
+            .text('最差: n=' + worst.n);
+
+          // Reference line at log2(3)
+          g.append('line')
+            .attr('x1', xScale(LOG2_3)).attr('x2', xScale(LOG2_3))
+            .attr('y1', 0).attr('y2', height)
+            .attr('stroke', '#1e8050')
+            .attr('stroke-width', 1.5)
+            .attr('stroke-dasharray', '6,3');
+          g.append('text')
+            .attr('x', xScale(LOG2_3) + 5).attr('y', 36)
+            .attr('fill', '#1e8050').attr('font-size', '18px')
+            .text('log\u2082 3');
+
+          // Stats
+          const btRatio = worst.totalV2 + '/' + worst.steps;
+          statsArea.innerHTML =
+            '<div class="pg-stat-card"><div class="pg-stat-label">最差 n</div><div class="pg-stat-value">' + worst.n + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">平均 v\u2082</div><div class="pg-stat-value">' + worst.avgV2.toFixed(4) + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">B/T</div><div class="pg-stat-value">' + btRatio + ' = ' + (worst.totalV2 / worst.steps).toFixed(4) + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">步數</div><div class="pg-stat-value">' + worst.steps + '</div></div>' +
+            jumpLinkHTML(worst.n);
+        }
+
+        slider.addEventListener('input', () => runTab1(Number(slider.value)));
+        runTab1(Number(slider.value));
+      }
+
+      // ==================== TAB 2: Mersenne trajectory ====================
+      function initTab2() {
+        const slider = container.querySelector('#pg2-k');
+        const valDisplay = container.querySelector('#pg2-k-val');
+        function runTab2(k) {
+          valDisplay.textContent = k;
+          const n = (1 << k) - 1;
+          const traj = Collatz.trajectory(n, 5000);
+
+          const margin = { top: 20, right: 30, bottom: 50, left: 80 };
+          const w = 600, h = 300;
+          const chart = createSVG('pg2-chart', w, h, margin);
+          if (!chart) return;
+          const { g, width, height } = chart;
+
+          // Plot log2 of trajectory values
+          const data = traj.map((d, i) => ({ step: i, logVal: Math.log2(Number(d.value) || 1) }));
+
+          const xScale = d3.scaleLinear().domain([0, data.length - 1]).range([0, width]);
+          const yScale = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.logVal) * 1.05])
+            .range([height, 0]);
+
+          g.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).ticks(Math.min(10, data.length)));
+          g.append('g').call(d3.axisLeft(yScale).ticks(6).tickFormat(d => d.toFixed(0)));
+          styleAxes(chart.svg);
+
+          // Axis labels
+          g.append('text')
+            .attr('x', width / 2).attr('y', height + 42)
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-secondary)').attr('font-size', '18px')
+            .text('壓縮步數');
+          g.append('text')
+            .attr('x', -height / 2).attr('y', -60)
+            .attr('transform', 'rotate(-90)')
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-secondary)').attr('font-size', '18px')
+            .text('log\u2082(n)');
+
+          // Line
+          const line = d3.line()
+            .x(d => xScale(d.step))
+            .y(d => yScale(d.logVal));
+
+          g.append('path')
+            .datum(data)
+            .attr('fill', 'none')
+            .attr('stroke', '#2a6bb8')
+            .attr('stroke-width', 2)
+            .attr('d', line);
+
+          // Reference: decay line from start
+          const logStart = Math.log2(Number(traj[0].value));
+          const refLen = Math.min(data.length - 1, 30);
+          g.append('line')
+            .attr('x1', xScale(0)).attr('y1', yScale(logStart))
+            .attr('x2', xScale(refLen)).attr('y2', yScale(logStart - refLen * (LOG2_3 - 1)))
+            .attr('stroke', '#1e8050')
+            .attr('stroke-width', 1)
+            .attr('stroke-dasharray', '6,3');
+
+          // Stats
+          let totalV2 = 0, v2Ones = 0, peakVal = 0n;
+          for (let i = 1; i < traj.length; i++) {
+            totalV2 += traj[i].v2;
+            if (traj[i].v2 === 1) v2Ones++;
+            if (traj[i].value > peakVal) peakVal = traj[i].value;
+          }
+          const steps = traj.length - 1;
+          const avgV2 = steps > 0 ? totalV2 / steps : 0;
+          const v2OneRatio = steps > 0 ? v2Ones / steps : 0;
+          const peakRatio = Number(peakVal) / n;
+
+          const statsArea = container.querySelector('#pg2-stats');
+          statsArea.innerHTML =
+            '<div class="pg-stat-card"><div class="pg-stat-label">n</div><div class="pg-stat-value">2<sup>' + k + '</sup>&minus;1 = ' + n + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">步數</div><div class="pg-stat-value">' + steps + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">平均 v\u2082</div><div class="pg-stat-value">' + avgV2.toFixed(3) + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">v\u2082=1 比例</div><div class="pg-stat-value">' + v2OneRatio.toFixed(3) + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">峰值/n</div><div class="pg-stat-value">' + peakRatio.toFixed(1) + '</div></div>' +
+            jumpLinkHTML(n);
+        }
+
+        slider.addEventListener('input', () => runTab2(Number(slider.value)));
+        runTab2(Number(slider.value));
+      }
+
+      // ==================== TAB 3: v2=1 proportion distribution ====================
+      function initTab3() {
+        const slider = container.querySelector('#pg3-k');
+        const valDisplay = container.querySelector('#pg3-k-val');
+        function runTab3(k) {
+          valDisplay.textContent = k;
+          const chartArea = container.querySelector('#pg3-chart');
+          const statsArea = container.querySelector('#pg3-stats');
+          if (computeAbort) { computeAbort(); computeAbort = null; }
+
+          const lo = (1 << (k - 1)) + 1;
+          const hi = (1 << k) - 1;
+          const total = (hi - lo) / 2 + 1;
+
+          if (k > 10) {
+            chartArea.innerHTML = '<div class="pg-progress" id="pg3-progress">計算中... 0/' + total + '</div>';
+            statsArea.innerHTML = '';
+            const proportions = [];
+            let idx = 0;
+            let aborted = false;
+            computeAbort = () => { aborted = true; };
+
+            function processChunk() {
+              if (aborted) return;
+              const chunkSize = 1000;
+              for (let c = 0; c < chunkSize && idx < total; c++, idx++) {
+                const n = lo + idx * 2;
+                const stats = descentV2Stats(n);
+                if (stats.steps > 0) {
+                  proportions.push(stats.v2Ones / stats.steps);
+                }
+              }
+              const progressEl = chartArea.querySelector('#pg3-progress');
+              if (progressEl) progressEl.textContent = '計算中... ' + Math.min(idx, total) + '/' + total;
+              if (idx < total) {
+                setTimeout(processChunk, 0);
+              } else {
+                renderTab3(proportions, k, chartArea, statsArea);
+              }
+            }
+            setTimeout(processChunk, 0);
+          } else {
+            const proportions = [];
+            for (let n = lo; n <= hi; n += 2) {
+              const stats = descentV2Stats(n);
+              if (stats.steps > 0) {
+                proportions.push(stats.v2Ones / stats.steps);
+              }
+            }
+            renderTab3(proportions, k, chartArea, statsArea);
+          }
+        }
+
+        function renderTab3(proportions, k, chartArea, statsArea) {
+          const binCount = 25;
+          const minP = d3.min(proportions);
+          const maxP = d3.max(proportions);
+          const binWidth = (maxP - minP) / binCount || 0.01;
+          const bins = Array.from({ length: binCount }, (_, i) => ({
+            x0: minP + i * binWidth,
+            x1: minP + (i + 1) * binWidth,
+            count: 0
+          }));
+          proportions.forEach(p => {
+            let bi = Math.floor((p - minP) / binWidth);
+            if (bi >= binCount) bi = binCount - 1;
+            if (bi < 0) bi = 0;
+            bins[bi].count++;
+          });
+
+          const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+          const w = 600, h = 280;
+          const chart = createSVG('pg3-chart', w, h, margin);
+          if (!chart) return;
+          const { g, width, height } = chart;
+
+          const xScale = d3.scaleLinear().domain([minP, maxP]).range([0, width]);
+          const yScale = d3.scaleLinear()
+            .domain([0, d3.max(bins, d => d.count) * 1.1])
+            .range([height, 0]);
+
+          g.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('.2f')));
+          g.append('g').call(d3.axisLeft(yScale).ticks(6));
+          styleAxes(chart.svg);
+
+          g.append('text')
+            .attr('x', width / 2).attr('y', height + 42)
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-secondary)').attr('font-size', '18px')
+            .text('v\u2082=1 步驟佔比');
+
+          bins.forEach(bin => {
+            g.append('rect')
+              .attr('x', xScale(bin.x0))
+              .attr('y', yScale(bin.count))
+              .attr('width', Math.max(1, xScale(bin.x1) - xScale(bin.x0) - 1))
+              .attr('height', height - yScale(bin.count))
+              .attr('fill', '#2a6bb8')
+              .attr('fill-opacity', 0.7)
+              .attr('rx', 1);
+          });
+
+          // Reference line at 0.5
+          if (0.5 >= minP && 0.5 <= maxP) {
+            g.append('line')
+              .attr('x1', xScale(0.5)).attr('x2', xScale(0.5))
+              .attr('y1', 0).attr('y2', height)
+              .attr('stroke', '#c93135')
+              .attr('stroke-width', 1.5)
+              .attr('stroke-dasharray', '6,3');
+            g.append('text')
+              .attr('x', xScale(0.5) + 5).attr('y', 18)
+              .attr('fill', '#c93135').attr('font-size', '18px')
+              .text('理論值 0.5');
+          }
+
+          const mean = proportions.reduce((a, b) => a + b, 0) / proportions.length;
+          const maxProp = d3.max(proportions);
+
+          statsArea.innerHTML =
+            '<div class="pg-stat-card"><div class="pg-stat-label">樣本數</div><div class="pg-stat-value">' + proportions.length + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">平均 v\u2082=1 比例</div><div class="pg-stat-value">' + mean.toFixed(4) + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">最大 v\u2082=1 比例</div><div class="pg-stat-value">' + maxProp.toFixed(4) + '</div></div>';
+        }
+
+        slider.addEventListener('input', () => runTab3(Number(slider.value)));
+        runTab3(Number(slider.value));
+      }
+
+      // ==================== TAB 4: Sliding window v2 ====================
+      function initTab4() {
+        const nInput = container.querySelector('#pg4-n');
+        const wSlider = container.querySelector('#pg4-w');
+        const wDisplay = container.querySelector('#pg4-w-val');
+
+        function runTab4() {
+          let n = ensureOdd(Number(nInput.value));
+          nInput.value = n;
+          const w = Number(wSlider.value);
+          wDisplay.textContent = w;
+
+          const traj = Collatz.trajectory(n, 2000);
+          if (traj.length <= w) {
+            const chartArea = container.querySelector('#pg4-chart');
+            chartArea.innerHTML = '<div class="pg-progress">軌跡步數不足窗口大小</div>';
+            return;
+          }
+
+          // Compute sliding window average of v2
+          const v2s = traj.slice(1).map(d => d.v2); // skip step 0
+          const swAvg = [];
+          for (let i = 0; i <= v2s.length - w; i++) {
+            let sum = 0;
+            for (let j = 0; j < w; j++) sum += v2s[i + j];
+            swAvg.push({ step: i + Math.floor(w / 2), avg: sum / w });
+          }
+
+          const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+          const cw = 600, ch = 280;
+          const chart = createSVG('pg4-chart', cw, ch, margin);
+          if (!chart) return;
+          const { g, width, height } = chart;
+
+          const xScale = d3.scaleLinear()
+            .domain([d3.min(swAvg, d => d.step), d3.max(swAvg, d => d.step)])
+            .range([0, width]);
+          const yMin = d3.min(swAvg, d => d.avg);
+          const yMax = d3.max(swAvg, d => d.avg);
+          const yScale = d3.scaleLinear()
+            .domain([Math.min(yMin, LOG2_3 * 0.8), Math.max(yMax, LOG2_3 * 1.2)])
+            .range([height, 0]);
+
+          g.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).ticks(Math.min(10, swAvg.length)));
+          g.append('g').call(d3.axisLeft(yScale).ticks(6).tickFormat(d3.format('.3f')));
+          styleAxes(chart.svg);
+
+          g.append('text')
+            .attr('x', width / 2).attr('y', height + 42)
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-secondary)').attr('font-size', '18px')
+            .text('步數（窗口中心）');
+          g.append('text')
+            .attr('x', -height / 2).attr('y', -45)
+            .attr('transform', 'rotate(-90)')
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-secondary)').attr('font-size', '18px')
+            .text('滑動平均 v\u2082');
+
+          // Line
+          const line = d3.line()
+            .x(d => xScale(d.step))
+            .y(d => yScale(d.avg));
+
+          g.append('path')
+            .datum(swAvg)
+            .attr('fill', 'none')
+            .attr('stroke', '#2a6bb8')
+            .attr('stroke-width', 2)
+            .attr('d', line);
+
+          // Reference line at log2(3)
+          g.append('line')
+            .attr('x1', 0).attr('x2', width)
+            .attr('y1', yScale(LOG2_3)).attr('y2', yScale(LOG2_3))
+            .attr('stroke', '#c93135')
+            .attr('stroke-width', 1.5)
+            .attr('stroke-dasharray', '6,3');
+          g.append('text')
+            .attr('x', width - 5).attr('y', yScale(LOG2_3) - 5)
+            .attr('text-anchor', 'end')
+            .attr('fill', '#c93135').attr('font-size', '18px')
+            .text('log\u2082 3 \u2248 1.585');
+        }
+
+        nInput.addEventListener('change', runTab4);
+        wSlider.addEventListener('input', runTab4);
+        runTab4();
+      }
+
+      // ==================== TAB 5: Cumulative ratio R(T) ====================
+      function initTab5() {
+        const nInput = container.querySelector('#pg5-n');
+
+        function runTab5() {
+          let n = ensureOdd(Number(nInput.value));
+          nInput.value = n;
+
+          const traj = Collatz.trajectory(n, 2000);
+          if (traj.length <= 1) return;
+
+          // R(T) = B(T) / (T * log2(3))
+          const data = [];
+          let cumV2 = 0;
+          let minR = Infinity;
+          let minRStep = 0;
+          for (let T = 1; T < traj.length; T++) {
+            cumV2 += traj[T].v2;
+            const R = cumV2 / (T * LOG2_3);
+            data.push({ T, R });
+            if (R < minR) { minR = R; minRStep = T; }
+          }
+
+          const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+          const cw = 600, ch = 300;
+          const chart = createSVG('pg5-chart', cw, ch, margin);
+          if (!chart) return;
+          const { g, width, height } = chart;
+
+          const xScale = d3.scaleLinear().domain([1, data.length]).range([0, width]);
+          const yMin = d3.min(data, d => d.R);
+          const yMax = d3.max(data, d => d.R);
+          const yScale = d3.scaleLinear()
+            .domain([Math.min(yMin * 0.9, 0.5), Math.max(yMax * 1.05, 1.2)])
+            .range([height, 0]);
+
+          g.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).ticks(Math.min(10, data.length)));
+          g.append('g').call(d3.axisLeft(yScale).ticks(6).tickFormat(d3.format('.3f')));
+          styleAxes(chart.svg);
+
+          g.append('text')
+            .attr('x', width / 2).attr('y', height + 42)
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-secondary)').attr('font-size', '18px')
+            .text('步數 T');
+          g.append('text')
+            .attr('x', -height / 2).attr('y', -45)
+            .attr('transform', 'rotate(-90)')
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-secondary)').attr('font-size', '18px')
+            .text('R(T)');
+
+          // Line
+          const line = d3.line()
+            .x(d => xScale(d.T))
+            .y(d => yScale(d.R));
+
+          g.append('path')
+            .datum(data)
+            .attr('fill', 'none')
+            .attr('stroke', '#2a6bb8')
+            .attr('stroke-width', 2)
+            .attr('d', line);
+
+          // Reference line at R = 1
+          g.append('line')
+            .attr('x1', 0).attr('x2', width)
+            .attr('y1', yScale(1)).attr('y2', yScale(1))
+            .attr('stroke', '#1e8050')
+            .attr('stroke-width', 1.5)
+            .attr('stroke-dasharray', '6,3');
+          g.append('text')
+            .attr('x', width - 5).attr('y', yScale(1) - 5)
+            .attr('text-anchor', 'end')
+            .attr('fill', '#1e8050').attr('font-size', '18px')
+            .text('R = 1');
+
+          // Mark historical minimum
+          g.append('circle')
+            .attr('cx', xScale(minRStep))
+            .attr('cy', yScale(minR))
+            .attr('r', 5)
+            .attr('fill', '#c93135');
+          g.append('text')
+            .attr('x', xScale(minRStep) + 8)
+            .attr('y', yScale(minR) + 5)
+            .attr('fill', '#c93135').attr('font-size', '18px')
+            .text('min R=' + minR.toFixed(4) + ' (T=' + minRStep + ')');
+
+          // Stats
+          const finalR = data[data.length - 1].R;
+          const statsArea = container.querySelector('#pg5-stats');
+          statsArea.innerHTML =
+            '<div class="pg-stat-card"><div class="pg-stat-label">n</div><div class="pg-stat-value">' + n + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">最小 R</div><div class="pg-stat-value">' + minR.toFixed(4) + ' (T=' + minRStep + ')</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">最終 R</div><div class="pg-stat-value">' + finalR.toFixed(4) + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">總步數</div><div class="pg-stat-value">' + (traj.length - 1) + '</div></div>' +
+            jumpLinkHTML(n);
+        }
+
+        nInput.addEventListener('change', runTab5);
+        runTab5();
+      }
+
+      // ==================== TAB 6: Min cumulative ratio scatter ====================
+      function initTab6() {
+        const slider = container.querySelector('#pg6-k');
+        const valDisplay = container.querySelector('#pg6-k-val');
+
+        function runTab6(k) {
+          valDisplay.textContent = k;
+          const chartArea = container.querySelector('#pg6-chart');
+          const statsArea = container.querySelector('#pg6-stats');
+          if (computeAbort) { computeAbort(); computeAbort = null; }
+
+          const lo = (1 << (k - 1)) + 1;
+          const hi = (1 << k) - 1;
+          const total = (hi - lo) / 2 + 1;
+
+          function computeMinR(n) {
+            const traj = Collatz.trajectory(n, 2000);
+            if (traj.length <= 1) return { n, minR: 1 };
+            let cumV2 = 0;
+            let minR = Infinity;
+            for (let T = 1; T < traj.length; T++) {
+              cumV2 += traj[T].v2;
+              const R = cumV2 / (T * LOG2_3);
+              if (R < minR) minR = R;
+            }
+            return { n, minR };
+          }
+
+          if (k > 10) {
+            chartArea.innerHTML = '<div class="pg-progress" id="pg6-progress">計算中... 0/' + total + '</div>';
+            statsArea.innerHTML = '';
+            const results = [];
+            let idx = 0;
+            let aborted = false;
+            computeAbort = () => { aborted = true; };
+
+            function processChunk() {
+              if (aborted) return;
+              const chunkSize = 1000;
+              for (let c = 0; c < chunkSize && idx < total; c++, idx++) {
+                const n = lo + idx * 2;
+                results.push(computeMinR(n));
+              }
+              const progressEl = chartArea.querySelector('#pg6-progress');
+              if (progressEl) progressEl.textContent = '計算中... ' + Math.min(idx, total) + '/' + total;
+              if (idx < total) {
+                setTimeout(processChunk, 0);
+              } else {
+                renderTab6(results, k, chartArea, statsArea);
+              }
+            }
+            setTimeout(processChunk, 0);
+          } else {
+            const results = [];
+            for (let n = lo; n <= hi; n += 2) {
+              results.push(computeMinR(n));
+            }
+            renderTab6(results, k, chartArea, statsArea);
+          }
+        }
+
+        function renderTab6(results, k, chartArea, statsArea) {
+          const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+          const w = 600, h = 300;
+          const chart = createSVG('pg6-chart', w, h, margin);
+          if (!chart) return;
+          const { g, width, height } = chart;
+
+          const xScale = d3.scaleLinear()
+            .domain([d3.min(results, d => d.n), d3.max(results, d => d.n)])
+            .range([0, width]);
+          const minR = d3.min(results, d => d.minR);
+          const maxR = d3.max(results, d => d.minR);
+          const yScale = d3.scaleLinear()
+            .domain([Math.min(minR * 0.9, 0.5), Math.max(maxR * 1.05, 1.2)])
+            .range([height, 0]);
+
+          g.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).ticks(6));
+          g.append('g').call(d3.axisLeft(yScale).ticks(6).tickFormat(d3.format('.3f')));
+          styleAxes(chart.svg);
+
+          g.append('text')
+            .attr('x', width / 2).attr('y', height + 42)
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-secondary)').attr('font-size', '18px')
+            .text('n');
+          g.append('text')
+            .attr('x', -height / 2).attr('y', -45)
+            .attr('transform', 'rotate(-90)')
+            .attr('text-anchor', 'middle')
+            .attr('fill', 'var(--text-secondary)').attr('font-size', '18px')
+            .text('min R(T)');
+
+          // Scatter dots
+          const dotRadius = results.length > 500 ? 1.5 : results.length > 100 ? 2 : 3;
+          results.forEach(d => {
+            g.append('circle')
+              .attr('cx', xScale(d.n))
+              .attr('cy', yScale(d.minR))
+              .attr('r', dotRadius)
+              .attr('fill', '#2a6bb8')
+              .attr('fill-opacity', 0.5);
+          });
+
+          // Reference line at R = 1
+          g.append('line')
+            .attr('x1', 0).attr('x2', width)
+            .attr('y1', yScale(1)).attr('y2', yScale(1))
+            .attr('stroke', '#c93135')
+            .attr('stroke-width', 1.5)
+            .attr('stroke-dasharray', '6,3');
+          g.append('text')
+            .attr('x', width - 5).attr('y', yScale(1) - 5)
+            .attr('text-anchor', 'end')
+            .attr('fill', '#c93135').attr('font-size', '18px')
+            .text('R = 1');
+
+          // Find overall worst
+          let worst = results[0];
+          results.forEach(d => { if (d.minR < worst.minR) worst = d; });
+
+          // Mark worst
+          g.append('circle')
+            .attr('cx', xScale(worst.n))
+            .attr('cy', yScale(worst.minR))
+            .attr('r', 5)
+            .attr('fill', '#c93135');
+          g.append('text')
+            .attr('x', xScale(worst.n) + 8)
+            .attr('y', yScale(worst.minR) + 5)
+            .attr('fill', '#c93135').attr('font-size', '18px')
+            .text('n=' + worst.n);
+
+          const allAboveOne = results.every(d => d.minR >= 1.0);
+          statsArea.innerHTML =
+            '<div class="pg-stat-card"><div class="pg-stat-label">樣本數</div><div class="pg-stat-value">' + results.length + '</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">最差 min R</div><div class="pg-stat-value">' + worst.minR.toFixed(4) + ' (n=' + worst.n + ')</div></div>' +
+            '<div class="pg-stat-card"><div class="pg-stat-label">全部 R &ge; 1?</div><div class="pg-stat-value">' + (allAboveOne ? '否（某些步驟 R &lt; 1）' : '否（存在 R &lt; 1）') + '</div></div>' +
+            jumpLinkHTML(worst.n);
+        }
+
+        slider.addEventListener('input', () => runTab6(Number(slider.value)));
+        runTab6(Number(slider.value));
+      }
+
+      // Tab init dispatcher
+      function initTab(tabId) {
+        switch (tabId) {
+          case '1': initTab1(); break;
+          case '2': initTab2(); break;
+          case '3': initTab3(); break;
+          case '4': initTab4(); break;
+          case '5': initTab5(); break;
+          case '6': initTab6(); break;
+        }
+      }
+
+      // Initialize tab 1 by default
+      tabState.initialized.add('1');
+      initTab1();
+
+      _playground = { container };
+    }
+
+    function destroyPlayground() {
+      if (!_playground) return;
+      _playground.container.innerHTML = '';
+      _playground = null;
+    }
+
     /* ==================== BOOT ==================== */
     document.addEventListener('DOMContentLoaded', () => {
       // Init MathJax lazy observer
@@ -6530,6 +7574,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       ChartRegistry.register('chart-b1-container', (el) => initChartB1(el), () => destroyChartB1());
       ChartRegistry.register('chart-c1-container', (el) => initChartC1(el), () => destroyChartC1());
       ChartRegistry.register('chart-d1-container', (el) => initChartD1(el), () => destroyChartD1());
+      ChartRegistry.register('playground-container', (el) => initPlayground(el), () => destroyPlayground());
 
       // Start observing chart containers
       ChartRegistry.observeAll();
