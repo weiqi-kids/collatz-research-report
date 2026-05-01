@@ -2069,7 +2069,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
     })();
 
     /* ==================== HERO INPUT ==================== */
-    (function initHeroInput() {
+    function initHeroInput() {
       const input = document.getElementById('hero-n-input');
       const error = document.getElementById('hero-error');
 
@@ -2121,10 +2121,10 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
 
       // Set initial value
       GlobalN.set(27);
-    })();
+    }
 
     /* ==================== HERO CHART ==================== */
-    (function initHeroChart() {
+    function initHeroChart() {
       const container = document.getElementById('hero-chart');
       const fallback = document.getElementById('hero-chart-fallback');
       const playBtn = document.getElementById('hero-play');
@@ -2279,7 +2279,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
           render(displayedSteps);
         }, 200);
       });
-    })();
+    }
 
     /* ==================== CHART 1A: TRAJECTORY ANIMATION ==================== */
     let _chart1A = null;
@@ -7552,6 +7552,10 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
     /* ==================== BOOT ==================== */
     document.addEventListener('DOMContentLoaded', () => {
       // Init MathJax lazy observer
+      // Init hero (must be inside DOMContentLoaded so D3 defer is loaded)
+      initHeroInput();
+      initHeroChart();
+
       MathLazy.init();
       document.querySelectorAll('.math-block, .math-inline').forEach(el => MathLazy.observe(el));
 
