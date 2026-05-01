@@ -4576,15 +4576,23 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       ];
       function nodeColor(n) { return nodeColors[n % 6]; }
 
-      /** Compute standard Collatz predecessors of m (NOT compressed).
-       *  predecessors(m) = {2m} ∪ {(m-1)/3 if (m-1)%3==0 and (m-1)/3 is a positive odd integer}
+      /** Compute reverse Collatz predecessors of m.
+       *  For the inverse tree rooted at 1:
+       *  - Even predecessor: 2m (always)
+       *  - Odd predecessors: for v = 1,2,3,..., check if (m * 2^v - 1) is divisible by 3
+       *    and the result is a positive odd integer. These are numbers n where T(n) = 3n+1
+       *    followed by v divisions by 2 yields m.
        */
       function predecessors(m) {
         const preds = [2 * m];
-        if ((m - 1) % 3 === 0) {
-          const p = (m - 1) / 3;
-          if (p > 0 && p % 2 === 1 && p !== m) {
-            preds.push(p);
+        // Find odd predecessors: n such that (3n+1)/2^v = m, i.e. n = (m*2^v - 1)/3
+        for (let v = 1; v <= 6; v++) {
+          const numerator = m * Math.pow(2, v) - 1;
+          if (numerator % 3 === 0) {
+            const p = numerator / 3;
+            if (p > 0 && p % 2 === 1 && p !== m) {
+              preds.push(p);
+            }
           }
         }
         return preds.sort((a, b) => a - b);
@@ -4602,31 +4610,33 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
         return steps;
       }
 
-      /** Build tree data (hierarchical JSON for d3.hierarchy) */
-      function buildTree(root, maxD) {
+      /** Build tree data (hierarchical JSON for d3.hierarchy).
+       *  Uses ancestor-path tracking to prevent cycles on same branch,
+       *  but allows the same number to appear in different branches.
+       */
+      function buildTree(rootVal, maxD) {
         totalNodes = 0;
-        function expand(val, depth) {
+        function expand(val, depth, ancestors) {
           totalNodes++;
           const node = { name: val, value: val, children: [] };
           if (depth >= maxD || totalNodes >= NODE_LIMIT) return node;
           const preds = predecessors(val);
-          // Filter: exclude trivial loop at root (4->2->1->4)
-          const filtered = (val === 1)
-            ? preds.filter(p => p !== 2 || depth > 0) // allow 2 as child of 1 only once
-            : preds;
-          // Show at most 5 children, rest as collapsed
+          // Filter: exclude ancestors on this path (prevent cycles like 1→2→4→8→...→1)
+          const filtered = preds.filter(p => !ancestors.has(p));
           const shown = filtered.slice(0, 5);
           const rest = filtered.length - shown.length;
+          const newAncestors = new Set(ancestors);
+          newAncestors.add(val);
           for (const p of shown) {
             if (totalNodes >= NODE_LIMIT) break;
-            node.children.push(expand(p, depth + 1));
+            node.children.push(expand(p, depth + 1, newAncestors));
           }
           if (rest > 0) {
             node.children.push({ name: `+${rest}`, value: null, children: [] });
           }
           return node;
         }
-        return expand(root, 0);
+        return expand(rootVal, 0, new Set());
       }
 
       // SVG setup
