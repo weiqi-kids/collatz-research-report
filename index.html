@@ -521,13 +521,171 @@
 
     <section class="section" id="sec-problem">
       <h2>1. 問題陳述</h2>
-      <p><!-- Content from readme.md §1, added in Phase 2 --></p>
+
+      <h3>1.1 原始形式</h3>
+      <p>定義 Collatz 映射 \( T: \mathbb{N} \to \mathbb{N} \)：</p>
+      <ul style="list-style:none; padding-left:1.5rem; font-size:var(--text-sm);">
+        <li>若 \( n \) 為偶數：\( T(n) = n/2 \)</li>
+        <li>若 \( n \) 為奇數：\( T(n) = 3n + 1 \)</li>
+      </ul>
+      <p><strong>Collatz 猜想</strong>：對所有正整數 \( n \)，反覆施用 \( T \) 最終到達 1。</p>
+
+      <h3>1.2 壓縮形式</h3>
+      <p>定義壓縮 Collatz 映射 \( S: \mathbb{N}_{\text{odd}} \to \mathbb{N}_{\text{odd}} \)（奇數到奇數）：</p>
+      <div class="math-block">
+        \[ S(n) = \frac{3n + 1}{2^{v_2(3n+1)}} \]
+      </div>
+      <p>其中 \( v_2(m) \) 是 \( m \) 的 2-adic 賦值（\( m \) 被 2 整除的最大次數）。</p>
+      <p><strong>等價猜想</strong>：對所有奇數 \( n > 1 \)，反覆施用 \( S \) 最終到達 1。</p>
+
+      <h3>1.3 已知結果</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>結果</th><th>作者/年份</th><th>內容</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>計算驗證</td><td>多人/至今</td><td>所有 \( n \leq 2^{68} \) 已驗證到達 1</td></tr>
+            <tr><td>幾乎所有</td><td>Tao 2019</td><td>幾乎所有正整數的 Collatz 軌道到達接近 1 的值</td></tr>
+            <tr><td>無短循環</td><td>Eliahou 1993+</td><td>非平凡循環長度 &gt; \( 10^{10} \) 級別</td></tr>
+            <tr><td>通用性不可判定</td><td>Conway 1972</td><td>廣義 Collatz 問題等價於停機問題</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class="section" id="sec-epoch">
       <h2>2. 框架一：Epoch 分解與位移座標</h2>
-      <div id="chart-1a-container"></div>
-      <div id="chart-1b-container"></div>
+
+      <!-- White-language introduction -->
+      <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>一句話問題：</strong>如果我們把 Collatz 的每一步想成爬坡和下坡的組合，什麼時候下坡才會贏？
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>類比：</strong>就像登山——每次乘 3 是爬坡，每次除 2 是下坡。Epoch 就是一段連續的爬坡，結束時會有一次大幅下坡。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>目標：</strong>這個框架想要精確計算每段爬坡和下坡的幅度，看看是否總是下坡比較多。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary);">
+          <strong>結果：</strong>得到了漂亮的精確公式，但無法證明「下坡總是贏」。
+        </p>
+      </div>
+
+      <!-- Chart 1A: Trajectory Animation -->
+      <div class="chart-container" id="chart-1a-container" aria-label="Collatz 軌道動畫">
+        <div class="chart-title">圖 1A：軌道動畫（Epoch 分解）</div>
+        <div class="chart-input-group">
+          <label style="font-size:var(--text-xs)">n =</label>
+          <input type="text" class="chart-input" id="chart-1a-input" inputmode="numeric">
+          <button class="chart-unlink-btn" id="chart-1a-unlink" title="重新同步全域 n">&#128279;</button>
+          <button class="btn btn-primary" id="chart-1a-play">&#9654;</button>
+          <button class="btn" id="chart-1a-pause">&#10074;&#10074;</button>
+          <button class="btn" id="chart-1a-skip">&#9193;</button>
+          <div style="display:flex;gap:0.25rem;">
+            <button class="btn chart-1a-speed active" data-speed="1">1x</button>
+            <button class="btn chart-1a-speed" data-speed="2">2x</button>
+            <button class="btn chart-1a-speed" data-speed="4">4x</button>
+          </div>
+          <button class="btn" id="chart-1a-scale">線性/對數</button>
+        </div>
+      </div>
+
+      <!-- §2.1 Trailing 1-bit structure -->
+      <h3>2.1 尾隨 1-bit 結構</h3>
+      <p><strong>定義</strong>：奇數 \( n \) 的「尾隨 1-bit 數」\( t = v_2(n+1) \)，即 \( n \) 的二進位表示中末尾連續 1 的個數。</p>
+      <p>寫成 \( n = 2^t m' - 1 \)，其中 \( m' \) 為奇數。</p>
+
+      <!-- §2.2 Core formula -->
+      <h3>2.2 核心公式</h3>
+      <p><strong>定理（精確公式）</strong>：若奇數 \( n \) 有 \( t \) 個尾隨 1-bit，則前 \( t-1 \) 步壓縮 Collatz 映射（每步 \( v_2 = 1 \)）之後：</p>
+      <div class="math-block">
+        \[ S^{t-1}(n) = \left(\frac{3}{2}\right)^{t-1}(n+1) - 1 = 2 \cdot 3^{t-1} \cdot m' - 1 \]
+      </div>
+      <p><strong>證明</strong>：</p>
+      <p>定義 \( T(n) = (3n+1)/2 \)（\( v_2 = 1 \) 的壓縮步驟）。</p>
+      <p>歸納法：</p>
+      <ul style="list-style:none; padding-left:1.5rem; font-size:var(--text-sm);">
+        <li>\( T^1(n) = (3n+1)/2 \)</li>
+        <li>\( T^j(n) = (3^j n + c_j)/2^j \)，其中 \( c_j \) 滿足 \( c_j = 3c_{j-1} + 2^{j-1} \)</li>
+      </ul>
+      <p>解遞推：\( c_1 = 1 \)，\( c_j = 3^j - 2^j \)（可直接驗證）。</p>
+      <p>所以</p>
+      <div class="math-block">
+        \[ T^j(n) = \frac{3^j n + 3^j - 2^j}{2^j} = \frac{3^j(n+1) - 2^j}{2^j} = \left(\frac{3}{2}\right)^j(n+1) - 1 \quad \square \]
+      </div>
+      <p><strong>驗證</strong>：\( n = 7 = 111_2 \)，\( t = 3 \)，\( m' = 1 \)。</p>
+      <p>\( T^2(7) = (3/2)^2 \cdot 8 - 1 = \tfrac{9}{4} \cdot 8 - 1 = 18 - 1 = 17 \)。</p>
+      <p>實際：\( 7 \to 11 \to 17 \)。&checkmark;</p>
+
+      <!-- §2.3 Shift coordinates -->
+      <h3>2.3 位移座標</h3>
+      <p><strong>定義</strong>：\( x = n + 1 \)。</p>
+      <p>在位移座標下，\( t-1 \) 步「壞步」段是<strong>純粹的縮放</strong>：</p>
+      <div class="math-block">
+        \[ x \mapsto \left(\frac{3}{2}\right)^{t-1} \cdot x \]
+      </div>
+      <p>精確等式，無誤差項。</p>
+
+      <!-- §2.4 Epoch decomposition -->
+      <h3>2.4 Epoch 分解</h3>
+      <p>將軌道分解為一系列 <strong>epoch</strong>：</p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Epoch \( i \)</th>
+              <th>尾隨 1-bit \( t_i \)</th>
+              <th>\( v_2=1 \) 步數</th>
+              <th>末步 bonus \( w_i \)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>總除 2 次數</td>
+              <td colspan="3">\( t_i + w_i \)</td>
+            </tr>
+            <tr>
+              <td>總乘 3 次數</td>
+              <td colspan="3">\( t_i \)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>其中 \( w_i = v_2(3^{t_i} m'_i - 1) \geq 1 \)。</p>
+
+      <!-- §2.5 Descent condition -->
+      <h3>2.5 下降條件</h3>
+      <p>軌道下降的條件化簡為：</p>
+      <div class="math-block">
+        \[ \frac{\sum w_i}{\sum t_i} > \log_2 3 - 1 \approx 0.585 \]
+      </div>
+      <p>等價地，壓縮步驟的平均 \( v_2 \) 必須超過 \( \log_2 3 \approx 1.585 \)。</p>
+
+      <!-- §2.6 Random walk model -->
+      <h3>2.6 隨機遊走模型</h3>
+      <p>取對數後，軌道成為隨機遊走：</p>
+      <div class="math-block">
+        \[ \log x_{k+1} \approx \log x_k + t_k \log\frac{3}{2} - (d_k - 1)\log 2 \]
+      </div>
+      <p>其中 \( d_k \) 是 epoch 末步的 \( v_2 \) 值。</p>
+      <ul style="list-style:none; padding-left:1.5rem; font-size:var(--text-sm);">
+        <li>\( E[\text{步幅}] = 2\log(3/2) - 2\log 2 = 2\log(3/4) &lt; 0 \)（負漂移）</li>
+        <li>猜想等價於此遊走對<strong>所有</strong>初始條件都趨向 \( -\infty \)</li>
+      </ul>
+
+      <!-- Chart 1B: Epoch Waterfall -->
+      <div class="chart-container" id="chart-1b-container" aria-label="Epoch 瀑布圖">
+        <div class="chart-title">圖 1B：Epoch 瀑布圖</div>
+        <p style="font-size:var(--text-xs);color:var(--text-secondary)">紅色 &#9650; = 爬坡，藍色 &#9660; = 下坡，藍色總面積比紅色大就代表數字在變小</p>
+      </div>
+
+      <!-- §2.7 Breakpoint -->
+      <div class="callout-break">
+        <h3>此框架的斷裂點</h3>
+        <p style="font-size:var(--text-sm);">步伐之間有確定性相關——\( t_k, d_k \) 由 \( x_k \) 的 2-adic 展開決定。證明需要動力學的<strong>混合性</strong>，但 \( \mathbb{N} \) 上的混合性無人能建立。</p>
+      </div>
     </section>
 
     <section class="section" id="sec-transducer">
@@ -1171,11 +1329,537 @@
       });
     })();
 
+    /* ==================== CHART 1A: TRAJECTORY ANIMATION ==================== */
+    let _chart1A = null;
+
+    function initChart1A(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const input = document.getElementById('chart-1a-input');
+      const unlinkBtn = document.getElementById('chart-1a-unlink');
+      const playBtn = document.getElementById('chart-1a-play');
+      const pauseBtn = document.getElementById('chart-1a-pause');
+      const skipBtn = document.getElementById('chart-1a-skip');
+      const scaleBtn = document.getElementById('chart-1a-scale');
+      const speedBtns = document.querySelectorAll('.chart-1a-speed');
+
+      let linked = true;
+      let useLog = false;
+      let trajectory = [];
+      let epochs = [];
+      let displayedSteps = 0;
+      let unsub = null;
+      const anim = new AnimationController(400);
+
+      // SVG setup
+      const margin = { top: 20, right: 30, bottom: 40, left: 70 };
+      const width = container.clientWidth - margin.left - margin.right - 48;
+      const height = 320;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-1a-svg')
+        .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      // Epoch background bands group (behind everything)
+      const epochBands = svg.append('g').attr('class', 'epoch-bands');
+      // Axes groups
+      const xAxisG = svg.append('g').attr('transform', `translate(0,${height})`);
+      const yAxisG = svg.append('g');
+      // Reference lines group (for log mode)
+      const refLinesG = svg.append('g').attr('class', 'ref-lines');
+      // Line path
+      const linePath = svg.append('path')
+        .attr('fill', 'none')
+        .attr('stroke', 'var(--color-link)')
+        .attr('stroke-width', 2);
+      // v2 labels group
+      const v2Labels = svg.append('g').attr('class', 'v2-labels');
+      // Dot for current position
+      const dotG = svg.append('g');
+      // Edge case message
+      const edgeMsg = svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height / 2)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-secondary)')
+        .attr('font-size', '18px')
+        .style('display', 'none');
+
+      // Tooltip
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      // Epoch hue palette
+      function epochHue(idx) {
+        const hues = [210, 150, 30, 330, 90, 270, 60, 180, 0, 120];
+        return hues[idx % hues.length];
+      }
+
+      function render(steps) {
+        edgeMsg.style('display', 'none');
+
+        if (!trajectory.length) return;
+
+        // Edge cases
+        const n = trajectory[0].value;
+        if (n === 1n) {
+          epochBands.selectAll('*').remove();
+          linePath.attr('d', null);
+          v2Labels.selectAll('*').remove();
+          dotG.selectAll('*').remove();
+          refLinesG.selectAll('*').remove();
+          edgeMsg.text('1 是 Collatz 猜想的終點').style('display', null);
+          xAxisG.call(d3.axisBottom(d3.scaleLinear().domain([0,1]).range([0,width])).ticks(0));
+          yAxisG.call(d3.axisLeft(d3.scaleLinear().domain([0,2]).range([height,0])).ticks(2));
+          svg.selectAll('.tick text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+          svg.selectAll('.tick line').style('stroke', 'var(--border-subtle)');
+          svg.selectAll('.domain').style('stroke', 'var(--border-subtle)');
+          return;
+        }
+
+        const data = trajectory.slice(0, steps + 1);
+
+        const xScale = d3.scaleLinear()
+          .domain([0, trajectory.length - 1])
+          .range([0, width]);
+
+        const values = trajectory.map(d => Number(d.value));
+        const maxVal = d3.max(values) || 2;
+        const yScale = useLog
+          ? d3.scaleLog().domain([1, maxVal]).range([height, 0]).clamp(true)
+          : d3.scaleLinear().domain([0, maxVal]).range([height, 0]);
+
+        // Axes
+        xAxisG.call(d3.axisBottom(xScale).ticks(Math.min(10, trajectory.length)));
+        yAxisG.call(d3.axisLeft(yScale).ticks(6).tickFormat(d => {
+          if (useLog) return d >= 1000 ? d3.format('.0e')(d) : d3.format(',')(d);
+          return d >= 1000 ? d3.format('.0e')(d) : d3.format(',')(d);
+        }));
+        svg.selectAll('.tick text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+        svg.selectAll('.tick line').style('stroke', 'var(--border-subtle)');
+        svg.selectAll('.domain').style('stroke', 'var(--border-subtle)');
+
+        // Epoch background bands
+        epochBands.selectAll('*').remove();
+        epochs.forEach((ep, idx) => {
+          if (ep.startStep > steps) return;
+          const x1 = xScale(ep.startStep - 0.5);
+          const x2 = xScale(Math.min(ep.endStep, steps) + 0.5);
+          epochBands.append('rect')
+            .attr('x', x1)
+            .attr('y', 0)
+            .attr('width', Math.max(0, x2 - x1))
+            .attr('height', height)
+            .attr('fill', `hsl(${epochHue(idx)}, 20%, 94%)`)
+            .attr('opacity', 0.6);
+        });
+
+        // Reference lines in log mode
+        refLinesG.selectAll('*').remove();
+        if (useLog && data.length > 1) {
+          const logStart = Math.log2(Number(trajectory[0].value));
+          // Growth reference: log(3/2) per step
+          const growthSlope = Math.log2(3/2);
+          // Decline reference: -1 per step (single /2)
+          const refLen = Math.min(trajectory.length - 1, 30);
+          const growthPts = [];
+          const declinePts = [];
+          for (let s = 0; s <= refLen; s++) {
+            const gVal = Math.pow(2, logStart + s * growthSlope);
+            const dVal = Math.pow(2, logStart - s);
+            if (gVal <= maxVal && gVal >= 1) growthPts.push([s, gVal]);
+            if (dVal >= 1) declinePts.push([s, dVal]);
+          }
+          if (growthPts.length > 1) {
+            refLinesG.append('path')
+              .datum(growthPts)
+              .attr('fill', 'none')
+              .attr('stroke', 'var(--color-critical)')
+              .attr('stroke-width', 1)
+              .attr('stroke-dasharray', '4,4')
+              .attr('opacity', 0.5)
+              .attr('d', d3.line().x(d => xScale(d[0])).y(d => yScale(d[1])));
+            refLinesG.append('text')
+              .attr('x', xScale(growthPts[growthPts.length-1][0]) + 4)
+              .attr('y', yScale(growthPts[growthPts.length-1][1]))
+              .attr('fill', 'var(--color-critical)')
+              .attr('font-size', '14px')
+              .attr('opacity', 0.7)
+              .text('log(3/2)');
+          }
+          if (declinePts.length > 1) {
+            refLinesG.append('path')
+              .datum(declinePts)
+              .attr('fill', 'none')
+              .attr('stroke', 'var(--color-low)')
+              .attr('stroke-width', 1)
+              .attr('stroke-dasharray', '4,4')
+              .attr('opacity', 0.5)
+              .attr('d', d3.line().x(d => xScale(d[0])).y(d => yScale(d[1])));
+            refLinesG.append('text')
+              .attr('x', xScale(declinePts[declinePts.length-1][0]) + 4)
+              .attr('y', yScale(declinePts[declinePts.length-1][1]))
+              .attr('fill', 'var(--color-low)')
+              .attr('font-size', '14px')
+              .attr('opacity', 0.7)
+              .text('-log2');
+          }
+        }
+
+        // Line
+        const line = d3.line()
+          .x((d, i) => xScale(i))
+          .y(d => yScale(Math.max(1, Number(d.value))));
+        linePath.datum(data).attr('d', line);
+
+        // v2 labels (show selectively to avoid clutter)
+        v2Labels.selectAll('*').remove();
+        const maxLabels = Math.min(40, data.length);
+        const labelStep = Math.max(1, Math.floor(data.length / maxLabels));
+        data.forEach((d, i) => {
+          if (i === 0) return;
+          if (i % labelStep !== 0 && d.v2 <= 1) return;
+          if (d.v2 > 1 || i % labelStep === 0) {
+            v2Labels.append('text')
+              .attr('x', xScale(i))
+              .attr('y', yScale(Math.max(1, Number(d.value))) - 8)
+              .attr('text-anchor', 'middle')
+              .attr('fill', d.v2 > 1 ? 'var(--color-pass)' : 'var(--text-muted)')
+              .attr('font-size', '12px')
+              .text(d.v2);
+          }
+        });
+
+        // Current dot
+        dotG.selectAll('circle').remove();
+        if (data.length > 0) {
+          const last = data[data.length - 1];
+          dotG.append('circle')
+            .attr('cx', xScale(data.length - 1))
+            .attr('cy', yScale(Math.max(1, Number(last.value))))
+            .attr('r', 5)
+            .attr('fill', 'var(--color-link)');
+        }
+
+        // Hover overlay
+        const overlay = svg.selectAll('.overlay-1a').data([null]);
+        overlay.enter().append('rect').attr('class', 'overlay-1a')
+          .attr('width', width).attr('height', height)
+          .attr('fill', 'transparent')
+          .merge(overlay)
+          .on('mousemove', function(event) {
+            const [mx] = d3.pointer(event);
+            const idx = Math.round(xScale.invert(mx));
+            if (idx >= 0 && idx < data.length) {
+              const d = data[idx];
+              // Find which epoch this step belongs to
+              const ep = epochs.find(e => idx >= e.startStep && idx <= e.endStep);
+              const epInfo = ep ? ` | epoch t=${ep.t}, w=${ep.w}` : '';
+              tooltip.classed('visible', true)
+                .style('left', (xScale(idx) + margin.left + 10) + 'px')
+                .style('top', (yScale(Math.max(1, Number(d.value))) + margin.top - 10) + 'px')
+                .html(`步 ${idx}<br>值 = ${d.value.toLocaleString()}<br>v\u2082 = ${d.v2}${epInfo}`);
+            }
+          })
+          .on('mouseleave', () => tooltip.classed('visible', false));
+      }
+
+      function loadN(n) {
+        anim.pause();
+        trajectory = Collatz.trajectory(n);
+        epochs = Collatz.epochs(trajectory);
+        displayedSteps = trajectory.length - 1;
+        render(displayedSteps);
+        // Also trigger Chart 1B update
+        if (_chart1B && _chart1B.update) _chart1B.update(n);
+      }
+
+      // Input handling
+      input.value = GlobalN.n;
+
+      function applyLocalInput() {
+        const val = parseInt(input.value, 10);
+        if (!isNaN(val) && val >= 1) {
+          const n = Math.min(val, 1000000000);
+          input.value = n;
+          loadN(n);
+        }
+      }
+
+      let inputTimer;
+      input.addEventListener('input', () => {
+        if (linked) { linked = false; input.classList.add('unlinked'); }
+        clearTimeout(inputTimer);
+        inputTimer = setTimeout(applyLocalInput, 300);
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { clearTimeout(inputTimer); applyLocalInput(); }
+      });
+
+      // Unlink/relink
+      unlinkBtn.addEventListener('click', () => {
+        linked = true;
+        input.classList.remove('unlinked');
+        input.value = GlobalN.n;
+        loadN(GlobalN.n);
+      });
+
+      // Subscribe to GlobalN
+      unsub = GlobalN.subscribe('chart-1a', (n) => {
+        if (!linked) return;
+        input.value = n;
+        loadN(n);
+      });
+
+      // Play/pause/skip
+      playBtn.addEventListener('click', () => {
+        if (anim.paused) {
+          displayedSteps = 0;
+          render(0);
+          anim.play(() => {
+            displayedSteps++;
+            render(displayedSteps);
+            return displayedSteps < trajectory.length - 1;
+          });
+        }
+      });
+      pauseBtn.addEventListener('click', () => anim.pause());
+      skipBtn.addEventListener('click', () => {
+        anim.pause();
+        displayedSteps = trajectory.length - 1;
+        render(displayedSteps);
+      });
+
+      // Speed buttons
+      speedBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          speedBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          anim.setSpeed(parseInt(btn.dataset.speed, 10));
+        });
+      });
+
+      // Scale toggle
+      scaleBtn.addEventListener('click', () => {
+        useLog = !useLog;
+        scaleBtn.classList.toggle('active', useLog);
+        render(displayedSteps);
+      });
+
+      // Initial load
+      loadN(GlobalN.n);
+
+      _chart1A = { unsub, anim, container };
+    }
+
+    function destroyChart1A() {
+      if (!_chart1A) return;
+      _chart1A.anim.pause();
+      if (_chart1A.unsub) _chart1A.unsub();
+      const svgEl = _chart1A.container.querySelector('.chart-1a-svg');
+      if (svgEl) svgEl.remove();
+      const ttEl = _chart1A.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      _chart1A = null;
+    }
+
+    /* ==================== CHART 1B: EPOCH WATERFALL ==================== */
+    let _chart1B = null;
+
+    function initChart1B(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const margin = { top: 20, right: 30, bottom: 40, left: 70 };
+      const width = container.clientWidth - margin.left - margin.right - 48;
+      const height = 280;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-1b-svg')
+        .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const barsG = svg.append('g').attr('class', 'bars');
+      const lineG = svg.append('g').attr('class', 'cum-line');
+      const xAxisG = svg.append('g').attr('transform', `translate(0,${height})`);
+      const yAxisG = svg.append('g');
+      const zeroLine = svg.append('line')
+        .attr('x1', 0).attr('x2', width)
+        .attr('stroke', 'var(--text-muted)')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '3,3');
+
+      // Tooltip
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      const LOG2_3_2 = Math.log2(3/2);
+
+      function render(n) {
+        const traj = Collatz.trajectory(n);
+        const epochs = Collatz.epochs(traj);
+
+        if (epochs.length === 0) {
+          barsG.selectAll('*').remove();
+          lineG.selectAll('*').remove();
+          return;
+        }
+
+        // Each epoch: net effect = t_i * log2(3/2) - (t_i + w_i) * 1 + t_i * 1
+        // Actually: climb = t_i * log2(3) (multiply by 3, t_i times)
+        //           descend = (t_i + w_i) * 1 (divide by 2, t_i + w_i times)
+        // net in log2 = t_i * log2(3) - (t_i + w_i) = t_i * (log2(3) - 1) - w_i
+        // = t_i * log2(3/2) - w_i
+        const barData = epochs.map((ep, i) => {
+          const climb = ep.t * LOG2_3_2;
+          const net = climb - ep.w;
+          return { idx: i, t: ep.t, w: ep.w, climb, net, startStep: ep.startStep, endStep: ep.endStep };
+        });
+
+        // Cumulative log-value
+        const cumData = [{ idx: 0, cumLog: Math.log2(Number(traj[0].value)) }];
+        let cumLog = cumData[0].cumLog;
+        barData.forEach((bd, i) => {
+          cumLog += bd.net;
+          cumData.push({ idx: i + 1, cumLog });
+        });
+
+        const xScale = d3.scaleBand()
+          .domain(barData.map(d => d.idx))
+          .range([0, width])
+          .padding(0.15);
+
+        const allVals = barData.map(d => d.net);
+        const yMin = Math.min(0, d3.min(allVals)) * 1.2;
+        const yMax = Math.max(0, d3.max(allVals)) * 1.2;
+        const yScale = d3.scaleLinear()
+          .domain([yMin || -1, yMax || 1])
+          .range([height, 0]);
+
+        // Cumulative y scale (right axis idea - we overlay on same scale)
+        const cumMin = d3.min(cumData, d => d.cumLog);
+        const cumMax = d3.max(cumData, d => d.cumLog);
+        const cumScale = d3.scaleLinear()
+          .domain([cumMin - 1, cumMax + 1])
+          .range([height, 0]);
+
+        // Axes
+        xAxisG.call(d3.axisBottom(xScale).tickFormat(d => `E${d+1}`));
+        yAxisG.call(d3.axisLeft(yScale).ticks(6).tickFormat(d3.format('.2f')));
+        svg.selectAll('.tick text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+        svg.selectAll('.tick line').style('stroke', 'var(--border-subtle)');
+        svg.selectAll('.domain').style('stroke', 'var(--border-subtle)');
+
+        // Zero line
+        zeroLine
+          .attr('y1', yScale(0))
+          .attr('y2', yScale(0));
+
+        // Bars
+        barsG.selectAll('*').remove();
+        barData.forEach(bd => {
+          const isUp = bd.net > 0;
+          const barY = isUp ? yScale(bd.net) : yScale(0);
+          const barH = Math.abs(yScale(bd.net) - yScale(0));
+
+          barsG.append('rect')
+            .attr('x', xScale(bd.idx))
+            .attr('y', barY)
+            .attr('width', xScale.bandwidth())
+            .attr('height', Math.max(1, barH))
+            .attr('fill', isUp ? 'var(--color-critical)' : 'var(--color-low)')
+            .attr('rx', 2)
+            .on('mouseenter', function(event) {
+              tooltip.classed('visible', true)
+                .html(`Epoch ${bd.idx+1}<br>t = ${bd.t}（乘 3 次數）<br>w = ${bd.w}（bonus 除 2）<br>淨效果 = ${bd.net > 0 ? '+' : ''}${bd.net.toFixed(3)} bits<br>步 ${bd.startStep}–${bd.endStep}`);
+            })
+            .on('mousemove', function(event) {
+              const rect = container.getBoundingClientRect();
+              tooltip
+                .style('left', (event.clientX - rect.left + 10) + 'px')
+                .style('top', (event.clientY - rect.top - 40) + 'px');
+            })
+            .on('mouseleave', () => tooltip.classed('visible', false));
+
+          // Symbol
+          barsG.append('text')
+            .attr('x', xScale(bd.idx) + xScale.bandwidth() / 2)
+            .attr('y', isUp ? barY - 4 : barY + barH + 16)
+            .attr('text-anchor', 'middle')
+            .attr('fill', isUp ? 'var(--color-critical)' : 'var(--color-low)')
+            .attr('font-size', '14px')
+            .text(isUp ? '\u25B2' : '\u25BC');
+        });
+
+        // Cumulative line overlay
+        lineG.selectAll('*').remove();
+        if (cumData.length > 1) {
+          // Map cumulative data to bar x positions
+          const cumLine = d3.line()
+            .x((d, i) => {
+              if (i === 0) return 0;
+              return xScale(i - 1) + xScale.bandwidth() / 2;
+            })
+            .y(d => cumScale(d.cumLog));
+
+          lineG.append('path')
+            .datum(cumData)
+            .attr('fill', 'none')
+            .attr('stroke', 'var(--text-muted)')
+            .attr('stroke-width', 1.5)
+            .attr('stroke-dasharray', '6,3')
+            .attr('d', cumLine);
+
+          // Dots on cumulative line
+          cumData.forEach((cd, i) => {
+            const cx = i === 0 ? 0 : xScale(i - 1) + xScale.bandwidth() / 2;
+            lineG.append('circle')
+              .attr('cx', cx)
+              .attr('cy', cumScale(cd.cumLog))
+              .attr('r', 3)
+              .attr('fill', 'var(--text-muted)');
+          });
+        }
+      }
+
+      function update(n) {
+        render(n);
+      }
+
+      // Initial render
+      render(GlobalN.n);
+
+      // Subscribe to GlobalN
+      const unsub = GlobalN.subscribe('chart-1b', (n) => {
+        render(n);
+      });
+
+      _chart1B = { unsub, update, container };
+    }
+
+    function destroyChart1B() {
+      if (!_chart1B) return;
+      if (_chart1B.unsub) _chart1B.unsub();
+      const svgEl = _chart1B.container.querySelector('.chart-1b-svg');
+      if (svgEl) svgEl.remove();
+      const ttEl = _chart1B.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      _chart1B = null;
+    }
+
     /* ==================== BOOT ==================== */
     document.addEventListener('DOMContentLoaded', () => {
       // Init MathJax lazy observer
       MathLazy.init();
       document.querySelectorAll('.math-block, .math-inline').forEach(el => MathLazy.observe(el));
+
+      // Register charts
+      ChartRegistry.register('chart-1a-container', (el) => initChart1A(el), () => destroyChart1A(), 'epoch');
+      ChartRegistry.register('chart-1b-container', (el) => initChart1B(el), () => destroyChart1B(), 'epoch');
 
       // Start observing chart containers
       ChartRegistry.observeAll();
