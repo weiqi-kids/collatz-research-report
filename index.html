@@ -978,8 +978,95 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
 
     <section class="section" id="sec-ordinal">
       <h2>5. 框架四：序數值勢函數</h2>
-      <div id="chart-4a-container"></div>
-      <div id="chart-4b-container"></div>
+
+      <!-- 白話引言 -->
+      <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>問題：</strong>如果我們能找到一個「高度計」，讓 Collatz 每走一步高度都變低，那軌道一定會停下來。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>類比：</strong>就像在山上放一顆球——如果地形保證每個方向都是下坡，球一定會滾到谷底。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:0.75rem;">
+          <strong>目標：</strong>用序數（一種比正整數更強大的計數工具）來建造這個高度計。
+        </p>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary);">
+          <strong>結果：</strong>失敗了——乘 3 加 1 可以增加二進位的 block 結構，讓高度計反而上升。有限修正函數也打不贏指數增長。
+        </p>
+      </div>
+
+      <!-- Chart 4A: Block Structure Visualization -->
+      <div class="chart-container" id="chart-4a-container" aria-label="二進位 block 結構與序數賦值">
+        <div class="chart-title">圖 4A：二進位 Block 結構與序數賦值</div>
+        <p style="font-size:var(--text-xs);color:var(--text-secondary)">每個色帶代表一個 1-block，灰色區段為 0-block；觀察 Collatz 步驟如何改變 block 數量</p>
+        <div class="chart-input-group">
+          <label style="font-size:var(--text-xs)">n =</label>
+          <input type="text" class="chart-input" id="chart-4a-input" inputmode="numeric">
+          <button class="chart-unlink-btn" id="chart-4a-unlink" title="重新同步全域 n">&#128279;</button>
+          <button class="btn btn-primary" id="chart-4a-step">下一步</button>
+          <button class="btn" id="chart-4a-auto">連續播放</button>
+          <button class="btn" id="chart-4a-reset">重置</button>
+        </div>
+        <div id="chart-4a-step-label" style="font-size:var(--text-xs);color:var(--text-secondary);margin-top:0.5rem;"></div>
+        <div id="chart-4a-ordinal" style="font-size:var(--text-sm);margin-top:0.5rem;"></div>
+        <div id="chart-4a-comparison" style="font-size:var(--text-sm);margin-top:0.25rem;font-weight:700;"></div>
+      </div>
+
+      <!-- §5.1 Goodstein 靈感 -->
+      <h3>5.1 靈感來源：Goodstein 定理</h3>
+      <p>Goodstein 定理：Goodstein 序列在 PA（皮亞諾算術）中不可證其終止，但用 \( &lt; \varepsilon_0 \) 的序數歸納即可證明。</p>
+      <p style="font-size:var(--text-sm);">Goodstein 的技巧是把自然數的「hereditary base-n 表示」對應到序數，然後利用序數的良基性（well-foundedness）來證明下降。我們嘗試對 Collatz 做類似的事。</p>
+
+      <!-- §5.2 Block 結構與序數賦值 -->
+      <h3>5.2 Block 結構與序數賦值</h3>
+      <p>為每個奇數 \( n \) 定義序數 \( \alpha(n) \)，基於 \( n \) 的二進位 block 結構：</p>
+      <div class="math-block">
+        \[ n = 0^{a_k}1^{b_k}0^{a_{k-1}}1^{b_{k-1}}\cdots 0^{a_1}1^{b_1} \]
+      </div>
+      <p>其中 \( 1^{b_i} \) 表示連續 \( b_i \) 個 1-bit，\( 0^{a_i} \) 表示連續 \( a_i \) 個 0-bit。奇數 \( n \) 一定以 1 結尾，所以最低位的 block 一定是 1-block。</p>
+      <p>嘗試賦值：</p>
+      <div class="math-block">
+        \[ \alpha(n) = \omega^k \cdot b_k + \omega^{k-1} \cdot b_{k-1} + \cdots + \omega \cdot b_1 \]
+      </div>
+      <p style="font-size:var(--text-sm);">這裡 \( k \) 是 1-block 的數量（即序數的「層級」），\( b_i \) 是第 \( i \) 個 1-block 的長度。直覺上，block 數量越多、序數越「高」。</p>
+
+      <!-- §5.3 斷裂點：block 數量可以增加 -->
+      <h3>5.3 斷裂點：block 數量可以增加</h3>
+      <p>乘 3 加 1 可以<strong>增加</strong> block 數量——進位穿過 0-block 會產生新的分界。</p>
+      <p style="font-size:var(--text-sm);">例如：\( n = 27 = 11011_2 \)（2 個 1-block），經過 Collatz 步驟後可能產生更多 1-block。沒有簡單的序數映射能單調遞減，因為 block 結構的演化不具有 Goodstein 式的層級遞減特徵。</p>
+
+      <!-- §5.4 有限修正函數的不可能性 -->
+      <h3>5.4 有限修正函數方法</h3>
+      <p>嘗試構造勢函數 \( V(n) = \log_2 n + g(n \bmod 2^k) \)：</p>
+      <ul style="list-style:none; padding-left:1.5rem; font-size:var(--text-sm);">
+        <li>對 \( k = 2 \)（mod 4 修正）：\( n \equiv 7 \pmod{8} \) 時 \( g(n) - g(T(n)) = 0 > 0.585 \) 不成立</li>
+        <li>對 \( k = 3 \)（mod 8 修正）：\( n \equiv 15 \pmod{16} \) 時同樣失敗</li>
+        <li>一般性結論：\( n \equiv -1 \pmod{2^j} \)（任意多尾隨 1-bit）永遠創造不可修復的問題</li>
+      </ul>
+
+      <p><strong>定理</strong>：不存在基於有限位修正的勢函數（形如 \( \log n + g(n \bmod 2^k) \)）能對所有奇數 \( n > 1 \) 單調遞減。</p>
+
+      <p><strong>證明</strong>：\( n \equiv -1 \pmod{2^{k+1}} \) 的數有 \( k \) 個連續 \( v_2 = 1 \) 步，累積增長 \( (3/2)^k \)。有限修正函數 \( g \) 最多提供 \( O(1) \) 的補償，不足以抵消 \( (3/2)^k \) 的指數增長。\( \square \)</p>
+
+      <!-- Chart 4B: Correction Function Failure -->
+      <div class="chart-container" id="chart-4b-container" aria-label="有限修正函數打不贏指數增長">
+        <div class="chart-title">圖 4B：有限修正函數打不贏指數增長</div>
+        <p style="font-size:var(--text-xs);color:var(--text-secondary)">指數曲線（紅）飛速上升，而修正函數（藍）幾乎不動——這證明不存在基於有限位修正的勢函數。</p>
+      </div>
+
+      <!-- §5.3 + §5.4 Breakpoint -->
+      <div class="callout-break">
+        <h3>此框架的斷裂點</h3>
+        <p style="font-size:var(--text-sm);">序數方法失敗於兩個層面：</p>
+        <ul style="list-style:none; padding-left:1.5rem; font-size:var(--text-sm);">
+          <li><strong>Block 結構不單調</strong>：乘 3 加 1 的進位可以穿過 0-block 產生新的 1-block，使序數反而上升。Goodstein 式的層級遞減在這裡不成立。</li>
+          <li><strong>有限修正不可能</strong>：任何形如 \( \log n + g(n \bmod 2^k) \) 的勢函數都被 \( n \equiv -1 \pmod{2^{k+1}} \) 的數擊敗——\( (3/2)^k \) 的指數增長遠超有限修正的 \( O(1) \) 補償。</li>
+        </ul>
+        <p style="font-size:var(--text-sm); margin-top:0.75rem;">需要但未獲得的結果：</p>
+        <div style="background:var(--bg-surface); border-left:3px solid var(--color-medium); padding:1rem; margin-top:0.5rem; border-radius:0 0.375rem 0.375rem 0;">
+          <p style="font-size:var(--text-sm);"><strong>無限修正勢函數</strong>：構造某種依賴 \( n \) 全部二進位位的勢函數 \( V(n) \)，使得 \( V(S(n)) < V(n) \) 對所有奇數 \( n > 1 \) 成立。</p>
+        </div>
+      </div>
     </section>
 
     <section class="section" id="sec-tree">
@@ -3306,6 +3393,546 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       _chart3B = null;
     }
 
+    /* ==================== CHART 4A: BLOCK STRUCTURE VISUALIZATION ==================== */
+    let _chart4A = null;
+
+    function initChart4A(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const input = document.getElementById('chart-4a-input');
+      const unlinkBtn = document.getElementById('chart-4a-unlink');
+      const stepBtn = document.getElementById('chart-4a-step');
+      const autoBtn = document.getElementById('chart-4a-auto');
+      const resetBtn = document.getElementById('chart-4a-reset');
+      const stepLabel = document.getElementById('chart-4a-step-label');
+      const ordinalDiv = document.getElementById('chart-4a-ordinal');
+      const comparisonDiv = document.getElementById('chart-4a-comparison');
+
+      let linked = true;
+      let unsub = null;
+      let currentN = BigInt(GlobalN.n);
+      let initialN = currentN;
+      let stepCount = 0;
+      let prevOrdinal = null;
+      const anim = new AnimationController(800);
+
+      // Block colors for 1-blocks (cycling semantic hues)
+      const blockHues = [210, 150, 30, 330, 90, 270, 60, 180, 0, 120];
+      function block1Color(idx) {
+        const h = blockHues[idx % blockHues.length];
+        return `hsl(${h}, 50%, 70%)`;
+      }
+
+      // SVG setup
+      const margin = { top: 10, right: 20, bottom: 10, left: 20 };
+      const fullWidth = container.clientWidth - 48;
+      const svgHeight = 80;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-4a-svg')
+        .attr('viewBox', `0 0 ${fullWidth} ${svgHeight}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .style('overflow', 'visible');
+
+      const bitsG = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      /** Parse binary string into alternating blocks (from MSB to LSB) */
+      function parseBlocks(n) {
+        const bin = BigInt(n).toString(2);
+        const blocks = [];
+        let i = 0;
+        while (i < bin.length) {
+          const ch = bin[i];
+          let len = 0;
+          while (i < bin.length && bin[i] === ch) { len++; i++; }
+          blocks.push({ bit: ch, len });
+        }
+        return { bin, blocks };
+      }
+
+      /** Compute ordinal from blocks.
+       *  We want 1-blocks only; k = number of 1-blocks, b_i = length of i-th 1-block (from LSB).
+       *  α(n) = ω^k · b_k + ω^{k-1} · b_{k-1} + ... + ω · b_1
+       */
+      function computeOrdinal(blocks) {
+        // Extract 1-blocks in order from LSB (reverse of the parsed MSB-first blocks)
+        const oneBlocks = blocks.filter(b => b.bit === '1').reverse();
+        // oneBlocks[0] = lowest 1-block (b_1), ..., oneBlocks[k-1] = highest (b_k)
+        return oneBlocks.map(b => b.len);
+      }
+
+      /** Format ordinal as LaTeX string */
+      function formatOrdinal(bValues) {
+        if (bValues.length === 0) return '0';
+        const k = bValues.length;
+        const terms = [];
+        for (let i = k - 1; i >= 0; i--) {
+          const power = i + 1;
+          const coeff = bValues[i];
+          if (power === 1) {
+            terms.push(`\\omega \\cdot ${coeff}`);
+          } else {
+            terms.push(`\\omega^{${power}} \\cdot ${coeff}`);
+          }
+        }
+        return terms.join(' + ');
+      }
+
+      function render(n, prevBlocks) {
+        const { bin, blocks } = parseBlocks(n);
+        const bValues = computeOrdinal(blocks);
+
+        // Step label
+        stepLabel.textContent = `步驟 ${stepCount} : n = ${n.toString()}`;
+
+        // Ordinal expression
+        const ordExpr = formatOrdinal(bValues);
+        ordinalDiv.innerHTML = `\\( \\alpha(n) = ${ordExpr} \\)`;
+        if (window.MathJax && MathJax.typesetPromise) {
+          MathJax.typesetPromise([ordinalDiv]).catch(() => {});
+        }
+
+        // Comparison with previous
+        if (prevOrdinal !== null) {
+          const prevK = prevOrdinal.length;
+          const currK = bValues.length;
+          // Simple comparison: first by block count (k), then lexicographically by coefficients
+          let direction = 0;
+          if (currK > prevK) direction = 1;
+          else if (currK < prevK) direction = -1;
+          else {
+            for (let i = currK - 1; i >= 0; i--) {
+              if (bValues[i] > prevOrdinal[i]) { direction = 1; break; }
+              if (bValues[i] < prevOrdinal[i]) { direction = -1; break; }
+            }
+          }
+          if (direction > 0) {
+            comparisonDiv.innerHTML = '<span style="color:var(--color-critical)">&#9650; &#945; 上升</span>';
+          } else if (direction < 0) {
+            comparisonDiv.innerHTML = '<span style="color:var(--color-low)">&#9660; &#945; 下降</span>';
+          } else {
+            comparisonDiv.innerHTML = '<span style="color:var(--text-secondary)">&#8212; &#945; 不變</span>';
+          }
+        } else {
+          comparisonDiv.innerHTML = '';
+        }
+
+        // Draw bit cells
+        const cellW = Math.min(30, (fullWidth - margin.left - margin.right) / Math.max(bin.length, 1));
+        const cellH = 40;
+        const totalW = cellW * bin.length;
+        const offsetX = (fullWidth - margin.left - margin.right - totalW) / 2;
+
+        // Assign each bit position its block index and block type
+        const bitMeta = [];
+        let bitIdx = 0;
+        let oneBlockIdx = 0;
+        for (const block of blocks) {
+          for (let j = 0; j < block.len; j++) {
+            bitMeta.push({
+              char: block.bit,
+              blockType: block.bit,
+              oneBlockIndex: block.bit === '1' ? oneBlockIdx : -1,
+              pos: bitIdx
+            });
+            bitIdx++;
+          }
+          if (block.bit === '1') oneBlockIdx++;
+        }
+
+        // Determine which blocks are new (if prevBlocks provided)
+        let prevBlockSig = null;
+        if (prevBlocks) {
+          prevBlockSig = prevBlocks.map(b => b.bit + b.len).join(',');
+        }
+        const currBlockSig = blocks.map(b => b.bit + b.len).join(',');
+        const blocksChanged = prevBlockSig !== null && prevBlockSig !== currBlockSig;
+
+        // Compute prev 1-block count for new-block highlighting
+        const prevOneBlockCount = prevBlocks ? prevBlocks.filter(b => b.bit === '1').length : 0;
+        const currOneBlockCount = blocks.filter(b => b.bit === '1').length;
+
+        const cells = bitsG.selectAll('.bit-cell').data(bitMeta, (d, i) => i);
+
+        cells.exit().remove();
+
+        const enter = cells.enter().append('g').attr('class', 'bit-cell');
+        enter.append('rect');
+        enter.append('text');
+
+        const merged = enter.merge(cells);
+
+        merged.attr('transform', (d, i) => `translate(${offsetX + i * cellW}, 10)`);
+
+        merged.select('rect')
+          .attr('width', cellW - 2)
+          .attr('height', cellH)
+          .attr('rx', 3)
+          .attr('fill', d => d.blockType === '1' ? block1Color(d.oneBlockIndex) : '#e5e6ea')
+          .attr('stroke', (d) => {
+            if (blocksChanged && d.blockType === '1' && currOneBlockCount > prevOneBlockCount) {
+              // Highlight new 1-blocks (those beyond prevOneBlockCount)
+              if (d.oneBlockIndex >= prevOneBlockCount) return 'var(--color-critical)';
+            }
+            return 'var(--border-subtle)';
+          })
+          .attr('stroke-width', (d) => {
+            if (blocksChanged && d.blockType === '1' && d.oneBlockIndex >= prevOneBlockCount) return 2.5;
+            return 1;
+          });
+
+        merged.select('text')
+          .attr('x', (cellW - 2) / 2)
+          .attr('y', cellH / 2 + 1)
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'central')
+          .attr('font-size', '18px')
+          .attr('fill', d => d.blockType === '1' ? 'var(--text-primary)' : 'var(--text-secondary)')
+          .text(d => d.char);
+
+        prevOrdinal = bValues;
+        return blocks;
+      }
+
+      // Collatz step for BigInt (compressed)
+      function collatzStep(n) {
+        n = BigInt(n);
+        if (n <= 1n) return 1n;
+        if ((n & 1n) === 0n) {
+          while ((n & 1n) === 0n) n >>= 1n;
+          return n;
+        }
+        let val = 3n * n + 1n;
+        while ((val & 1n) === 0n) val >>= 1n;
+        return val;
+      }
+
+      let currentBlocks = null;
+
+      function doStep() {
+        if (currentN <= 1n) return false;
+        const nextN = collatzStep(currentN);
+        stepCount++;
+        currentN = nextN;
+        currentBlocks = render(currentN, currentBlocks);
+        if (currentN <= 1n) return false;
+        return true;
+      }
+
+      function loadN(n) {
+        n = BigInt(n);
+        if (n < 1n) n = 1n;
+        currentN = n;
+        initialN = n;
+        stepCount = 0;
+        prevOrdinal = null;
+        currentBlocks = null;
+        comparisonDiv.innerHTML = '';
+        currentBlocks = render(currentN, null);
+      }
+
+      // Input handling
+      input.value = GlobalN.n;
+
+      input.addEventListener('change', () => {
+        const val = parseInt(input.value, 10);
+        if (!isNaN(val) && val >= 1) {
+          linked = false;
+          input.classList.add('unlinked');
+          unlinkBtn.style.display = 'inline-block';
+          loadN(val);
+        }
+      });
+
+      unlinkBtn.addEventListener('click', () => {
+        linked = true;
+        input.classList.remove('unlinked');
+        unlinkBtn.style.display = 'none';
+        input.value = GlobalN.n;
+        loadN(GlobalN.n);
+      });
+
+      stepBtn.addEventListener('click', () => {
+        doStep();
+      });
+
+      let autoPlaying = false;
+      autoBtn.addEventListener('click', () => {
+        if (autoPlaying) {
+          anim.pause();
+          autoPlaying = false;
+          autoBtn.textContent = '連續播放';
+        } else {
+          autoPlaying = true;
+          autoBtn.textContent = '暫停';
+          anim.play(
+            () => {
+              const more = doStep();
+              if (!more) {
+                autoPlaying = false;
+                autoBtn.textContent = '連續播放';
+              }
+              return more;
+            },
+            () => {
+              autoPlaying = false;
+              autoBtn.textContent = '連續播放';
+            }
+          );
+        }
+      });
+
+      resetBtn.addEventListener('click', () => {
+        anim.pause();
+        autoPlaying = false;
+        autoBtn.textContent = '連續播放';
+        loadN(initialN);
+      });
+
+      // Subscribe to GlobalN
+      unsub = GlobalN.subscribe('chart-4a', (n) => {
+        if (!linked) return;
+        input.value = n;
+        loadN(n);
+      });
+
+      loadN(GlobalN.n);
+
+      _chart4A = { container, anim, unsub };
+    }
+
+    function destroyChart4A() {
+      if (!_chart4A) return;
+      _chart4A.anim.pause();
+      if (_chart4A.unsub) _chart4A.unsub();
+      const svgEl = _chart4A.container.querySelector('.chart-4a-svg');
+      if (svgEl) svgEl.remove();
+      _chart4A = null;
+    }
+
+    /* ==================== CHART 4B: CORRECTION FUNCTION FAILURE ==================== */
+    let _chart4B = null;
+
+    function initChart4B(container) {
+      if (typeof d3 === 'undefined') return;
+
+      const margin = { top: 30, right: 120, bottom: 50, left: 70 };
+      const width = container.clientWidth - margin.left - margin.right - 48;
+      const height = 360;
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('class', 'chart-svg chart-4b-svg')
+        .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+      const tooltip = d3.select(container).append('div').attr('class', 'chart-tooltip');
+
+      // Compute data
+      const LOG_3_2 = 3 / 2;
+      const maxK = 20;
+      const growthData = [];
+      const correctionData = [];
+
+      for (let k = 1; k <= maxK; k++) {
+        const growth = Math.pow(LOG_3_2, k);
+        growthData.push({ k, value: growth });
+
+        // For correction: test n = 2^(k+1) - 1 (all 1-bits, k+1 bits long, thus k trailing 1-bits)
+        // S^k(n) via compressed steps
+        // g(n) = (S^k(n) - n * (3/2)^k) / 2^k
+        // Use BigInt for accuracy
+        let n = (1n << BigInt(k + 1)) - 1n; // 2^(k+1) - 1
+        let current = n;
+        // Apply k compressed Collatz steps
+        for (let step = 0; step < k; step++) {
+          if (current <= 1n) break;
+          let val = 3n * current + 1n;
+          while ((val & 1n) === 0n) val >>= 1n;
+          current = val;
+        }
+        // g(n) = (S^k(n) - n * (3/2)^k) / 2^k
+        // Compute in floating point for the chart
+        const nNum = Number(n);
+        const skNum = Number(current);
+        const gVal = Math.abs(skNum - nNum * Math.pow(LOG_3_2, k)) / Math.pow(2, k);
+
+        // Also test a few more numbers with k trailing 1-bits
+        let maxG = gVal;
+        const testCases = [
+          (1n << BigInt(k + 2)) - 1n,     // k+2 bits all-1
+          (1n << BigInt(k + 3)) | ((1n << BigInt(k)) - 1n), // high bit + k trailing 1s
+          (3n << BigInt(k)) | ((1n << BigInt(k)) - 1n),    // 11 prefix + k trailing 1s
+        ];
+        for (const tn of testCases) {
+          if (tn < 3n) continue;
+          let tc = tn;
+          // Ensure odd
+          if ((tc & 1n) === 0n) continue;
+          for (let step = 0; step < k; step++) {
+            if (tc <= 1n) break;
+            let val = 3n * tc + 1n;
+            while ((val & 1n) === 0n) val >>= 1n;
+            tc = val;
+          }
+          const tnNum = Number(tn);
+          const tcNum = Number(tc);
+          const g2 = Math.abs(tcNum - tnNum * Math.pow(LOG_3_2, k)) / Math.pow(2, k);
+          if (g2 > maxG) maxG = g2;
+        }
+
+        correctionData.push({ k, value: Math.max(maxG, 0.001) });
+      }
+
+      // Scales
+      const xScale = d3.scaleLinear()
+        .domain([1, maxK])
+        .range([0, width]);
+
+      const allValues = growthData.map(d => d.value).concat(correctionData.map(d => d.value));
+      const yScale = d3.scaleLog()
+        .domain([d3.min(allValues) * 0.5, d3.max(allValues) * 2])
+        .range([height, 0])
+        .clamp(true);
+
+      // Axes
+      const xAxis = svg.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(xScale).ticks(10).tickFormat(d3.format('d')));
+
+      xAxis.selectAll('text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+      xAxis.selectAll('line').style('stroke', 'var(--border-subtle)');
+      xAxis.select('.domain').style('stroke', 'var(--border-subtle)');
+
+      // X label
+      svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height + 42)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-secondary)')
+        .attr('font-size', '18px')
+        .text('k (尾隨 1-bit 數)');
+
+      const yAxis = svg.append('g')
+        .call(d3.axisLeft(yScale).ticks(6, '.0e'));
+
+      yAxis.selectAll('text').style('font-size', '18px').style('fill', 'var(--text-secondary)');
+      yAxis.selectAll('line').style('stroke', 'var(--border-subtle)');
+      yAxis.select('.domain').style('stroke', 'var(--border-subtle)');
+
+      // Grid lines
+      svg.append('g')
+        .attr('class', 'grid')
+        .selectAll('line')
+        .data(yScale.ticks(6))
+        .join('line')
+        .attr('x1', 0)
+        .attr('x2', width)
+        .attr('y1', d => yScale(d))
+        .attr('y2', d => yScale(d))
+        .attr('stroke', 'var(--border-subtle)')
+        .attr('stroke-dasharray', '3,3')
+        .attr('opacity', 0.5);
+
+      // Growth line (3/2)^k — red solid
+      const growthLine = d3.line()
+        .x(d => xScale(d.k))
+        .y(d => yScale(d.value));
+
+      svg.append('path')
+        .datum(growthData)
+        .attr('fill', 'none')
+        .attr('stroke', 'var(--color-critical)')
+        .attr('stroke-width', 2.5)
+        .attr('d', growthLine);
+
+      // Growth dots
+      svg.selectAll('.growth-dot')
+        .data(growthData)
+        .join('circle')
+        .attr('class', 'growth-dot')
+        .attr('cx', d => xScale(d.k))
+        .attr('cy', d => yScale(d.value))
+        .attr('r', 4)
+        .attr('fill', 'var(--color-critical)')
+        .on('mouseenter', (event, d) => {
+          tooltip.classed('visible', true)
+            .html(`k = ${d.k}<br>(3/2)<sup>${d.k}</sup> = ${d.value.toFixed(4)}`);
+        })
+        .on('mousemove', (event) => {
+          const rect = container.getBoundingClientRect();
+          tooltip.style('left', (event.clientX - rect.left + 12) + 'px')
+            .style('top', (event.clientY - rect.top - 28) + 'px');
+        })
+        .on('mouseleave', () => tooltip.classed('visible', false));
+
+      // Growth label
+      svg.append('text')
+        .attr('x', xScale(maxK) + 8)
+        .attr('y', yScale(growthData[growthData.length - 1].value))
+        .attr('fill', 'var(--color-critical)')
+        .attr('font-size', '18px')
+        .attr('dominant-baseline', 'central')
+        .text('(3/2)^k');
+
+      // Correction line — blue dashed
+      const corrLine = d3.line()
+        .x(d => xScale(d.k))
+        .y(d => yScale(d.value));
+
+      svg.append('path')
+        .datum(correctionData)
+        .attr('fill', 'none')
+        .attr('stroke', 'var(--color-low)')
+        .attr('stroke-width', 2.5)
+        .attr('stroke-dasharray', '8,4')
+        .attr('d', corrLine);
+
+      // Correction dots
+      svg.selectAll('.corr-dot')
+        .data(correctionData)
+        .join('circle')
+        .attr('class', 'corr-dot')
+        .attr('cx', d => xScale(d.k))
+        .attr('cy', d => yScale(d.value))
+        .attr('r', 4)
+        .attr('fill', 'var(--color-low)')
+        .on('mouseenter', (event, d) => {
+          tooltip.classed('visible', true)
+            .html(`k = ${d.k}<br>max |g| = ${d.value.toFixed(4)}`);
+        })
+        .on('mousemove', (event) => {
+          const rect = container.getBoundingClientRect();
+          tooltip.style('left', (event.clientX - rect.left + 12) + 'px')
+            .style('top', (event.clientY - rect.top - 28) + 'px');
+        })
+        .on('mouseleave', () => tooltip.classed('visible', false));
+
+      // Correction label
+      svg.append('text')
+        .attr('x', xScale(maxK) + 8)
+        .attr('y', yScale(correctionData[correctionData.length - 1].value))
+        .attr('fill', 'var(--color-low)')
+        .attr('font-size', '18px')
+        .attr('dominant-baseline', 'central')
+        .text('max |g|');
+
+      _chart4B = { container };
+    }
+
+    function destroyChart4B() {
+      if (!_chart4B) return;
+      const svgEl = _chart4B.container.querySelector('.chart-4b-svg');
+      if (svgEl) svgEl.remove();
+      const ttEl = _chart4B.container.querySelector('.chart-tooltip');
+      if (ttEl) ttEl.remove();
+      _chart4B = null;
+    }
+
     /* ==================== BOOT ==================== */
     document.addEventListener('DOMContentLoaded', () => {
       // Init MathJax lazy observer
@@ -3319,6 +3946,8 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       ChartRegistry.register('chart-2b-container', (el) => initChart2B(el), () => destroyChart2B(), 'transducer');
       ChartRegistry.register('chart-3a-container', (el) => initChart3A(el), () => destroyChart3A(), 'cfrac');
       ChartRegistry.register('chart-3b-container', (el) => initChart3B(el), () => destroyChart3B(), 'cfrac');
+      ChartRegistry.register('chart-4a-container', (el) => initChart4A(el), () => destroyChart4A(), 'ordinal');
+      ChartRegistry.register('chart-4b-container', (el) => initChart4B(el), () => destroyChart4B(), 'ordinal');
 
       // Start observing chart containers
       ChartRegistry.observeAll();
