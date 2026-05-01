@@ -6,6 +6,51 @@
   <meta http-equiv="Content-Security-Policy" content="worker-src blob:">
   <title>Collatz 猜想（3n+1 問題）互動研究報告</title>
 
+  <!-- SEO Meta -->
+  <meta name="description" content="以七大數學框架（Epoch 分解、轉換器譜間隙、連分數、序數勢函數、反向樹、2-adic 混合性、Kolmogorov 複雜度）深入分析 Collatz 猜想，含 20 個 D3.js 互動視覺化與計算實驗。">
+  <meta name="keywords" content="Collatz conjecture, 3n+1 problem, Collatz 猜想, 考拉茲猜想, number theory, interactive visualization, D3.js, 數論, 互動研究">
+  <meta name="author" content="Lightman Chang & Claude">
+  <link rel="canonical" href="https://collatz-research-report.proof.weiqi.kids/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Collatz 猜想（3n+1 問題）互動研究報告">
+  <meta property="og:description" content="七大數學框架 × 20 個互動圖表，深度探索 Collatz 猜想的結構性障礙與突破方向。">
+  <meta property="og:url" content="https://collatz-research-report.proof.weiqi.kids/">
+  <meta property="og:image" content="https://collatz-research-report.proof.weiqi.kids/note.png">
+  <meta property="og:locale" content="zh_TW">
+  <meta property="article:author" content="Lightman Chang & Claude">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Collatz 猜想（3n+1 問題）互動研究報告">
+  <meta name="twitter:description" content="七大數學框架 × 20 個互動圖表，深度探索 Collatz 猜想的結構性障礙與突破方向。">
+  <meta name="twitter:image" content="https://collatz-research-report.proof.weiqi.kids/note.png">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "headline": "Collatz 猜想（3n+1 問題）互動研究報告",
+    "description": "以七大數學框架深入分析 Collatz 猜想，含 20 個 D3.js 互動視覺化與計算實驗，揭示結構性障礙與突破方向。",
+    "author": [
+      { "@type": "Person", "name": "Lightman Chang" },
+      { "@type": "Person", "name": "Claude", "affiliation": { "@type": "Organization", "name": "Anthropic" } }
+    ],
+    "url": "https://collatz-research-report.proof.weiqi.kids/",
+    "image": "https://collatz-research-report.proof.weiqi.kids/note.png",
+    "inLanguage": "zh-TW",
+    "datePublished": "2026-05-01",
+    "keywords": ["Collatz conjecture", "3n+1 problem", "number theory", "interactive visualization"],
+    "about": {
+      "@type": "Thing",
+      "name": "Collatz conjecture",
+      "sameAs": "https://en.wikipedia.org/wiki/Collatz_conjecture"
+    }
+  }
+  </script>
+
   <!-- D3.js v7 -->
   <script src="https://d3js.org/d3.v7.min.js" defer></script>
 
@@ -428,6 +473,48 @@
     }
     .back-to-top.visible { opacity: 1; pointer-events: auto; }
 
+    /* ==================== AEO SHARE BUTTON ==================== */
+    .aeo-share-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-left: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      font-size: var(--text-xs);
+      color: var(--color-link);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.375rem;
+      cursor: pointer;
+      vertical-align: middle;
+      transition: background 200ms, border-color 200ms;
+    }
+    .aeo-share-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--color-link);
+    }
+    .aeo-share-btn svg { width: 1em; height: 1em; fill: currentColor; }
+
+    .aeo-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(1rem);
+      background: var(--text-primary);
+      color: var(--bg-base);
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: var(--text-xs);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 300ms, transform 300ms;
+      z-index: 9999;
+    }
+    .aeo-toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
     /* ==================== CDN FALLBACK ==================== */
     .cdn-fallback {
       text-align: center;
@@ -635,7 +722,7 @@
   <!-- Sections (content added in Phase 2-4) -->
   <main class="container">
 
-    <section class="section" id="sec-problem">
+    <section class="section" id="sec-problem" data-ai-summary="定義 Collatz 映射 T(n)：偶數除2、奇數乘3加1。猜想：所有正整數最終到達1。壓縮形式 S(n)=(3n+1)/2^v₂(3n+1)。已驗證至 2^68，Tao 2019 證明幾乎所有軌道趨近1。">
       <h2>1. 問題陳述</h2>
 
       <h3>1.1 原始形式</h3>
@@ -670,7 +757,7 @@
       </div>
     </section>
 
-    <section class="section" id="sec-epoch">
+    <section class="section" id="sec-epoch" data-ai-summary="Epoch 分解將 Collatz 軌道拆為連續壞步段。核心公式：在位移座標 x=n+1 下，壞步段是純乘 (3/2)^(t-1)。下降條件為 B_T > T·log₂3。隨機遊走模型預測幾乎所有軌道下降，但無法處理最壞情況。">
       <h2>2. 框架一：Epoch 分解與位移座標</h2>
 
       <!-- White-language introduction -->
@@ -804,7 +891,7 @@
       </div>
     </section>
 
-    <section class="section" id="sec-transducer">
+    <section class="section" id="sec-transducer" data-ai-summary="將 Collatz 的 carry 傳播建模為 3 態自動機 {A,B,C}。轉移矩陣特徵值為 {1, 1/2, -1/2}，譜間隙=1/2。這意味著 v₂ 的自相關以指數速度衰減，但相鄰步之間仍有短程相關，無法直接證明獨立性。">
       <h2>3. 框架二：3 態轉換器與譜間隙</h2>
 
       <!-- 白話引言 -->
@@ -945,7 +1032,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </div>
     </section>
 
-    <section class="section" id="sec-cfrac">
+    <section class="section" id="sec-cfrac" data-ai-summary="log₂3 的連分數收斂子決定 Collatz 最壞情況。第6個收斂子 65/41≈1.5854 是天然屏障：實驗中最壞 B/T 比率精確命中此值，始終 > log₂3≈1.5850。但差距極小(0.0004)，無法排除更高收斂子被命中。">
       <h2>4. 框架三：log&#x2082;3 的連分數收斂子</h2>
 
       <!-- 白話引言 -->
@@ -1092,7 +1179,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </div>
     </section>
 
-    <section class="section" id="sec-ordinal">
+    <section class="section" id="sec-ordinal" data-ai-summary="定義序數值勢函數 α(n) 基於二進位 block 結構。嘗試證明 Collatz 步驟嚴格降低序數值，從而由序數良序性推出終止。斷裂點：carry 傳播可能暫時增加 block 數量，無法保證單步嚴格下降。">
       <h2>5. 框架四：序數值勢函數</h2>
 
       <!-- 白話引言 -->
@@ -1185,7 +1272,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </div>
     </section>
 
-    <section class="section" id="sec-tree">
+    <section class="section" id="sec-tree" data-ai-summary="反向 Collatz 樹以 1 為根，子節點是能經一步 Collatz 到達父節點的數。猜想等價於樹覆蓋所有正整數。結果：覆蓋比例趨近100%（密度論證），但密度為零的遺漏集仍可能存在（如非平凡循環��。">
       <h2>6. 框架五：反向樹與密度論證</h2>
 
       <!-- 白話引言 -->
@@ -1259,7 +1346,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </div>
     </section>
 
-    <section class="section" id="sec-z2">
+    <section class="section" id="sec-z2" data-ai-summary="在 2-adic 整數 Z₂ 上，×3 是保測自同構，具有遍歷性。這意味著 v₂ 序列的經驗分佈趨向幾何分佈 Geo(1/2)。斷裂點：自然數 N 是 Z₂ 的測度零子集，遍歷定理不直接適用於 N。">
       <h2>7. 框架六：&#x2124;&#x2082; 上的 &times;3 混合性</h2>
 
       <!-- 白話引言 -->
@@ -1333,7 +1420,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </div>
     </section>
 
-    <section class="section" id="sec-kolmogorov">
+    <section class="section" id="sec-kolmogorov" data-ai-summary="發散軌道上的數具有低 Kolmogorov 複雜度（高度可壓縮）：K(S^T(n)) ≤ O(log n + log T)。嘗試利用可壓縮性排除發散，但可壓縮不直接蘊含好的 v₂ 值——carry 攪動可能保持壓縮結構而不降低數值。">
       <h2>8. 框架七：Kolmogorov 複雜度與資訊論</h2>
 
       <!-- 白話引言 -->
@@ -1411,7 +1498,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </div>
     </section>
 
-    <section class="section" id="sec-experiments">
+    <section class="section" id="sec-experiments" data-ai-summary="六項計算實驗一致顯示：最壞情況 B/T 比率穩定在 65/41=1.5854 > log₂3=1.5850。完整枚舉 k≤18、抽樣至 k=44，所有測試均滿足下降條件。Mersenne 數 2^k-1 均到達1。含六標籤互動實驗場。">
       <h2>9. 計算實驗</h2>
 
       <!-- White-language introduction -->
@@ -1500,7 +1587,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       <div id="playground-container"></div>
     </section>
 
-    <section class="section" id="sec-reduction">
+    <section class="section" id="sec-reduction" data-ai-summary="所有框架收斂至引理 D：對任意奇數 n>1，存在 T 使得 S^T(n)<n。引理 D 等價於 Collatz 猜想（排除非平���循環+排除發散軌道）。算術等價：B_T > T·log₂3 蘊含下降。">
       <h2>10. 等價化約鏈</h2>
 
       <!-- White-language introduction -->
@@ -1546,7 +1633,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       <p>因此：<strong>引理 D &hArr; Collatz 猜想</strong>。</p>
     </section>
 
-    <section class="section" id="sec-bounded">
+    <section class="section" id="sec-bounded" data-ai-summary="有界軌道必入循環（鴿巢原理）。循環方程 m(2^B-3^P)=C 要求 2^B>3^P（由 log₂3 無理性）。循環元素有上界 m < 2^B·3^P / 2(2^B-3^P)，但 Baker 型定理的下界不足以約束至可計算範圍。">
       <h2>11. 有界軌道分析</h2>
 
       <!-- White-language introduction -->
@@ -1599,7 +1686,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </div>
     </section>
 
-    <section class="section" id="sec-obstacle">
+    <section class="section" id="sec-obstacle" data-ai-summary="Collatz 映射同時涉及乘法(×3)、加法(+1)和二進位(÷2^v₂)三種不可通約結構。所有框架的斷裂點歸結為：缺乏能同時處理這三者的統一數學工具。具體表現為缺少確定性 Expander Mixing 定理。">
       <h2>12. 結構性障礙分析</h2>
 
       <!-- White-language introduction -->
@@ -1658,7 +1745,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       <p style="font-size:var(--text-sm); margin-top:0.75rem;">此陳述等價於 Collatz 猜想本身，因此不構成「簡化」。</p>
     </section>
 
-    <section class="section" id="sec-conclusion">
+    <section class="section" id="sec-conclusion" data-ai-summary="本研究七大貢獻：精確公式、3態轉換器、譜間隙=1/2、65/41屏障、等價化約、有界情形分析、計算驗證。未解決：無法無條件證明無非平凡循環，也無法排除 B_T/T→log₂3 的發散軌道。Collatz 猜想仍是未解問題。">
       <h2>13. 結論</h2>
 
       <!-- Chart D-1: Radar chart -->
@@ -1693,7 +1780,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       <p style="font-size:var(--text-sm); margin-top:0.75rem;">本研究從多個角度攻擊此問題，建立了新的分析框架，但所有路線最終收斂至同一結構性障礙：Collatz 映射同時混合了乘法、加法和二進位三種不可通約的數學結構，而目前數學中不存在能同時處理這三者的統一框架。</p>
     </section>
 
-    <section class="section" id="sec-appendix" style="border-bottom:none;">
+    <section class="section" id="sec-appendix" style="border-bottom:none;" data-ai-summary="附錄含主實驗程式（6項實驗）、深度分析程式（6項分析）、完整符號索引（T(n), S(n), v₂, t_i, w_i, B_T, α(n), log₂3, 65/41, Z₂, K(n)）、以及參考文獻（Tao 2019, Eliahou 1993, Conway 1972, Lagarias 2010）。">
       <h2>14. 附錄：程式碼與符號索引</h2>
 
       <h3>14.1 主實驗程式</h3>
@@ -7619,6 +7706,87 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
 
       // Start observing chart containers
       ChartRegistry.observeAll();
+
+      // ==================== AEO: Share to AI ====================
+      (function initAeoShare() {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'aeo-toast';
+        toast.textContent = '已複製！可貼至 ChatGPT / Claude 進行討論';
+        document.body.appendChild(toast);
+
+        let toastTimer = null;
+        function showToast() {
+          toast.classList.add('visible');
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => toast.classList.remove('visible'), 2500);
+        }
+
+        // Extract readable text from a section (strip HTML, keep math notation)
+        function extractText(section) {
+          const clone = section.cloneNode(true);
+          // Remove chart containers and input groups (they're interactive, not content)
+          clone.querySelectorAll('.chart-container, .chart-input-group, #playground-container').forEach(el => el.remove());
+          // Convert math-block divs to LaTeX
+          clone.querySelectorAll('.math-block').forEach(el => {
+            const tex = el.textContent.trim();
+            el.replaceWith(document.createTextNode(tex + '\n'));
+          });
+          // Get text content
+          let text = clone.textContent || '';
+          // Clean up excessive whitespace
+          text = text.replace(/\n{3,}/g, '\n\n').trim();
+          return text;
+        }
+
+        // Add share button to each section h2
+        document.querySelectorAll('section.section[id]').forEach(section => {
+          const h2 = section.querySelector('h2');
+          if (!h2) return;
+
+          const btn = document.createElement('button');
+          btn.className = 'aeo-share-btn';
+          btn.setAttribute('aria-label', '複製此段落至 AI 討論');
+          btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11A2.99 2.99 0 0 0 21 5a3 3 0 1 0-5.91.7L8.04 9.81A2.99 2.99 0 0 0 5 8a3 3 0 1 0 2.04 5.19l7.12 4.16c-.05.21-.08.43-.08.65a2.93 2.93 0 0 0 2.92 2.92 2.93 2.93 0 0 0 0-5.84z"/></svg>分享至 AI';
+
+          btn.addEventListener('click', () => {
+            const title = h2.textContent.trim();
+            const summary = section.getAttribute('data-ai-summary') || '';
+            const content = extractText(section);
+            const url = 'https://collatz-research-report.proof.weiqi.kids/#' + section.id;
+
+            const prompt = [
+              '以下是 Collatz 猜想研究報告中「' + title + '」的內容，請協助討論：',
+              '來源：' + url,
+              '',
+              '---',
+              '## ' + title,
+              '',
+              summary ? '【摘要】' + summary : '',
+              '',
+              content,
+              '---',
+              '',
+              '請針對以上內容提出你的分析、疑問、或延伸討論。'
+            ].filter(Boolean).join('\n');
+
+            navigator.clipboard.writeText(prompt).then(showToast).catch(() => {
+              // Fallback for older browsers
+              const ta = document.createElement('textarea');
+              ta.value = prompt;
+              ta.style.position = 'fixed';
+              ta.style.opacity = '0';
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+              showToast();
+            });
+          });
+
+          h2.appendChild(btn);
+        });
+      })();
     });
   </script>
 
