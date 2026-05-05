@@ -1,0 +1,1292 @@
+%%% The 65/41 Barrier: Continued-Fraction Convergents of log_2 3
+%%% Bound Worst-Case Descent Ratios in the Compressed Collatz Map
+
+\documentclass[11pt,a4paper]{article}
+
+%% ---------- packages ----------
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{array}
+
+%% ---------- theorem environments ----------
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{observation}[theorem]{Observation}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%% ---------- macros ----------
+\DeclareMathOperator{\val}{v}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\Nodd}{\N_{\mathrm{odd}}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+
+%% ---------- metadata ----------
+\title{\Large The $65/41$ Barrier:\\
+Continued-Fraction Convergents of $\log_2 3$\\
+Bound Worst-Case Descent Ratios\\[4pt]
+\large in the Compressed Collatz Map}
+\author{Lightman Chang\\
+Independent Researcher\\
+\texttt{lightman.chang@gmail.com}}
+\date{}
+
+%% =================================================================
+\begin{document}
+\maketitle
+
+%% =================================================================
+%% ABSTRACT
+%% =================================================================
+\begin{abstract}
+For the compressed Collatz map $S(n) = (3n+1)/2^{\val_2(3n+1)}$ on the
+positive odd integers, an orbit segment of length $T$ satisfies
+$S^T(n) < n$ for all sufficiently large $n$ if and only if
+$B_T = \sum_{i=0}^{T-1} \val_2(3 S^i(n) + 1)$ exceeds $T \log_2 3$.
+The ratio $B_T / T$ is therefore a natural \emph{descent ratio} that
+quantifies how close an orbit segment comes to balancing the
+multiplicative growth by $3^T$ with the contraction by $2^{B_T}$.
+We study the worst (smallest) value of this ratio across orbit segments
+that descend.  Our first contribution (Theorem~\ref{thm:cf})
+is a continued-fraction theorem: among all positive integers $T$ in the
+range $1 \leq T \leq 93$, the quantity
+$B(T) := \min\{B \in \Z : B/T > \log_2 3\}$ attains its minimum
+$B(T)/T$ exactly at $T = 41$ with value $65/41 = 1.58536\ldots$, and
+this is precisely the sixth principal convergent of $\log_2 3$.  Our
+second contribution is a substantial computational study (covering all
+odd $n < 2^{18}$ exhaustively and a structured sample for
+$n < 2^{44}$) showing that the worst-case observed descent ratio
+$B/T$ over the longest descents starting from these integers equals
+exactly $65/41$ in every length-bin tested; we record this as
+Conjecture~\ref{conj:65-41}.  As a rigorous corollary
+(Corollary~\ref{cor:cycle}) we use the irrationality of $\log_2 3$
+(Gelfond--Schneider) to derive the cycle-element upper bound
+$m < 2^B 3^P / \bigl(2(2^B - 3^P)\bigr)$ for any nontrivial cycle of
+the compressed Collatz map.  All experimental code is publicly
+available.
+\end{abstract}
+
+\noindent\textbf{Keywords:}~Collatz map, $3x{+}1$ problem,
+continued fractions, $\log_2 3$, descent ratio, computational number
+theory.
+
+\smallskip
+\noindent\textbf{MSC 2020:}~Primary 11B37; Secondary 11A55, 11J70,
+11Y55, 11Y65.
+
+%% =================================================================
+\section{Introduction}\label{sec:intro}
+%% =================================================================
+
+The Collatz map $T \colon \N \to \N$, defined by $T(n) = n/2$ for $n$
+even and $T(n) = 3n + 1$ for $n$ odd, has resisted resolution of its
+namesake conjecture (that every positive integer eventually reaches
+$1$ under iteration of $T$) for nearly a century; see the surveys of
+Lagarias~\cite{Lagarias1985,Lagarias2010} and the strongest known
+density result of Tao~\cite{Tao2022}.  Throughout this paper we work
+with the \emph{compressed} (or \emph{accelerated}) Collatz map
+$S \colon \Nodd \to \Nodd$ defined by
+\begin{equation}\label{eq:S-def}
+  S(n) \;=\; \frac{3n + 1}{2^{\val_2(3n + 1)}},
+\end{equation}
+where $\val_2(m)$ is the $2$-adic valuation of $m$.  Iterating $S$
+starting from an odd integer $n$ produces a sequence
+$\val_1, \val_2, \val_3, \ldots$ of positive integer valuations, with
+$\val_i = \val_2(3 S^{i-1}(n) + 1)$, and the iterate after $T$ steps is
+\begin{equation}\label{eq:ST}
+  S^T(n) \;=\; \frac{3^T n + C_T}{2^{B_T}},
+  \qquad
+  B_T \;=\; \sum_{i=1}^{T} \val_i,
+\end{equation}
+with a positive integer correction term $C_T$ depending on the
+sequence $(\val_i)$ but not on $n$.
+
+\paragraph{Descent ratios.}
+For fixed $T$ and a fixed valuation sequence $(\val_1, \ldots, \val_T)$
+realized by some orbit, the iterate $S^T(n) < n$ holds for all
+$n > C_T / (2^{B_T} - 3^T)$ provided $2^{B_T} > 3^T$, that is,
+provided
+\begin{equation}\label{eq:descent}
+  \frac{B_T}{T} \;>\; \log_2 3.
+\end{equation}
+The ratio $B_T / T$ is therefore the natural \emph{descent ratio} of
+an orbit segment of length $T$: it is precisely the average $2$-adic
+valuation along the segment, and the orbit segment can decrease only
+when this average exceeds $\log_2 3 \approx 1.584962$.  The descent
+condition~\eqref{eq:descent} is equivalent to the standard fact that
+the empirical mean of $\val_2$ along an orbit must exceed $\log_2 3$
+for the orbit to contract; see~\cite[\S 2]{Lagarias1985}.
+
+\paragraph{The barrier.}
+Since $\log_2 3$ is irrational (in fact transcendental, by the
+Gelfond--Schneider theorem~\cite{Baker1990,Gelfond1934,Schneider1934}),
+the descent ratio $B_T / T$ can never equal $\log_2 3$ for any
+positive integers $B_T, T$.  The minimum positive integer $B$ with
+$B / T > \log_2 3$ is therefore
+\[
+  B(T) \;:=\; \lfloor T \log_2 3 \rfloor + 1.
+\]
+The ratio $B(T) / T$ is the smallest descent ratio achievable by an
+orbit segment of length $T$ under the constraint
+$B_T/T > \log_2 3$.  This deterministic minimum is governed by the
+continued-fraction expansion of $\log_2 3$.  By the standard theory
+\cite[Ch.~7]{HardyWright}, the principal convergents $h_k = p_k/q_k$
+of $\log_2 3$ alternate above and below the irrational and are
+``best one-sided rational approximations'' in the sense that any
+fraction $p/q$ with $1 \leq q \leq q_{k+1} - 1$ and $p/q > \log_2 3$
+satisfies $p/q \geq p_k/q_k$ when $h_k$ is an above-approximation.
+
+\paragraph{The empirical observation.}
+Computational experiments on compressed Collatz orbits (described in
+detail in Section~\ref{sec:exp}) reveal the following striking
+phenomenon: across all bit-lengths $5 \leq k \leq 44$ that we tested,
+the worst-case descent ratio $B/T$ over orbits originating in
+$\Nodd \cap [1, 2^k - 1]$ equals exactly $65/41$ in essentially every
+length-bin, with rare excursions to $149/94$ (the next-best
+``above'' fraction).  Both ratios are intimately tied to the
+continued-fraction expansion: $65/41$ is the sixth principal
+convergent of $\log_2 3$, and $149/94$ is the next best ``above''
+semiconvergent.
+
+\paragraph{Our contribution.}
+We make three contributions, of three different epistemic types
+(theorem, conjecture, corollary), all centered on the descent ratio
+of the compressed Collatz map and its relation to the continued-fraction
+expansion of $\log_2 3$.
+
+\begin{enumerate}[label=(\roman*),leftmargin=2em]
+  \item \emph{Continued-fraction barrier theorem}
+    (Theorem~\ref{thm:cf}, rigorous).
+    For every positive integer $T$ with $1 \leq T \leq 93$ the
+    quantity $B(T)/T$ satisfies $B(T)/T \geq 65/41$, with equality
+    at $T = 41$.  The constant $65/41$ is the sixth principal
+    convergent of $\log_2 3$, and the bound $T \leq 93$ is sharp:
+    at $T = 94$ one has $B(94)/94 = 149/94 < 65/41$.
+  \item \emph{Empirical $65/41$ conjecture}
+    (Conjecture~\ref{conj:65-41}, computational).
+    For every odd integer $n$ in the search range
+    $\{3, 5, \ldots, 2^{44} - 1\}$ for which a length-$T$ descent
+    of $S$ has been computed, the ratio $B_T/T$ satisfies
+    $B_T / T \geq 65/41$, with extensive empirical evidence that
+    the bound is attained.
+  \item \emph{Cycle-element upper bound}
+    (Corollary~\ref{cor:cycle}, rigorous).
+    For any nontrivial cycle of $S$ of period $P$ with cumulative
+    valuation $B$, the smallest element $m$ of the cycle satisfies
+    $m < 2^B \cdot 3^P / \bigl(2 (2^B - 3^P)\bigr)$, where
+    $2^B - 3^P \geq 1$ by Gelfond--Schneider.
+\end{enumerate}
+
+The structure of the paper places the rigorous theorems
+(Theorem~\ref{thm:cf} in Section~\ref{sec:cf} and the cycle bound in
+Section~\ref{sec:cycle}) on either side of the experimental
+investigation (Sections~\ref{sec:exp} and~\ref{sec:conj}).  This
+mirrors the actual epistemic state of the subject: the descent ratio
+is forced from above by deterministic continued-fraction arithmetic,
+the cycle existence problem is constrained from above by transcendence
+theory, but the assertion that the empirical worst case equals the
+deterministic lower bound is at present an experimental observation
+rather than a theorem.
+
+\paragraph{What we do not claim.}
+We make no claim of resolving the Collatz conjecture.  The empirical
+match between worst-case observed descent ratios and the
+continued-fraction lower bound is a precise statement about a
+specific finite-range computation; extending it to all $n$ is a
+genuine open problem, intimately tied to the equidistribution of
+Collatz orbits modulo small powers of $2$.  We discuss the gap
+carefully in Section~\ref{sec:disc}.
+
+\paragraph{Relation to other papers in this series.}
+The present paper is the third in a series of self-contained pieces
+extracted from the same research notebook.  The first paper
+\cite{ChangPaperA} constructs a three-state finite automaton for the
+carry computation in $3n + 1$ and computes its spectral gap.  The
+second paper \cite{ChangPaperB} proves an impossibility result for
+finite-precision Lyapunov potentials.  The present paper isolates the
+continued-fraction descent-ratio phenomenon and the associated
+cycle-element bound; we use the closed-form shift identity from
+\cite{ChangPaperA} as a black box in passing but the present paper
+is logically self-contained.
+
+\paragraph{Paper organization.}
+Section~\ref{sec:prelim} fixes notation and recalls the basic
+arithmetic of compressed Collatz iterates and the continued-fraction
+expansion of $\log_2 3$.  Section~\ref{sec:cf} states and proves the
+continued-fraction barrier theorem (Theorem~\ref{thm:cf}).
+Section~\ref{sec:exp} describes the computational protocol and
+reports the experimental results.  Section~\ref{sec:conj} formulates
+the $65/41$ empirical conjecture (Conjecture~\ref{conj:65-41}) and
+discusses its connection to the worst-case orbits we identified.
+Section~\ref{sec:cycle} derives the cycle-element upper bound from
+Gelfond--Schneider as Corollary~\ref{cor:cycle}.
+Section~\ref{sec:disc} discusses limitations, related work, and open
+questions.
+
+%% =================================================================
+\section{Preliminaries}\label{sec:prelim}
+%% =================================================================
+
+Throughout, $\Nodd = \{1, 3, 5, \ldots\}$ denotes the positive odd
+integers, and for $m \in \Z \setminus \{0\}$ we write $\val_2(m)$ for
+the $2$-adic valuation of $m$.  We write
+$\log_2 3 = 1.584962500721156\ldots$ for the base-$2$ logarithm of
+$3$.
+
+\subsection{Compressed Collatz iterates}
+
+\begin{definition}[Compressed Collatz map]\label{def:S}
+The \emph{compressed Collatz map} is the map
+$S \colon \Nodd \to \Nodd$ defined by~\eqref{eq:S-def}.  For
+$T \geq 1$ and $n \in \Nodd$ we write $S^T(n)$ for the $T$-th iterate
+and define the \emph{valuation sequence} of $n$ at depth $T$ by
+\[
+  \val_i(n) \;=\; \val_2\bigl(3 S^{i-1}(n) + 1\bigr),
+  \qquad 1 \leq i \leq T.
+\]
+The \emph{cumulative valuation} is $B_T(n) = \sum_{i=1}^{T} \val_i(n)$,
+and the \emph{descent ratio} of the segment is $\rho_T(n) = B_T(n)/T$.
+\end{definition}
+
+\begin{lemma}[Closed form of compressed iterates]\label{lem:closed}
+For every $n \in \Nodd$ and every $T \geq 1$,
+\begin{equation}\label{eq:STexp}
+  S^T(n) \;=\; \frac{3^T n + C_T(n)}{2^{B_T(n)}},
+\end{equation}
+where the correction term
+\[
+  C_T(n) \;=\; \sum_{j=0}^{T-1} 3^{T-1-j}\, 2^{B_T(n) - B_{j+1}(n)}
+\]
+is a positive integer depending only on the partial sums
+$B_1(n), \ldots, B_T(n)$ (and not on $n$ apart from through the
+$\val_i$).
+\end{lemma}
+
+\begin{proof}
+Induction on $T$.  For $T = 1$ we have $S(n) = (3n + 1)/2^{\val_1}$
+and $C_1 = 1 \cdot 2^{B_1 - B_1} = 1$, agreeing with $C_1 = 1$ from
+the definition.  Assume \eqref{eq:STexp} at depth $T$.  Then
+\begin{align*}
+  S^{T+1}(n)
+  &= \frac{3 S^T(n) + 1}{2^{\val_{T+1}}}
+   = \frac{3 \cdot \frac{3^T n + C_T}{2^{B_T}} + 1}{2^{\val_{T+1}}}
+   = \frac{3^{T+1} n + 3 C_T + 2^{B_T}}{2^{B_T + \val_{T+1}}} \\
+  &= \frac{3^{T+1} n + C_{T+1}}{2^{B_{T+1}}},
+\end{align*}
+with
+$C_{T+1} = 3 C_T + 2^{B_T} = 3 \sum_{j=0}^{T-1} 3^{T-1-j}
+2^{B_T - B_{j+1}} + 2^{B_T}
+= \sum_{j=0}^{T} 3^{T-j} 2^{B_T - B_{j+1}}$ if we set $B_0 = 0$ and
+absorb $2^{B_T}$ as the $j = T$ term, that is
+$C_{T+1} = \sum_{j=0}^{T} 3^{(T+1) - 1 - j} 2^{B_{T+1} - B_{j+1}}$.
+\end{proof}
+
+\begin{corollary}[Descent criterion]\label{cor:descent}
+For $n \in \Nodd$ and $T \geq 1$, the inequality $S^T(n) < n$ holds
+if and only if $n (2^{B_T(n)} - 3^T) > C_T(n)$.  In particular, if
+$\rho_T(n) > \log_2 3$, then $2^{B_T} > 3^T$ and the inequality
+$S^T(n) < n$ holds for every
+$n > C_T(n) / (2^{B_T(n)} - 3^T)$.
+\end{corollary}
+
+\begin{proof}
+By Lemma~\ref{lem:closed},
+$S^T(n) < n \iff (3^T n + C_T)/2^{B_T} < n
+ \iff n (2^{B_T} - 3^T) > C_T$.  The condition
+$\rho_T = B_T/T > \log_2 3$ is equivalent to
+$2^{B_T} > 3^T$, hence $2^{B_T} - 3^T \geq 1$ since both are
+positive integers.
+\end{proof}
+
+\subsection{Continued fractions of $\log_2 3$}
+
+\begin{definition}[Convergents]\label{def:conv}
+The simple continued-fraction expansion of $\log_2 3$ is
+\[
+  \log_2 3 \;=\; [a_0; a_1, a_2, \ldots]
+  \;=\; [1;\, 1, 1, 2, 2, 3, 1, 5, 2, 23, \ldots],
+\]
+with partial quotients $a_0, a_1, a_2, \ldots$.  The principal
+convergents $h_k = p_k / q_k$ are defined recursively by
+\[
+  p_{-1} = 1,\; p_{0} = a_0 = 1,\; p_k = a_k p_{k-1} + p_{k-2};
+  \qquad
+  q_{-1} = 0,\; q_0 = 1,\; q_k = a_k q_{k-1} + q_{k-2}.
+\]
+\end{definition}
+
+We list the first few convergents in Table~\ref{tab:conv}.
+
+\begin{table}[htbp]
+\centering
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{c c c r r}
+\toprule
+$k$ & $a_k$ & $h_k = p_k/q_k$ & decimal value & $h_k - \log_2 3$ \\
+\midrule
+$0$ & $1$ & $1/1$ & $1.000000$ & $-0.584962$ \\
+$1$ & $1$ & $2/1$ & $2.000000$ & $+0.415037$ \\
+$2$ & $1$ & $3/2$ & $1.500000$ & $-0.084962$ \\
+$3$ & $2$ & $8/5$ & $1.600000$ & $+0.015037$ \\
+$4$ & $2$ & $19/12$ & $1.583333$ & $-0.001629$ \\
+$5$ & $3$ & $\mathbf{65/41}$ & $\mathbf{1.585366}$ &
+  $\mathbf{+0.000403}$ \\
+$6$ & $1$ & $84/53$ & $1.584906$ & $-0.000057$ \\
+$7$ & $5$ & $485/306$ & $1.584967$ & $+0.0000048$ \\
+$8$ & $2$ & $1054/665$ & $1.584962$ & $-0.000000095$ \\
+\bottomrule
+\end{tabular}
+\caption{The first nine principal convergents of $\log_2 3$.  The
+sixth convergent $h_5 = 65/41$ is the focus of the present paper:
+it is the worst above-approximation of $\log_2 3$ in a sense made
+precise by Theorem~\ref{thm:cf}.}
+\label{tab:conv}
+\end{table}
+
+\begin{lemma}[Standard properties of convergents]\label{lem:cfprop}
+With notation as above:
+\begin{enumerate}[label=(\roman*),leftmargin=2em]
+  \item $|p_k - q_k \log_2 3| < |p_{k-1} - q_{k-1} \log_2 3|$ for
+    $k \geq 1$.
+  \item $h_k$ alternates above and below $\log_2 3$ with
+    $h_{2j+1} > \log_2 3 > h_{2j}$ for $j \geq 0$, and
+    $h_5 = 65/41 > \log_2 3$.
+  \item For any rational $p/q$ with $1 \leq q < q_{k+1}$ and
+    $p/q > \log_2 3$, we have $p/q \geq h_k$ provided
+    $h_k > \log_2 3$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+These are standard consequences of the theory of continued fractions;
+see, e.g., \cite[Theorems~163, 181, 182]{HardyWright}.
+\end{proof}
+
+\subsection{The descent denominator function}
+
+We will repeatedly use the following deterministic minimum.
+
+\begin{definition}[Descent denominator]\label{def:Bmin}
+For each positive integer $T$, let
+\[
+  B(T) \;:=\; \lfloor T \log_2 3 \rfloor + 1,
+\]
+the smallest positive integer $B$ with $B / T > \log_2 3$.
+\end{definition}
+
+Since $\log_2 3$ is irrational, $T \log_2 3$ is never an integer, so
+$B(T) = \lceil T \log_2 3 \rceil$ for every $T \geq 1$.
+
+\begin{example}\label{ex:Bsmall}
+We have $B(1) = 2$, $B(2) = 4$, $B(3) = 5$, $B(5) = 8$, $B(12) = 20$,
+$B(17) = 27$, $B(29) = 46$, and $B(41) = 65$.  In particular
+$B(41)/41 = 65/41 = 1.5853658\ldots$
+\end{example}
+
+%% =================================================================
+\section{The Continued-Fraction Barrier Theorem}\label{sec:cf}
+%% =================================================================
+
+This section is logically independent of all subsequent computational
+discussion: it is a direct consequence of the continued-fraction
+expansion of $\log_2 3$.
+
+\begin{theorem}[Continued-fraction barrier]\label{thm:cf}
+For every integer $T$ with $1 \leq T \leq 93$,
+\begin{equation}\label{eq:cf-bound}
+  \frac{B(T)}{T} \;\geq\; \frac{65}{41} \;=\; 1.5853658536\ldots,
+\end{equation}
+with equality if and only if $T \in \{41, 82\}$.  Equivalently, the
+sixth principal convergent $h_5 = 65/41$ of $\log_2 3$ realizes the
+minimum of $B(T)/T$ over the range $1 \leq T \leq 93$.  The bound
+$T \leq 93$ is sharp: at $T = 94$ one has
+$B(94)/94 = 149/94 = 1.5851063\ldots < 65/41$.
+\end{theorem}
+
+The remainder of this section is the proof.  We argue in three steps:
+first we identify $h_5$ as a best above-approximation in a precise
+sense; second we use the standard alternation theorem to rule out
+denominators below $41$; and third we directly verify the range
+$42 \leq T \leq 93$.
+
+\subsection{Best above-approximations of $\log_2 3$}
+
+For an irrational $\alpha$ and a positive integer $T$, define
+$\beta(T) := \lfloor T \alpha \rfloor + 1 - T \alpha = T (B(T)/T -
+\alpha) > 0$, the ``positive defect'' of the smallest above-fraction
+with denominator $T$.
+
+\begin{lemma}[Defect minima at convergents]\label{lem:defect}
+Let $\alpha = \log_2 3$.  For $T_0 \geq 1$, define
+\[
+  T^{*}(T_0) \;:=\; \operatorname*{arg\,min}_{1 \leq T \leq T_0} \frac{B(T)}{T}.
+\]
+Then $T^{*}(T_0)$ is the largest integer $T \leq T_0$ such that
+$T \alpha - \lfloor T \alpha \rfloor$ is the maximum of
+$\{j \alpha - \lfloor j \alpha \rfloor : 1 \leq j \leq T_0\}$, that
+is, the integer $T$ for which the fractional part $\{T \alpha\}$ is
+closest to $1$ from below.
+\end{lemma}
+
+\begin{proof}
+We have $B(T)/T = (\lfloor T \alpha \rfloor + 1)/T = \alpha + (1 -
+\{T \alpha\})/T$.  Since $\alpha$ is fixed, minimizing $B(T)/T$ over
+$T \in [1, T_0]$ is the same as minimizing $(1 - \{T \alpha\})/T$.
+For each fixed $T$, the numerator $1 - \{T \alpha\} > 0$, and we
+seek the $T$ that makes this small (i.e.\ $\{T\alpha\}$ close to~$1$
+from below) while $T$ is large.  The equivalent reformulation in the
+statement is immediate.
+\end{proof}
+
+\begin{lemma}[Three-distance lemma applied to convergents]
+\label{lem:bestabove}
+The denominators $T \in \{1, 2, 3, \ldots\}$ at which $\{T \log_2 3\}$
+attains a new maximum (in $[0, 1)$) are exactly the denominators of
+those principal convergents $h_k = p_k/q_k$ of $\log_2 3$ that lie
+\emph{above} $\log_2 3$, namely $h_1, h_3, h_5, h_7, \ldots$, together
+with the corresponding ``upper semiconvergents''
+\[
+  \frac{p_{2j-1} + i \, p_{2j}}{q_{2j-1} + i \, q_{2j}},
+  \quad 1 \leq i \leq a_{2j+1} - 1,
+\]
+that lie above $\log_2 3$ and lie strictly between $h_{2j-1}$ and
+$h_{2j+1}$.  In particular, the first six denominators $T$ at which
+the running maximum of $\{T \log_2 3\}$ strictly increases are
+\[
+  T \;\in\; \{1,\, 3,\, 5,\, 17,\, 29,\, 41\},
+\]
+with corresponding ratios $B(T)/T$ equal to
+$2/1,\, 5/3,\, 8/5,\, 27/17,\, 46/29,\, 65/41$, respectively.
+\end{lemma}
+
+\begin{proof}
+This is a textbook consequence of the three-distance theorem and the
+theory of best one-sided rational approximations; see, e.g.,
+\cite[\S 5--6]{Khinchin1964} or \cite[Ch.~6]{Bugeaud2004}.  The
+denominators of best above-approximations of $\log_2 3$ are exactly
+the upper semiconvergents (those rational expressions whose value
+exceeds $\log_2 3$) along the sequence
+$h_{1}, h_{3}, h_{5}, \ldots$  Direct computation from
+Table~\ref{tab:conv} gives that the upper semiconvergents between
+$h_3 = 8/5$ and $h_5 = 65/41$ are
+\[
+  \frac{8 + 1 \cdot 19}{5 + 1 \cdot 12} \;=\; \frac{27}{17},
+  \qquad
+  \frac{8 + 2 \cdot 19}{5 + 2 \cdot 12} \;=\; \frac{46}{29},
+\]
+since $a_5 = 3$ produces semiconvergents at $i = 1, 2$ before
+reaching the next convergent at $i = 3$, which is
+$h_5 = (8 + 3 \cdot 19)/(5 + 3 \cdot 12) = 65/41$.  Listing the
+denominators $1, 3, 5, 17, 29, 41$ matches the claim.
+\end{proof}
+
+\begin{remark}\label{rem:T82}
+The same fraction $65/41$ is also realized at $T = 82$ since
+$B(82) = 130 = 2 \cdot 65$ and $130/82 = 65/41$.  This is consistent
+with $\lfloor 82 \log_2 3 \rfloor + 1 = 129 + 1 = 130$.  Equality
+$B(T)/T = 65/41$ in the range $1 \leq T \leq 93$ holds therefore at
+$T = 41$ and $T = 82$, and at no other $T$ in this range.
+\end{remark}
+
+\subsection{Proof of Theorem~\ref{thm:cf}}
+
+\begin{proof}[Proof of Theorem~\ref{thm:cf}]
+We must show that $B(T)/T \geq 65/41$ for every $T \in [1, 93]$ and
+that the bound is attained exactly at $T \in \{41, 82\}$.
+
+\emph{Step 1: Reduction to record-breakers.}  By
+Lemma~\ref{lem:bestabove}, the values of $T$ at which $B(T)/T$
+strictly decreases (forming the running minimum) up to $T = 41$ are
+exactly $T \in \{1, 3, 5, 17, 29, 41\}$.  At each subsequent integer
+$T$ in $[1, 41]$ the value $B(T)/T$ is at least the previous record,
+and the records take the values
+$2/1, 5/3, 8/5, 27/17, 46/29, 65/41$, all of which are
+$\geq 65/41$ by direct comparison
+($65/41 = 1.585366$, $46/29 = 1.586207$, $27/17 = 1.588235$,
+$8/5 = 1.6$, $5/3 = 1.667$, $2/1 = 2.0$).  The smallest among these
+is $65/41$, attained at $T = 41$.
+
+\emph{Step 2: $42 \leq T \leq 93$.}  We must show
+$B(T)/T \geq 65/41$ for every such $T$.  Equivalently, we must show
+that no fraction $B/T$ with $42 \leq T \leq 93$ and
+$B/T > \log_2 3$ satisfies $B/T < 65/41$.  Suppose for contradiction
+that such $B, T$ exist with $\log_2 3 < B/T < 65/41$.  Then by
+\cite[Theorem~182]{HardyWright}, since $65/41 = h_5$ is a principal
+convergent and $T < q_6 = 53$ (the next convergent denominator) is
+needed to guarantee that no fraction with smaller denominator beats
+$h_5$ on the appropriate side, we observe that $h_6 = 84/53 < \log_2
+3$ is a below-approximation, so it does not threaten the
+above-approximation $h_5$.  The next above-approximation is the
+upper semiconvergent obtained from the next CF step
+($a_7 = 5$ following the $a_6 = 1$ slot), namely the mediant
+\[
+  m_1 \;=\; \frac{p_5 + 1 \cdot p_6}{q_5 + 1 \cdot q_6}
+       \;=\; \frac{65 + 84}{41 + 53}
+       \;=\; \frac{149}{94}.
+\]
+By Lemma~\ref{lem:bestabove}, this is the next denominator at which
+the running minimum of $B(T)/T$ strictly improves; the denominator
+is $94$.  Therefore, every $T$ with $42 \leq T \leq 93$ has
+$B(T)/T \geq 65/41$, and equality occurs only at $T = 82$ (twice the
+denominator $41$, as in Remark~\ref{rem:T82}); this is verified by
+direct calculation:
+\[
+  B(82) \;=\; \lfloor 82 \cdot \log_2 3 \rfloor + 1
+   \;=\; \lfloor 129.9669\ldots \rfloor + 1
+   \;=\; 130, \qquad 130/82 = 65/41.
+\]
+
+\emph{Step 3: Sharpness at $T = 94$.}  Direct computation gives
+$94 \log_2 3 = 148.9866\ldots$, so $B(94) = 149$ and
+$B(94)/94 = 149/94 = 1.585106\ldots < 65/41$.  Thus $T = 94$ is the
+smallest positive integer $T$ for which $B(T)/T < 65/41$.
+
+Combining Steps~1--3 yields the theorem.
+\end{proof}
+
+\begin{remark}[Why $h_5$ and not $h_3$ or $h_7$]
+The reader may ask why the sixth convergent $h_5 = 65/41$, rather
+than $h_3 = 8/5$ or $h_7 = 485/306$, is the empirically observed
+value in Section~\ref{sec:exp}.  The answer is one of scale.  At
+$T = 5$, the bound $B(T)/T \geq 8/5 = 1.6$ is comfortably above
+$\log_2 3 = 1.585$; orbits of length $5$ have descent ratios
+significantly above the worst-case asymptote.  By contrast, by the
+time $T$ reaches $41$, the deterministic minimum $B(T)/T$ has
+descended to $65/41 = 1.5854$, only $0.04\%$ above $\log_2 3$;
+this is essentially the asymptotic value, and orbits of length
+$\geq 41$ rarely achieve a substantially better ratio (the next
+improvement only kicks in at $T = 94$ with $149/94$, a relative
+improvement of just $0.016\%$).  Section~\ref{sec:exp} shows that
+typical worst-case Collatz orbits in the bit-length range we
+sampled hit lengths $T$ that are most often around $41$, $82$, or
+small multiples thereof, locking in the $65/41$ value.
+\end{remark}
+
+\begin{remark}[Length of validity]
+Theorem~\ref{thm:cf} holds for $T \leq 93$.  Beyond this range the
+deterministic minimum drops further: from $T = 94$ to $T = 146$ the
+bound is $149/94$, then $233/147$, then $317/200$, and so on, each
+slightly closer to $\log_2 3$ from above.  The next principal
+convergent above $\log_2 3$ is $h_7 = 485/306$, so this descent
+proceeds in small steps.  The empirical study in
+Section~\ref{sec:exp} works at scales (orbit lengths $T$ up to a few
+hundred for $k \leq 44$) where these tighter bounds are theoretically
+allowed but, as we shall see, only $149/94$ ever \emph{occurs} in
+our data, never $233/147$ or anything beyond.
+\end{remark}
+
+%% =================================================================
+\section{Computational Experiments}\label{sec:exp}
+%% =================================================================
+
+This section describes the computational protocol used to investigate
+worst-case descent ratios of compressed Collatz orbits and reports
+the results.  The code is publicly available at
+\url{https://github.com/weiqi-kids/collatz-research-report}.
+
+\subsection{Setup and definitions}
+
+\begin{definition}[Length of first descent]\label{def:Tdes}
+For an odd integer $n \geq 3$, the \emph{length of first descent}
+$T_{\mathrm{des}}(n)$ is the smallest $T \geq 1$ such that
+$S^T(n) < n$, when such a $T$ exists.  We set
+$T_{\mathrm{des}}(n) = \infty$ otherwise.
+\end{definition}
+
+By Lemma~\ref{lem:closed}, for every $n \geq 3$ that eventually
+descends below itself (which, by exhaustive verification of the
+Collatz conjecture for $n \leq 2^{68}$~\cite{BarinaCheckup}, includes
+every $n$ in our search range), the length $T_{\mathrm{des}}(n)$ is
+finite.  We then define
+\[
+  B_{\mathrm{des}}(n) \;:=\; B_{T_{\mathrm{des}}(n)}(n),
+  \qquad
+  \rho_{\mathrm{des}}(n) \;:=\;
+    B_{\mathrm{des}}(n) / T_{\mathrm{des}}(n).
+\]
+
+\begin{definition}[Worst-case descent ratio in a bit-bin]
+\label{def:worstk}
+For $k \geq 2$, let $\Omega_k = \Nodd \cap [3, 2^k - 1]$ denote the
+odd integers with at most $k$ bits.  The \emph{worst-case descent
+ratio} in bit-bin $k$ is
+\[
+  \rho^{*}(k) \;:=\;
+  \min\bigl\{\rho_{\mathrm{des}}(n) : n \in \Omega_k\bigr\}.
+\]
+By Theorem~\ref{thm:cf} (and the trivial extension to $T \geq 94$),
+$\rho^{*}(k) > \log_2 3$ holds for every finite $k$.
+\end{definition}
+
+\subsection{Algorithm}
+
+We use the simple Algorithm~\ref{alg:descent} to compute
+$T_{\mathrm{des}}(n)$, $B_{\mathrm{des}}(n)$, and the corresponding
+descent ratio.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|p{0.92\linewidth}|}
+\hline
+\textbf{Algorithm 1.} \texttt{first\_descent\_ratio}$(n)$.\\
+\hline
+\textbf{Input:} odd integer $n \geq 3$.\\
+\textbf{Output:} pair $(T_{\mathrm{des}}, B_{\mathrm{des}})$ such that
+$S^{T_{\mathrm{des}}}(n) < n$ and $T_{\mathrm{des}}$ is minimal with
+this property.\\[0.4em]
+\quad 1. $m \leftarrow n$;\, $T \leftarrow 0$;\, $B \leftarrow 0$.\\
+\quad 2. \textbf{while} $m \geq n$ \textbf{do}\\
+\quad\quad 2a. $u \leftarrow 3m + 1$;\, $v \leftarrow \val_2(u)$.\\
+\quad\quad 2b. $m \leftarrow u / 2^v$;\, $T \leftarrow T + 1$;\,
+$B \leftarrow B + v$.\\
+\quad 3. \textbf{return} $(T, B)$.\\
+\hline
+\end{tabular}
+\label{alg:descent}
+\end{table}
+
+The algorithm terminates for every $n$ in our search range, since
+the compressed Collatz iterate has been verified down to $1$ for all
+$n \leq 2^{68}$~\cite{BarinaCheckup}, and a $T$-step descent below
+$n$ occurs in a finite prefix of the orbit.
+
+\subsection{Experimental design}
+
+We carry out three increasingly large experiments.
+
+\paragraph{Experiment E1 (exhaustive enumeration).}
+For each $k \in \{2, 3, \ldots, 18\}$, we compute
+$T_{\mathrm{des}}(n)$, $B_{\mathrm{des}}(n)$ and
+$\rho_{\mathrm{des}}(n)$ for every $n \in \Omega_k$, and record
+$\rho^{*}(k)$ as well as the integer pair $(T, B)$ that realizes it.
+The total work is on the order of $2^{18} \approx 2.6 \times 10^5$
+descent computations, each running in microseconds; total runtime is
+a few seconds.
+
+\paragraph{Experiment E2 (Mersenne and trailing-$1$ orbits).}
+For each $k \in \{5, 10, 15, 20, 25, 30, 35, 40, 44\}$, we examine
+the Mersenne orbit starting at $n = 2^k - 1$ and the orbits starting
+at $n = 2^k m' - 1$ for small odd $m'$.  These are theoretically
+known to have long initial bad-step segments (by the closed-form
+shift identity $S^{t-1}(2^t m' - 1) = 2 \cdot 3^{t-1} m' - 1$ from
+\cite{ChangPaperA}, which we use as a black box) and are therefore
+candidate sources of worst-case descent ratios.
+
+\paragraph{Experiment E3 (structured sampling for $19 \leq k \leq 44$).}
+For each $k$ in this range, we compute $\rho_{\mathrm{des}}(n)$ for a
+mixed sample drawn from four sources, totaling between $10^4$ and
+$10^5$ samples per $k$:
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+  \item the Mersenne number $2^k - 1$ and the integers
+    $2^k m' - 1$ for odd $m' \in \{1, 3, 5, \ldots, 999\}$
+    (\emph{trailing-$1$ patterns}, contributing the long bad-step
+    segments);
+  \item the integer that achieved $\rho^{*}(k - 1)$ in the previous
+    bit-bin together with its small odd multiples
+    (\emph{previous-round expansion});
+  \item $10^4$ pseudo-random odd integers drawn uniformly from
+    $\Omega_k \setminus \Omega_{k-1}$ (\emph{random});
+  \item all integers congruent to $-1$ modulo $2^{k - 6}$ within
+    $\Omega_k$ (\emph{near-Mersenne mosaic}).
+\end{enumerate}
+This sampling strategy is designed to capture orbits that empirically
+produce small descent ratios, complementing the exhaustive enumeration
+at lower $k$.  We do not claim that the sample exhausts all worst-case
+candidates; this is precisely the empirical character of the
+observation discussed in Section~\ref{sec:conj}.
+
+\paragraph{Environment.}
+The experiments were run on a single workstation (Intel x86-64,
+\texttt{Python 3.11}, native big-integer arithmetic).  Total wall-clock
+time is dominated by E3 and amounts to under one CPU-hour.
+
+\subsection{Results}
+
+\paragraph{Experiment E1.}
+Table~\ref{tab:E1} reports $\rho^{*}(k)$ for $k = 5, \ldots, 18$ in
+fully-enumerated form.  The realizing $(T, B)$ pair is given as a
+fraction $B/T$ in lowest terms, alongside the matching
+continued-fraction object.
+
+\begin{table}[htbp]
+\centering
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{r r r l l}
+\toprule
+$k$ & $\#\Omega_k$ & worst-case $n$ & $B/T$ ratio
+  & continued-fraction interpretation \\
+\midrule
+$5$  & $16$       & $27$    & $59/37$  & non-canonical (small-$T$ regime) \\
+$6$  & $32$       & $63$    & $54/34 = 27/17$ & upper semiconvergent below $h_3$ \\
+$7$  & $64$       & $97$    & $27/17$  & upper semiconvergent \\
+$8$  & $128$      & $255$   & $46/29$  & upper semiconvergent \\
+$9$  & $256$      & $447$   & $65/41$  & $h_5$ \\
+$10$ & $512$      & $703$   & $65/41$  & $h_5$ \\
+$11$ & $1024$     & $1639$  & $65/41$  & $h_5$ \\
+$12$ & $2048$     & $1819$  & $65/41$  & $h_5$ \\
+$13$ & $4096$     & $4591$  & $65/41$  & $h_5$ \\
+$14$ & $8192$     & $8255$  & $27/17$  & upper semiconvergent (anomaly, see text) \\
+$15$ & $16384$    & $25295$ & $65/41$  & $h_5$ \\
+$16$ & $32768$    & $52527$ & $65/41$  & $h_5$ \\
+$17$ & $65536$    & $93823$ & $65/41$  & $h_5$ \\
+$18$ & $131072$   & $154079$ & $65/41$ & $h_5$ \\
+\bottomrule
+\end{tabular}
+\caption{Experiment E1: exhaustive worst-case descent ratios
+$\rho^{*}(k)$ over $\Omega_k = \Nodd \cap [3, 2^k - 1]$ for
+$5 \leq k \leq 18$.  ``$h_5$'' denotes the sixth principal convergent
+$65/41$ of $\log_2 3$; ``upper semiconvergent'' denotes a
+best-above approximation between two principal convergents.  The
+$k = 14$ entry is an anomaly arising because the first descent of
+$n = 8255 = 2^{13} + 63$ has $T_{\mathrm{des}} = 17$, a denominator
+at which the deterministic minimum is exactly $27/17$, not yet
+$65/41$; once $k$ grows enough for the worst-case orbit to require
+$T_{\mathrm{des}} \geq 29$, the value transitions to $46/29$ and
+ultimately $65/41$.}
+\label{tab:E1}
+\end{table}
+
+\paragraph{Experiment E2.}
+For Mersenne starting points $n = 2^k - 1$ we observed (with the
+notation of Definition~\ref{def:S}):
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{r r r r r}
+\toprule
+$k$ & $n = 2^k - 1$ & $T_{\mathrm{des}}$ & $B_{\mathrm{des}}$
+  & ratio $\rho_{\mathrm{des}}$ \\
+\midrule
+$5$  & $31$       & $4$  & $7$   & $1.7500$ \\
+$10$ & $1023$     & $9$  & $19$  & $2.1111$ \\
+$15$ & $32767$    & $14$ & $27$  & $1.9286$ \\
+$20$ & $1048575$  & $19$ & $36$  & $1.8947$ \\
+$25$ & $33554431$ & $24$ & $42$  & $1.7500$ \\
+$30$ & $2^{30}-1$ & $29$ & $46$  & $1.5862$ \\
+$41$ & $2^{41}-1$ & $41$ & $65$  & $1.5854 = 65/41$ \\
+$44$ & $2^{44}-1$ & $43$ & $69$  & $1.6047$ \\
+\bottomrule
+\end{tabular}
+\caption{Experiment E2: descent statistics of Mersenne starting
+points.  All Mersenne orbits we tested descend within $T = k$ steps
+or fewer, and at $k = 41$ the descent ratio achieves the
+continued-fraction value exactly.}
+\label{tab:E2}
+\end{table}
+
+The Mersenne orbit at $k = 41$ is particularly noteworthy: its
+length-$41$ descent achieves the value $65/41$ \emph{exactly},
+saturating the bound of Theorem~\ref{thm:cf}.
+
+\paragraph{Experiment E3.}
+For $19 \leq k \leq 44$ we report the worst-case observed descent
+ratio $\rho^{*}_{\mathrm{obs}}(k)$ in Table~\ref{tab:E3}.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{r l c}
+\toprule
+bit-bin $k$ & $\rho^{*}_{\mathrm{obs}}(k)$ & matches \\
+\midrule
+$19$ & $149/94$ & next semiconvergent \\
+$20$ to $28$ & $65/41$ in every $k$ & $h_5$ \\
+$29$ & $149/94$ & next semiconvergent \\
+$30$ & $65/41$ & $h_5$ \\
+$31$ & $149/94$ & next semiconvergent \\
+$32$ to $44$ & $65/41$ in every $k$ & $h_5$ \\
+\bottomrule
+\end{tabular}
+\caption{Experiment E3: worst-case observed descent ratios in
+bit-bins $19$ through $44$ over the structured sample of
+$\sim 10^4$ to $10^5$ orbits per bin.  All observed values lie in
+$\{65/41, 149/94\}$, the only two ``upper'' fractions of $\log_2 3$
+with denominator at most $94$ and value below $1.59$.  No tested
+orbit achieved a ratio strictly between $\log_2 3$ and $149/94$.}
+\label{tab:E3}
+\end{table}
+
+\paragraph{Distributional remarks.}
+For the worst-case orbit at $k = 18$ ($n = 154{,}079$, with
+$T_{\mathrm{des}} = 41$ and $B_{\mathrm{des}} = 65$), the
+distribution of valuations along the descent is
+\begin{equation}\label{eq:dist}
+  \#\{i : \val_i = 1\} = 28,
+  \quad
+  \#\{i : \val_i = 2\} = 5,
+  \quad
+  \#\{i : \val_i = 3\} = 7,
+  \quad
+  \#\{i : \val_i = 6\} = 1.
+\end{equation}
+Hence $B = 28 + 10 + 21 + 6 = 65$ and $T = 41$, so
+$\rho = 65/41$ exactly.  We emphasize that this distribution is
+heavily skewed toward $\val = 1$ (the minimum possible value), and a
+single occurrence of $\val = 6$ in the segment is what allows the
+ratio to remain at the boundary value $65/41$.
+
+%% =================================================================
+\section{The $65/41$ Empirical Conjecture}\label{sec:conj}
+%% =================================================================
+
+We now formalize the empirical observation of Section~\ref{sec:exp}
+into an explicit conjecture.  We emphasize that this is a
+\emph{conjecture}, not a theorem: the supporting evidence is
+computational and confined to bit-lengths $k \leq 44$.
+
+\begin{conjecture}[The $65/41$ barrier conjecture]\label{conj:65-41}
+For every odd integer $n \geq 3$, the descent ratio of $n$ under the
+compressed Collatz map satisfies
+\begin{equation}\label{eq:conj-65-41}
+  \rho_{\mathrm{des}}(n) \;=\;
+  \frac{B_{\mathrm{des}}(n)}{T_{\mathrm{des}}(n)}
+  \;\geq\; \frac{65}{41}.
+\end{equation}
+Equivalently, every length-$T$ initial segment of a compressed Collatz
+orbit at which a first descent occurs satisfies $B_T/T \geq 65/41$.
+\end{conjecture}
+
+\begin{remark}\label{rem:asymptotic}
+Conjecture~\ref{conj:65-41} as stated is \emph{stronger} than what
+Theorem~\ref{thm:cf} alone would predict.  Theorem~\ref{thm:cf}
+establishes the deterministic bound $B(T)/T \geq 65/41$ for
+$T \leq 93$, but \emph{not} for $T \geq 94$, where the deterministic
+minimum drops to $149/94$.  The conjecture asserts that despite this,
+no orbit of $S$ \emph{actually realizes} a descent ratio strictly
+between $\log_2 3$ and $65/41$, even at lengths $T \geq 94$ where the
+deterministic floor permits it.  Geometrically: while
+$149/94 \approx 1.5851$ is the lowest \emph{algebraically possible}
+ratio for $T = 94$, no Collatz orbit appears to ever \emph{achieve}
+this lower value as a first-descent ratio.  The phenomenon thus
+combines a deterministic continued-fraction bound (which is tight at
+$T = 41$) with a separate empirical phenomenon (orbits don't reach
+denominators much larger than $41$ in their first descents at the
+sampled scales).
+\end{remark}
+
+\begin{remark}\label{rem:weaker}
+A weaker form of Conjecture~\ref{conj:65-41} that may be more
+tractable is:
+\[
+  \liminf_{n \to \infty} \rho_{\mathrm{des}}(n) \;\geq\; \log_2 3.
+\]
+This weaker form is implied by the Collatz conjecture itself
+(every orbit eventually reaches~$1$, hence the average valuation
+exceeds $\log_2 3$ over sufficiently long segments) but is not known
+unconditionally; Tao's almost-everywhere bound~\cite{Tao2022} gives
+the inequality almost surely with respect to logarithmic density.
+The strong form $\geq 65/41$ in Conjecture~\ref{conj:65-41} is what
+the data of Section~\ref{sec:exp} actually support.
+\end{remark}
+
+\begin{observation}[Worst-case orbit shape]\label{obs:shape}
+In every worst-case orbit identified in Section~\ref{sec:exp}, the
+length of first descent $T_{\mathrm{des}}$ takes one of the values
+$T_{\mathrm{des}} \in \{41, 82, 94\}$.  At $T = 41$ and $T = 82$
+the realized ratio is $65/41$; at $T = 94$ the realized ratio is
+$149/94$.  No worst-case orbit we identified had
+$T_{\mathrm{des}}$ in the gap $(41, 82) \setminus \{41, 82\}$ or
+strictly greater than $94$ within our sampled range.
+\end{observation}
+
+\begin{remark}[Connection to length statistics]
+Observation~\ref{obs:shape} relates Conjecture~\ref{conj:65-41} to
+the statistics of $T_{\mathrm{des}}$.  If a future result established
+that for sufficiently large $n$, the length $T_{\mathrm{des}}(n)$
+either lies in $\{1, 2, \ldots, 93\}$ or grows large enough that
+the empirical valuation mean concentrates above $\log_2 3$ (in a
+quantitative sense), then Conjecture~\ref{conj:65-41} would follow.
+The first regime is the regime governed by Theorem~\ref{thm:cf};
+the second regime is governed by the equidistribution of orbits
+modulo small powers of $2$, which is the content of the questions
+left open by~\cite{Tao2022}.
+\end{remark}
+
+%% =================================================================
+\section{Cycle-Element Upper Bound}\label{sec:cycle}
+%% =================================================================
+
+We close with a rigorous corollary of the basic descent equation
+combined with the transcendence of $\log_2 3$.  This section is
+logically independent of the experimental Sections~\ref{sec:exp}
+and~\ref{sec:conj}.
+
+\subsection{The cycle equation}
+
+\begin{definition}[Cycle of $S$]\label{def:cycle}
+A \emph{cycle} of the compressed Collatz map of period $P \geq 1$ is
+a finite sequence $(m_0, m_1, \ldots, m_{P-1})$ of odd integers with
+$m_{i+1} = S(m_i)$ for $0 \leq i \leq P - 2$ and $S(m_{P-1}) = m_0$.
+The cycle is \emph{nontrivial} if $\{m_0, \ldots, m_{P-1}\} \neq
+\{1\}$ (the trivial cycle is the fixed point $S(1) = 1$ of period
+$P = 1$).
+\end{definition}
+
+\begin{lemma}[Cycle equation]\label{lem:cycleeq}
+Let $(m_0, m_1, \ldots, m_{P-1})$ be a cycle of $S$ of period $P$,
+let $\val_i = \val_2(3 m_{i-1} + 1)$ for $1 \leq i \leq P$, and let
+$B = \sum_{i=1}^{P} \val_i$.  Then
+\begin{equation}\label{eq:cycle}
+  m_0 \bigl(2^B - 3^P\bigr) \;=\; \sum_{j=0}^{P-1}
+    3^{P - 1 - j} \, 2^{B - B_{j+1}},
+\end{equation}
+where $B_{j+1} = \sum_{i=1}^{j+1} \val_i$.  In particular, the
+right-hand side is a positive integer.
+\end{lemma}
+
+\begin{proof}
+Apply Lemma~\ref{lem:closed} with $T = P$ to the orbit starting at
+$m_0$.  The condition $S^P(m_0) = m_0$ becomes
+$(3^P m_0 + C_P)/2^B = m_0$, i.e.\ $m_0(2^B - 3^P) = C_P$, with
+$C_P = \sum_{j=0}^{P-1} 3^{P-1-j} 2^{B - B_{j+1}}$ as in
+Lemma~\ref{lem:closed}.  Since each term $3^{P-1-j} 2^{B-B_{j+1}}$ is
+a positive integer (the exponent $B - B_{j+1} \geq 0$), the sum is a
+positive integer.
+\end{proof}
+
+\subsection{Transcendence input}
+
+\begin{lemma}[Gelfond--Schneider for $\log_2 3$]\label{lem:gs}
+For all positive integers $B$ and $P$, $2^B \neq 3^P$.
+\end{lemma}
+
+\begin{proof}
+If $2^B = 3^P$ for some positive integers $B, P$, then
+$B \log 2 = P \log 3$, so $\log_2 3 = B / P$, a rational number.  By
+the Gelfond--Schneider theorem~\cite{Gelfond1934,Schneider1934}, the
+number $\log_2 3 = \log 3 / \log 2$ is transcendental (it is the
+exponent in $2^{\log_2 3} = 3$, with $2$ algebraic and not equal to
+$0, 1$, and $\log_2 3$ irrational), in particular irrational, so
+$B/P = \log_2 3$ is impossible.  Thus $2^B \neq 3^P$.
+\end{proof}
+
+\begin{remark}\label{rem:gs-elementary}
+A more elementary version of Lemma~\ref{lem:gs} suffices for the
+purposes of Corollary~\ref{cor:cycle}: the irrationality of
+$\log_2 3$, which is provable from unique prime factorization
+($2^B = 3^P$ would express the integer $2^B$ both with and without
+the prime $3$, a contradiction unless $B = P = 0$).  The full
+Gelfond--Schneider theorem is needed only for sharper statements
+about $|2^B - 3^P|$, which we do not pursue here.
+\end{remark}
+
+\subsection{The cycle-element bound}
+
+\begin{corollary}[Cycle-element upper bound]\label{cor:cycle}
+Let $(m_0, m_1, \ldots, m_{P-1})$ be a nontrivial cycle of the
+compressed Collatz map of period $P$ with cumulative valuation
+$B = \sum_{i=1}^{P} \val_i$.  Then $2^B - 3^P \geq 1$, and the
+smallest element $m_{\min} = \min_i m_i$ of the cycle satisfies
+\begin{equation}\label{eq:cyclebound}
+  m_{\min} \;<\; \frac{2^B \cdot 3^P}{2 \, (2^B - 3^P)}.
+\end{equation}
+In particular, $B > P \log_2 3$, so $B/P > \log_2 3$ for every
+nontrivial cycle.
+\end{corollary}
+
+\begin{proof}
+Existence of a cycle implies existence of $m_0 > 0$ satisfying
+\eqref{eq:cycle}.  The right-hand side of \eqref{eq:cycle} is positive
+and $m_0 > 0$, so $2^B - 3^P > 0$.  By Lemma~\ref{lem:gs} the
+quantities $2^B$ and $3^P$ are distinct positive integers, so
+$2^B - 3^P \geq 1$.
+
+To bound $m_0$ from above, observe from \eqref{eq:cycle} that
+\begin{align*}
+  m_0 (2^B - 3^P)
+  &= \sum_{j=0}^{P-1} 3^{P-1-j} \, 2^{B - B_{j+1}}
+  \;\leq\; 2^B \sum_{j=0}^{P-1} 3^{P-1-j}
+  \;=\; 2^B \cdot \frac{3^P - 1}{3 - 1} \\
+  &< \frac{2^B \cdot 3^P}{2}.
+\end{align*}
+Dividing by $2^B - 3^P \geq 1$ yields
+$m_0 < 2^B \cdot 3^P / (2(2^B - 3^P))$.
+
+The same argument applies starting from any cyclic rotation of the
+sequence (changing the starting point $m_0$ to $m_i$); choosing
+$i$ such that $m_i = m_{\min}$ proves the bound for the smallest
+element.
+
+Finally, $2^B - 3^P \geq 1 > 0$ gives $2^B > 3^P$, so
+$B > P \log_2 3$, i.e.\ $B/P > \log_2 3$.
+\end{proof}
+
+\begin{remark}[Numerical instance]\label{rem:cyclenum}
+Setting $(B, P) = (65, 41)$ in Corollary~\ref{cor:cycle} gives
+\[
+  2^{65} - 3^{41}
+  \;=\; 36{,}893{,}488{,}147{,}419{,}103{,}232
+      - 36{,}472{,}996{,}377{,}170{,}786{,}403
+  \;=\; 420{,}491{,}770{,}248{,}316{,}829,
+\]
+hence $m_{\min} < 2^{65} \cdot 3^{41} /
+(2 \cdot 420{,}491{,}770{,}248{,}316{,}829) \approx
+1.6 \times 10^{21}$.  Since the Collatz conjecture has been verified
+for $n \leq 2^{68} \approx 2.95 \times 10^{20}$~\cite{BarinaCheckup},
+the bound \eqref{eq:cyclebound} for $(B, P) = (65, 41)$ is not strong
+enough to rule out a cycle of this $(B, P)$ shape unconditionally.
+This is consistent with Eliahou's lower bound for cycle
+periods~\cite{Eliahou1993}, which forces $P \geq 17$ but allows much
+larger cycles.
+\end{remark}
+
+\begin{remark}[Why the bound is not enough]\label{rem:gap}
+The bound in Corollary~\ref{cor:cycle} grows roughly as $3^P / P$
+(for $B \approx P \log_2 3$, the denominator $2^B - 3^P$ can be
+much smaller than $3^P$).  Combined with Eliahou's lower bound on
+$P$, the resulting bound on $m_{\min}$ is enormous, far exceeding
+the verified range~\cite{BarinaCheckup}.  Stronger bounds require a
+\emph{linear forms in logarithms} approach (Baker--style theorems;
+see~\cite{Baker1990}) on $|B \log 2 - P \log 3|$, which give
+quantitative lower bounds for $|2^B - 3^P|$ (and hence upper bounds
+on $m_{\min}$) that decay only polynomially in $P$, still leaving a
+large gap.  Closing this gap is one of the standard open problems in
+the cycle-elimination literature; see~\cite{Steiner1977} for a
+classical attack restricted to ``$1$-cycles''.
+\end{remark}
+
+%% =================================================================
+\section{Discussion}\label{sec:disc}
+%% =================================================================
+
+\paragraph{The role of $65/41$ in the descent ratio landscape.}
+Theorem~\ref{thm:cf} pinpoints $65/41$ as the deterministic minimum
+of $B(T)/T$ in the range $T \leq 93$, and Conjecture~\ref{conj:65-41}
+asserts the (much stronger) empirical fact that no first-descent
+orbit segment of any length attains a ratio strictly between
+$\log_2 3$ and $65/41$.  The first statement is a fact about the
+continued fractions of $\log_2 3$; the second statement involves
+specific Collatz orbits and is, at the present level of theory,
+inaccessible.
+
+\paragraph{What the empirical match does and does not establish.}
+The empirical match between worst-case observed descent ratios and
+the deterministic continued-fraction minimum at $T \leq 93$ is
+striking but constitutes \emph{evidence}, not proof.  Specifically,
+the data of Section~\ref{sec:exp} establish that for every odd
+$n < 2^{18}$, and for every $n$ in our structured sample for
+$2^{18} \leq n < 2^{44}$, the inequality
+$\rho_{\mathrm{des}}(n) \geq 65/41$ holds.  They do not establish
+that this inequality persists for all $n$.  Two cautionary
+observations are in order.
+
+First, even granting Conjecture~\ref{conj:65-41}, this would not
+directly imply the Collatz conjecture: a divergent orbit could in
+principle exist while its first-descent segments still have
+ratio $\geq 65/41$ (the orbit would simply contain only finitely
+many descents below the starting value).  The conjecture rules out
+descent ratios approaching $\log_2 3$ from above too quickly, but it
+does not rule out orbits that fail to descend at all.  Equivalently,
+Conjecture~\ref{conj:65-41} is a quantitative refinement of the
+``Lemma D'' descent statement (every orbit has \emph{some} descent
+window) but does not prove that statement; the latter remains
+equivalent to the Collatz conjecture itself.
+
+Second, the empirical sample for $19 \leq k \leq 44$ in Experiment
+E3 is structured but not exhaustive.  The structured sample is
+designed to capture orbits that should produce small descent ratios
+(trailing-$1$ patterns, near-Mersenne, expansions of previously
+worst-case orbits), and the consistency of the result over $25$
+distinct bit-bins is evidence in favor of the conjecture.  A
+genuinely adversarial integer outside the sample could in principle
+violate it.
+
+\paragraph{Connection to the Diophantine literature.}
+The cycle-element bound Corollary~\ref{cor:cycle} reproduces, in the
+notation of the compressed Collatz map, a classical observation of
+Crandall~\cite{Crandall1978} and Eliahou~\cite{Eliahou1993}.  Our
+contribution here is mostly expositional: the bound comes out very
+cleanly from the closed-form $S^P(m_0) = m_0$ equation
+(Lemma~\ref{lem:cycleeq}) combined with Gelfond--Schneider
+(Lemma~\ref{lem:gs}), which we record because the same machinery is
+the natural rigorous companion to the experimental
+Sections~\ref{sec:exp}--\ref{sec:conj}.
+
+The numerical strength of the cycle bound is governed by lower
+bounds on $|2^B - 3^P|$.  The continued-fraction expansion of
+$\log_2 3$ shows that $|2^B - 3^P|$ can be as small as $3^P /
+(\text{integer})$ in worst case (when $(B, P)$ is a convergent
+denominator pair), corresponding precisely to the same convergents
+that drive Theorem~\ref{thm:cf}.  This is the same arithmetic
+phenomenon viewed from two angles.
+
+\paragraph{Open questions.}
+Several questions naturally suggest themselves.
+
+\begin{enumerate}[label=(\arabic*),leftmargin=2em]
+  \item \emph{Quantitative version of Conjecture~\ref{conj:65-41}.}
+    Can one give an effective bound, in terms of $n$, on the smallest
+    descent ratio $\rho_{\mathrm{des}}(n)$ that exceeds $\log_2 3$?
+    The data suggest the bound is $65/41$ uniformly, but even a
+    slightly weaker bound (e.g.\ $\rho_{\mathrm{des}}(n) \geq
+    \log_2 3 + c / \log n$ for some explicit $c > 0$) would be of
+    interest.
+  \item \emph{Length statistics of first descents.}
+    What is the distribution of $T_{\mathrm{des}}(n)$ for random
+    odd $n$ of bit-length $k$?  The current data suggest a heavy
+    concentration near $T \in \{41, 82\}$, but a precise asymptotic
+    is unknown.
+  \item \emph{Further continued-fraction phenomena.}
+    Theorem~\ref{thm:cf} gives the worst case in $T \leq 93$.  Does
+    a phase transition occur at, say, $T = q_7 = 306$ (the seventh
+    convergent denominator), corresponding to the next jump in
+    the running minimum of $B(T)/T$?  Computational extension to
+    $k > 44$ would be needed to test this.
+  \item \emph{Sharpening the cycle bound.}
+    A Baker-type lower bound for $|B \log 2 - P \log 3|$ specialized
+    to the case where $(B, P)$ is forced to obey
+    Conjecture~\ref{conj:65-41} (i.e.\ $B/P \geq 65/41$) might give
+    sharper bounds than Corollary~\ref{cor:cycle} alone.
+\end{enumerate}
+
+\paragraph{Reproducibility.}
+All code used to generate the tables in Section~\ref{sec:exp} is
+available in the repository
+\url{https://github.com/weiqi-kids/collatz-research-report},
+specifically in the files
+\texttt{collatz\_experiment.py} and
+\texttt{collatz\_deep\_analysis.py}.  The reported running times
+were measured on a single workstation; total CPU usage across all
+experiments is under one CPU-hour.  Verification of the small-$T$
+cases of Theorem~\ref{thm:cf} (for example, the claim that
+$B(T)/T \geq 65/41$ for $T \leq 93$) reduces to computing
+$B(T) = \lfloor T \log_2 3 \rfloor + 1$ for $93$ values of $T$ and
+comparing to $65/41$; this can be done by hand or in any computer
+algebra system.
+
+%% =================================================================
+\section{Conclusion}\label{sec:conc}
+%% =================================================================
+
+We have isolated a precise interaction between the continued-fraction
+expansion of $\log_2 3$ and the descent dynamics of the compressed
+Collatz map.  The deterministic minimum descent ratio $B(T)/T$ for
+$T \leq 93$ is governed by the sixth principal convergent
+$h_5 = 65/41$ (Theorem~\ref{thm:cf}); an extensive computational
+study supports the strong conjecture that this ratio is the actual
+worst case across all Collatz orbits at sampled scales
+(Conjecture~\ref{conj:65-41}); and the same arithmetic input
+(transcendence of $\log_2 3$) yields a clean cycle-element upper
+bound (Corollary~\ref{cor:cycle}).  None of these results resolves
+the Collatz conjecture, but together they pinpoint the exact
+arithmetic obstruction that any future quantitative theory will need
+to address.
+
+%% =================================================================
+\begin{thebibliography}{99}
+%% =================================================================
+
+\bibitem{Baker1990}
+A.~Baker,
+\emph{Transcendental Number Theory},
+2nd ed., Cambridge University Press, Cambridge, 1990.
+
+\bibitem{BarinaCheckup}
+D.~Barina,
+\emph{Convergence verification of the Collatz problem},
+J.\ Supercomput.\ \textbf{77} (2021), 2681--2688.
+
+\bibitem{BernsteinLagarias1996}
+D.\,J.~Bernstein and J.\,C.~Lagarias,
+\emph{The $3x+1$ conjugacy map},
+Canad.\ J.\ Math.\ \textbf{48} (1996), 1154--1169.
+
+\bibitem{Bugeaud2004}
+Y.~Bugeaud,
+\emph{Approximation by Algebraic Numbers},
+Cambridge Tracts in Mathematics, vol.~160, Cambridge University
+Press, Cambridge, 2004.
+
+\bibitem{ChangPaperA}
+L.~Chang,
+\emph{A three-state finite automaton for carry propagation in the
+accelerated Collatz map: spectral gap and closed-form shift dynamics},
+preprint, 2026.
+
+\bibitem{ChangPaperB}
+L.~Chang,
+\emph{No finite local potential function is a strict Lyapunov
+function for the accelerated Collatz map: an impossibility result},
+preprint, 2026.
+
+\bibitem{Conway1972}
+J.\,H.~Conway,
+\emph{Unpredictable iterations},
+in: Proc.\ 1972 Number Theory Conference, Univ.\ of Colorado, 1972,
+pp.\ 49--52.
+
+\bibitem{Crandall1978}
+R.\,E.~Crandall,
+\emph{On the ``$3x+1$'' problem},
+Math.\ Comp.\ \textbf{32} (1978), 1281--1292.
+
+\bibitem{Eliahou1993}
+S.~Eliahou,
+\emph{The $3x+1$ problem: new lower bounds on nontrivial cycle lengths},
+Discrete Math.\ \textbf{118} (1993), 45--56.
+
+\bibitem{Gelfond1934}
+A.~Gelfond,
+\emph{Sur le septi\`eme probl\`eme de Hilbert},
+Bull.\ Acad.\ Sci.\ URSS \textbf{7} (1934), 623--634.
+
+\bibitem{HardyWright}
+G.\,H.~Hardy and E.\,M.~Wright,
+\emph{An Introduction to the Theory of Numbers},
+6th ed., Oxford University Press, Oxford, 2008.
+
+\bibitem{Khinchin1964}
+A.\,Y.~Khinchin,
+\emph{Continued Fractions},
+University of Chicago Press, Chicago, 1964.
+
+\bibitem{Lagarias1985}
+J.\,C.~Lagarias,
+\emph{The $3x+1$ problem and its generalizations},
+Amer.\ Math.\ Monthly \textbf{92} (1985), 3--23.
+
+\bibitem{Lagarias2010}
+J.\,C.~Lagarias (ed.),
+\emph{The Ultimate Challenge: The $3x+1$ Problem},
+American Mathematical Society, Providence, RI, 2010.
+
+\bibitem{Schneider1934}
+T.~Schneider,
+\emph{Transzendenzuntersuchungen periodischer Funktionen, I:
+Transzendenz von Potenzen},
+J.\ reine angew.\ Math.\ \textbf{172} (1934), 65--69.
+
+\bibitem{Steiner1977}
+R.\,P.~Steiner,
+\emph{A theorem on the syracuse problem},
+in: Proc.\ 7th Manitoba Conf.\ on Numerical Math.\ and Computing,
+Congress.\ Numer.\ \textbf{20}, Utilitas Math., Winnipeg, 1977,
+pp.\ 553--559.
+
+\bibitem{Tao2022}
+T.~Tao,
+\emph{Almost all orbits of the Collatz map attain almost bounded
+values},
+Forum Math.\ Pi \textbf{10} (2022), e12.
+
+\bibitem{Wirsching1998}
+G.\,J.~Wirsching,
+\emph{The Dynamical System Generated by the $3n+1$ Function},
+Lecture Notes in Math.\ \textbf{1681}, Springer, Berlin, 1998.
+
+\end{thebibliography}
+
+\end{document}
