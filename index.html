@@ -166,12 +166,12 @@
       padding: 0 1.5rem;
     }
 
-    .section {
+    .theorem-section {
       padding: 4rem 0;
       border-bottom: 1px solid var(--border-subtle);
     }
 
-    .section > * + * { margin-top: 2rem; }
+    .theorem-section > * + * { margin-top: 2rem; }
 
     /* ==================== NAV ==================== */
     .nav {
@@ -495,7 +495,7 @@
     .back-to-top.visible { opacity: 1; pointer-events: auto; }
 
     /* ==================== AEO SHARE BUTTON ==================== */
-    .aeo-share-btn {
+    .share-ai-btn {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
@@ -510,11 +510,11 @@
       vertical-align: middle;
       transition: background 200ms, border-color 200ms;
     }
-    .aeo-share-btn:hover {
+    .share-ai-btn:hover {
       background: var(--bg-hover);
       border-color: var(--color-link);
     }
-    .aeo-share-btn svg { width: 1em; height: 1em; fill: currentColor; }
+    .share-ai-btn svg { width: 1em; height: 1em; fill: currentColor; }
 
     .aeo-toast {
       position: fixed;
@@ -779,7 +779,7 @@
   <!-- Sections (content added in Phase 2-4) -->
   <main class="container">
 
-    <section class="section" id="sec-problem" data-ai-summary="定義 Collatz 映射 T(n)：偶數除2、奇數乘3加1。猜想：所有正整數最終到達1。壓縮形式 S(n)=(3n+1)/2^v₂(3n+1)。已驗證至 2^68，Tao 2019 證明幾乎所有軌道趨近1。">
+    <section class="theorem-section" id="sec-problem" data-ai-summary="定義 Collatz 映射 T(n)：偶數除2、奇數乘3加1。猜想：所有正整數最終到達1。壓縮形式 S(n)=(3n+1)/2^v₂(3n+1)。已驗證至 2^68，Tao 2019 證明幾乎所有軌道趨近1。">
       <h2>1. 問題陳述</h2>
 
       <h3>1.1 原始形式</h3>
@@ -814,7 +814,7 @@
       </div>
     </section>
 
-    <section class="section" id="sec-epoch" data-ai-summary="Epoch 分解將 Collatz 軌道拆為連續壞步段，並建立位移座標 x=n+1 下的精確公式 (3/2)^(t-1)。本章作為後續結果的基礎工具：§3 譜間隙計算依賴此分解，§4 65/41 屏障的下降條件 B_T > T·log₂3 也由此推得。本身不是失敗框架，而是必要的記號與引理。">
+    <section class="theorem-section" id="sec-epoch" data-ai-summary="Epoch 分解將 Collatz 軌道拆為連續壞步段，並建立位移座標 x=n+1 下的精確公式 (3/2)^(t-1)。本章作為後續結果的基礎工具：§3 譜間隙計算依賴此分解，§4 65/41 屏障的下降條件 B_T > T·log₂3 也由此推得。本身不是失敗框架，而是必要的記號與引理。">
       <h2>2. 補充工具：Epoch 分解與位移座標</h2>
 
       <!-- White-language introduction -->
@@ -948,7 +948,7 @@
       </details>
     </section>
 
-    <section class="section" id="sec-transducer" data-ai-summary="結構性結果一：將 Collatz 的 carry 傳播建模為 3 態自動機 {A,B,C}，轉移矩陣的特徵值為 {1, 1/2, -1/2}，譜間隙精確等於 1/2。此結果有獨立的數學價值：它將一個數論問題化約為有限狀態自動機的譜分析，並給出 v₂ 自相關指數衰減的精確速率。確定性 Expander Mixing 仍未獲得。">
+    <section class="theorem-section" id="sec-transducer" data-ai-summary="結構性結果一：將 Collatz 的 carry 傳播建模為 3 態自動機 {A,B,C}，轉移矩陣的特徵值為 {1, 1/2, -1/2}，譜間隙精確等於 1/2。此結果有獨立的數學價值：它將一個數論問題化約為有限狀態自動機的譜分析，並給出 v₂ 自相關指數衰減的精確速率。確定性 Expander Mixing 仍未獲得。">
       <h2>3. 結構性結果一：3 態轉換器譜間隙 = 1/2</h2>
 
       <!-- 白話引言 -->
@@ -1088,7 +1088,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </details>
     </section>
 
-    <section class="section" id="sec-cfrac" data-ai-summary="結構性結果二：log₂3 的第 6 個連分數收斂子 65/41 ≈ 1.5854 是 Collatz 最壞情況的天然屏障。對所有測試的 k 值（k=5 到 k=44，覆蓋 14 到 44 位整數），最壞 B/T 比率精確命中 65/41，始終嚴格大於 log₂3 ≈ 1.5850。差距源於 log₂3 的超越性（Gelfond-Schneider）——任何整數比都不可能等於 log₂3。">
+    <section class="theorem-section" id="sec-cfrac" data-ai-summary="結構性結果二：log₂3 的第 6 個連分數收斂子 65/41 ≈ 1.5854 是 Collatz 最壞情況的天然屏障。對所有測試的 k 值（k=5 到 k=44，覆蓋 14 到 44 位整數），最壞 B/T 比率精確命中 65/41，始終嚴格大於 log₂3 ≈ 1.5850。差距源於 log₂3 的超越性（Gelfond-Schneider）——任何整數比都不可能等於 log₂3。">
       <h2>4. 結構性結果二：log₂3 連分數 65/41 屏障</h2>
 
       <!-- 白話引言 -->
@@ -1234,7 +1234,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </details>
     </section>
 
-    <section class="section" id="sec-ordinal" data-ai-summary="失敗路線：嘗試用序數值勢函數 α(n)（基於二進位 block 結構）證明 Collatz 終止，仿 Goodstein 定理風格。斷裂於 carry 傳播可能暫時增加 block 數量、且任何形如 log n + g(n mod 2^k) 的有限修正函數都被尾隨 1-bit 模式擊敗——(3/2)^k 指數增長遠超 O(1) 修正補償。此路線不夠：序數良序性需要單調下降，但 Collatz 對序數的影響非單調。">
+    <section class="theorem-section" id="sec-ordinal" data-ai-summary="失敗路線：嘗試用序數值勢函數 α(n)（基於二進位 block 結構）證明 Collatz 終止，仿 Goodstein 定理風格。斷裂於 carry 傳播可能暫時增加 block 數量、且任何形如 log n + g(n mod 2^k) 的有限修正函數都被尾隨 1-bit 模式擊敗——(3/2)^k 指數增長遠超 O(1) 修正補償。此路線不夠：序數良序性需要單調下降，但 Collatz 對序數的影響非單調。">
       <h2>5. 失敗路線：序數方法</h2>
 
       <p style="font-size:var(--text-sm); margin-bottom:1.5rem; color:var(--text-secondary);">
@@ -1335,7 +1335,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </details>
     </section>
 
-    <section class="section" id="sec-tree" data-ai-summary="失敗路線：反向 Collatz 樹以 1 為根，子節點是能經一步 Collatz 到達父節點的數。猜想等價於樹覆蓋所有正整數。覆蓋比例經密度論證趨近 100%，但密度為零的遺漏集仍可能存在（例如非平凡循環元素的集合）。此路線不夠：密度為零不蘊含空集，就像有理數在實數中密度為零卻無處不在一樣。">
+    <section class="theorem-section" id="sec-tree" data-ai-summary="失敗路線：反向 Collatz 樹以 1 為根，子節點是能經一步 Collatz 到達父節點的數。猜想等價於樹覆蓋所有正整數。覆蓋比例經密度論證趨近 100%，但密度為零的遺漏集仍可能存在（例如非平凡循環元素的集合）。此路線不夠：密度為零不蘊含空集，就像有理數在實數中密度為零卻無處不在一樣。">
       <h2>6. 失敗路線：反向樹密度</h2>
 
       <p style="font-size:var(--text-sm); margin-bottom:1.5rem; color:var(--text-secondary);">
@@ -1417,7 +1417,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </details>
     </section>
 
-    <section class="section" id="sec-z2" data-ai-summary="失敗路線：在 2-adic 整數 Z₂ 上，×3 是保測自同構，具遍歷性，意味著 v₂ 序列的經驗分佈趨向幾何分佈 Geo(1/2)。但自然數 N 是 Z₂ 的測度零子集，標準遍歷定理不直接適用於 N。此路線不夠：需要的「有效遍歷定理」（對 N 上 ×3 映射建立有效等分佈）目前不存在。">
+    <section class="theorem-section" id="sec-z2" data-ai-summary="失敗路線：在 2-adic 整數 Z₂ 上，×3 是保測自同構，具遍歷性，意味著 v₂ 序列的經驗分佈趨向幾何分佈 Geo(1/2)。但自然數 N 是 Z₂ 的測度零子集，標準遍歷定理不直接適用於 N。此路線不夠：需要的「有效遍歷定理」（對 N 上 ×3 映射建立有效等分佈）目前不存在。">
       <h2>7. 失敗路線：2-adic 遍歷性</h2>
 
       <p style="font-size:var(--text-sm); margin-bottom:1.5rem; color:var(--text-secondary);">
@@ -1499,7 +1499,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </details>
     </section>
 
-    <section class="section" id="sec-kolmogorov" data-ai-summary="失敗路線：發散軌道上的數具有低 Kolmogorov 複雜度（高度可壓縮）：K(S^T(n)) ≤ O(log n + log T)。嘗試利用可壓縮性排除發散，但可壓縮性不直接蘊含「好的 v₂ 值」——carry 攪動可能保持某些類型的壓縮結構而不降低數值。此路線不夠：結構化不等於數值會下降（如 2^n 高度結構化卻持續增長）。">
+    <section class="theorem-section" id="sec-kolmogorov" data-ai-summary="失敗路線：發散軌道上的數具有低 Kolmogorov 複雜度（高度可壓縮）：K(S^T(n)) ≤ O(log n + log T)。嘗試利用可壓縮性排除發散，但可壓縮性不直接蘊含「好的 v₂ 值」——carry 攪動可能保持某些類型的壓縮結構而不降低數值。此路線不夠：結構化不等於數值會下降（如 2^n 高度結構化卻持續增長）。">
       <h2>8. 失敗路線：Kolmogorov 複雜度</h2>
 
       <p style="font-size:var(--text-sm); margin-bottom:1.5rem; color:var(--text-secondary);">
@@ -1585,7 +1585,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </details>
     </section>
 
-    <section class="section" id="sec-experiments" data-ai-summary="計算驗證（支援 §4 的 65/41 屏障）：六項實驗一致顯示最壞情況 B/T 比率穩定在 65/41=1.5854 > log₂3=1.5850。完整枚舉 k≤18、抽樣至 k=44，所有測試均滿足下降條件 B/T > log₂3。Mersenne 數 2^k-1 均到達1。含六標籤互動實驗場。">
+    <section class="theorem-section" id="sec-experiments" data-ai-summary="計算驗證（支援 §4 的 65/41 屏障）：六項實驗一致顯示最壞情況 B/T 比率穩定在 65/41=1.5854 > log₂3=1.5850。完整枚舉 k≤18、抽樣至 k=44，所有測試均滿足下降條件 B/T > log₂3。Mersenne 數 2^k-1 均到達1。含六標籤互動實驗場。">
       <h2>9. 計算實驗</h2>
 
       <!-- White-language introduction -->
@@ -1674,7 +1674,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       <div id="playground-container"></div>
     </section>
 
-    <section class="section" id="sec-reduction" data-ai-summary="結構性結果三：引理 D（對任意奇數 n>1，存在 T 使得 S^T(n)<n）⟺ Collatz 猜想。雙向等價：D ⇒ Collatz 由排除非平凡循環 + 排除發散軌道得出；Collatz ⇒ D 平凡。算術等價：B_T > T·log₂3 蘊含 S^T(n) < n（對充分大的 n）。此化約把整個猜想精煉成一個清晰的下降命題。">
+    <section class="theorem-section" id="sec-reduction" data-ai-summary="結構性結果三：引理 D（對任意奇數 n>1，存在 T 使得 S^T(n)<n）⟺ Collatz 猜想。雙向等價：D ⇒ Collatz 由排除非平凡循環 + 排除發散軌道得出；Collatz ⇒ D 平凡。算術等價：B_T > T·log₂3 蘊含 S^T(n) < n（對充分大的 n）。此化約把整個猜想精煉成一個清晰的下降命題。">
       <h2>10. 結構性結果三：引理 D ⟺ Collatz</h2>
 
       <!-- White-language introduction -->
@@ -1726,7 +1726,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       <p>因此：<strong>引理 D &hArr; Collatz 猜想</strong>。</p>
     </section>
 
-    <section class="section" id="sec-bounded" data-ai-summary="結構性結果四：循環元素的算術約束。有界軌道必入循環（鴿巢原理）；循環方程 m(2^B-3^P)=C 要求 2^B>3^P，由 log₂3 無理性（Gelfond-Schneider）保證 2^B≠3^P。循環元素有上界 m < 2^B·3^P / 2(2^B-3^P)。此結果獨立成立：給出非平凡循環尺寸的精確算術限制。Baker 型定理的下界仍不足以約束至可計算範圍。">
+    <section class="theorem-section" id="sec-bounded" data-ai-summary="結構性結果四：循環元素的算術約束。有界軌道必入循環（鴿巢原理）；循環方程 m(2^B-3^P)=C 要求 2^B>3^P，由 log₂3 無理性（Gelfond-Schneider）保證 2^B≠3^P。循環元素有上界 m < 2^B·3^P / 2(2^B-3^P)。此結果獨立成立：給出非平凡循環尺寸的精確算術限制。Baker 型定理的下界仍不足以約束至可計算範圍。">
       <h2>11. 結構性結果四：循環的算術約束</h2>
 
       <!-- White-language introduction -->
@@ -1788,7 +1788,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       </div>
     </section>
 
-    <section class="section" id="sec-obstacle" data-ai-summary="為何完整證明仍困難：Collatz 映射同時涉及乘法(×3)、加法(+1)和二進位(÷2^v₂)三種不可通約結構。所有失敗路線的限制歸結為缺乏能同時處理這三者的統一數學工具。具體表現為缺少確定性 Expander Mixing 定理——對任意有限二進位字串建立 v₂ 平均值的有效下界。">
+    <section class="theorem-section" id="sec-obstacle" data-ai-summary="為何完整證明仍困難：Collatz 映射同時涉及乘法(×3)、加法(+1)和二進位(÷2^v₂)三種不可通約結構。所有失敗路線的限制歸結為缺乏能同時處理這三者的統一數學工具。具體表現為缺少確定性 Expander Mixing 定理——對任意有限二進位字串建立 v₂ 平均值的有效下界。">
       <h2>12. 為何完整證明仍困難（三重不可通約性）</h2>
 
       <!-- White-language introduction -->
@@ -1847,7 +1847,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       <p style="font-size:var(--text-sm); margin-top:0.75rem;">此陳述等價於 Collatz 猜想本身，因此不構成「簡化」。</p>
     </section>
 
-    <section class="section" id="sec-conclusion" data-ai-summary="現狀總結：本報告建立四個有獨立數學價值的結構性結果（3 態轉換器譜間隙 = 1/2；log₂3 連分數 65/41 屏障；引理 D ⟺ Collatz；循環的算術約束），並把證明的剩餘困難精確定位於三重不可通約性——同時處理乘法、加法、二進位的統一工具尚不存在。這不是一份「未解問題的攻擊紀錄」，而是部分結果的彙整與化約。">
+    <section class="theorem-section" id="sec-conclusion" data-ai-summary="現狀總結：本報告建立四個有獨立數學價值的結構性結果（3 態轉換器譜間隙 = 1/2；log₂3 連分數 65/41 屏障；引理 D ⟺ Collatz；循環的算術約束），並把證明的剩餘困難精確定位於三重不可通約性——同時處理乘法、加法、二進位的統一工具尚不存在。這不是一份「未解問題的攻擊紀錄」，而是部分結果的彙整與化約。">
       <h2>13. 現狀總結</h2>
 
       <!-- Chart D-1: Radar chart -->
@@ -1882,7 +1882,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
       <p style="font-size:var(--text-sm); margin-top:0.75rem;">本報告把 Collatz 猜想的完整證明從「未知方向」的問題化約為「需要一個確定性 Expander Mixing 定理」的明確子目標——四個結構性結果作為部分結果獨立成立，並把難度精準定位。</p>
     </section>
 
-    <section class="section" id="sec-appendix" style="border-bottom:none;" data-ai-summary="附錄含主實驗程式（6項實驗）、深度分析程式（6項分析）、完整符號索引（T(n), S(n), v₂, t_i, w_i, B_T, α(n), log₂3, 65/41, Z₂, K(n)）、以及參考文獻（Tao 2019, Eliahou 1993, Conway 1972, Lagarias 2010）。">
+    <section class="theorem-section" id="sec-appendix" style="border-bottom:none;" data-ai-summary="附錄含主實驗程式（6項實驗）、深度分析程式（6項分析）、完整符號索引（T(n), S(n), v₂, t_i, w_i, B_T, α(n), log₂3, 65/41, Z₂, K(n)）、以及參考文獻（Tao 2019, Eliahou 1993, Conway 1972, Lagarias 2010）。">
       <h2>14. 附錄：程式碼與符號索引</h2>
 
       <h3>14.1 主實驗程式</h3>
@@ -7848,10 +7848,10 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
           const section = h2.closest('section[id]');
           if (!section) return;
           // 冪等保護：避免重複掛載
-          if (h2.querySelector('.aeo-share-btn')) return;
+          if (h2.querySelector('.share-ai-btn')) return;
 
           const btn = document.createElement('button');
-          btn.className = 'aeo-share-btn';
+          btn.className = 'share-ai-btn';
           btn.setAttribute('aria-label', '複製此段摘要到剪貼簿，可貼到 ChatGPT 或 Claude 接續討論');
           btn.setAttribute('title', '複製此段摘要到剪貼簿，可貼到 ChatGPT 或 Claude 接續討論');
           btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11A2.99 2.99 0 0 0 21 5a3 3 0 1 0-5.91.7L8.04 9.81A2.99 2.99 0 0 0 5 8a3 3 0 1 0 2.04 5.19l7.12 4.16c-.05.21-.08.43-.08.65a2.93 2.93 0 0 0 2.92 2.92 2.93 2.93 0 0 0 0-5.84z"/></svg>分享至 AI';
