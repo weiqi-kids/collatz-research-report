@@ -7844,7 +7844,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
         }
 
         // Add share button to each section h2 (excluding hero and appendix)
-        document.querySelectorAll('section[id]:not(.hero):not([id="sec-appendix"]) h2').forEach(h2 => {
+        document.querySelectorAll('section[id]:not(.hero) h2').forEach(h2 => {
           const section = h2.closest('section[id]');
           if (!section) return;
           // 冪等保護：避免重複掛載
