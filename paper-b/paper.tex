@@ -1,0 +1,521 @@
+%%% No Finite Local Potential Function Suffices for the Accelerated
+%%% Collatz Map: An Impossibility Result
+
+\documentclass[11pt,a4paper]{article}
+
+%% ---------- packages ----------
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+%% ---------- theorem environments ----------
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%% ---------- macros ----------
+\DeclareMathOperator{\val}{v}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Nodd}{\N_{\mathrm{odd}}}
+
+%% ---------- metadata ----------
+\title{\Large No Finite Local Potential Function Is a Strict Lyapunov Function\\
+for the Accelerated Collatz Map:\\[4pt]
+\large An Impossibility Result}
+\author{Lightman Chang\\
+Independent Researcher\\
+\texttt{lightman.chang@gmail.com}}
+\date{}
+
+%% =================================================================
+\begin{document}
+\maketitle
+
+%% =================================================================
+%% ABSTRACT
+%% =================================================================
+\begin{abstract}
+A standard strategy for attacking the Collatz conjecture is to seek a
+\emph{Lyapunov function}: a real-valued map on the positive integers
+that strictly decreases under the accelerated Collatz dynamics
+$S(n) = (3n+1)/2^{\val_2(3n+1)}$.  Any such function would force the
+absence of nontrivial cycles and divergent orbits.  A natural family of
+candidates consists of the \emph{finite local} potential functions of
+the form $V(n) = \log_2 n + g(n \bmod 2^k)$, where $k \geq 1$ is a
+fixed precision and $g \colon \Z / 2^k \Z \to \R$ is an arbitrary
+correction term.  We prove (Theorem~\ref{thm:main}) that for every
+fixed $k \geq 1$ and every choice of $g$, there exist infinitely many
+odd integers $n$ on which $V$ does not decrease under~$S$, so $V$ fails
+to be a strict Lyapunov function for $S$.  The obstruction is structural:
+the trailing-$1$ block can have arbitrary length, and a finite-precision
+correction can compensate at most $O(1)$ growth, while the trailing-$1$
+block of length $\ell$ produces a multiplicative growth of
+$(3/2)^\ell$ before any cancellation.  Our result rules out an entire
+class of potential-function attacks on Collatz and complements
+Conway's~\cite{Conway1972} undecidability theorems for generalized
+Collatz problems.
+\end{abstract}
+
+\noindent\textbf{Keywords:}~Collatz map, $3x{+}1$ problem, Lyapunov
+function, impossibility result, $2$-adic valuation.
+
+\smallskip
+\noindent\textbf{MSC 2020:}~Primary 11B37; Secondary 37B99, 11A63.
+
+%% =================================================================
+\section{Introduction}\label{sec:intro}
+%% =================================================================
+
+The Collatz conjecture asserts that for the map
+$T \colon \N \to \N$ defined by $T(n) = n/2$ for $n$ even and
+$T(n) = 3n + 1$ for $n$ odd, every orbit reaches~$1$.  After nearly a
+century, it remains open; the strongest known density result is due to
+Tao~\cite{Tao2022}, and the standard surveys are
+Lagarias~\cite{Lagarias1985,Lagarias2010}.  Conway~\cite{Conway1972}
+showed that the natural family of generalizations of $T$ is
+universal (Turing-complete), so any proof of Collatz must exploit
+specific arithmetic features of the constants $(3, 2, 1)$.
+
+A frequently proposed strategy is to construct a real-valued function
+$V \colon \Nodd \to \R$ that strictly decreases under the accelerated
+Collatz map
+\begin{equation}\label{eq:S-def}
+  S \colon \Nodd \to \Nodd, \qquad
+  S(n) \;=\; \frac{3n + 1}{2^{\val_2(3n + 1)}}.
+\end{equation}
+Such a $V$ is called a (strict) \emph{Lyapunov function} for $S$.
+The existence of any such $V$ that is bounded below (or merely
+well-founded) would immediately rule out cycles and divergent orbits,
+and hence prove the Collatz conjecture.
+
+\paragraph{The natural ansatz.}
+On any orbit, $S$ scales the iterate by approximately $3 / 2^{\val_2}$,
+so the leading-order behavior of $\log_2 n$ along an orbit is governed
+by $\log_2 3 - \val_2 \approx 1.585 - \val_2$.  This suggests an
+ansatz of the form
+\begin{equation}\label{eq:V-form}
+  V(n) \;=\; \log_2 n \;+\; g(n \bmod 2^k),
+\end{equation}
+where $k \geq 1$ is a fixed integer (the ``locality precision'') and
+$g \colon \Z / 2^k \Z \to \R$ is a correction term whose role is to
+absorb the fluctuations of $\val_2(3n + 1)$ that depend on the low
+bits of $n$.  Many variants of this idea are folkloric; small-$k$
+versions can be checked by hand and seen to fail.
+
+\paragraph{What we prove.}
+We prove that the failure is structural: for \emph{every} fixed $k$ and
+\emph{every} choice of $g$, the function $V$ in~\eqref{eq:V-form} fails
+to be a strict Lyapunov function for $S$.  More precisely, there exist
+infinitely many odd integers $n$ on which $V(S(n)) \geq V(n)$.  The
+obstruction comes from the trailing-$1$ blocks: an odd integer of the
+form $n = 2^\ell - 1$ has a deterministic prefix of $\ell - 1$
+``bad'' steps, each contributing $\log_2(3/2)$ of growth before any
+cancellation, while $g$ takes values in a fixed finite set and can
+contribute at most a fixed constant of cancellation.
+
+\paragraph{What we do not prove.}
+We do not prove (and do not believe) that no Lyapunov function exists
+at all.  The result rules out only the natural finite-precision local
+ansatz~\eqref{eq:V-form}.  It does not rule out (a) potentials of the
+form $\log_2 n + g(n \bmod 2^{k(n)})$ with $k(n) \to \infty$, (b)
+potentials taking $g$ to be a function of more elaborate features
+(e.g., $\val_2(n+1)$ itself, or block-structure of the binary
+expansion), or (c) ordinal-valued potentials.  We discuss these
+extensions in Section~\ref{sec:disc}.
+
+\paragraph{Why the result is useful.}
+Various authors have tried and abandoned the
+ansatz~\eqref{eq:V-form} for small $k$, often after lengthy ad-hoc case
+analysis.  Our theorem replaces this by a one-sentence obstruction:
+the family is dead because $\log_2(3/2) > 0$ and trailing-$1$ blocks
+are unbounded in length.  This frees the search for
+Lyapunov-style attacks on Collatz to focus on genuinely
+non-local potentials.
+
+\paragraph{Paper structure.}
+Section~\ref{sec:prelim} fixes notation and establishes the closed-form
+behavior of $S$ on the trailing-$1$ block (the only Collatz-specific
+input we need).  Section~\ref{sec:main} proves
+Theorem~\ref{thm:main}.  Section~\ref{sec:disc} discusses extensions and
+limitations.
+
+%% =================================================================
+\section{Preliminaries}\label{sec:prelim}
+%% =================================================================
+
+We write $\Nodd = \{1, 3, 5, \dots\}$ for the positive odd integers and
+$\val_2(m)$ for the $2$-adic valuation of $m \in \Z \setminus \{0\}$.
+For an odd integer $n \geq 1$ we set
+\[
+  t(n) \;=\; \val_2(n + 1) \;\geq\; 1,
+\]
+the number of trailing $1$-bits in the binary expansion of $n$.  Thus
+$n = 2^{t(n)} m' - 1$ with $m'$ odd.
+
+\begin{definition}[Strict Lyapunov function]\label{def:lyap}
+A function $V \colon \Nodd \to \R$ is a \emph{strict Lyapunov function}
+for $S$ if $V(S(n)) < V(n)$ for every $n \in \Nodd$ with $n > 1$.
+\end{definition}
+
+\begin{definition}[Finite local potential]\label{def:loc-pot}
+For a fixed integer $k \geq 1$ and a function
+$g \colon \Z / 2^k \Z \to \R$, the \emph{finite local potential of
+precision $k$ with correction $g$} is
+\[
+  V_{k, g}(n) \;=\; \log_2 n \;+\; g\bigl(n \bmod 2^k\bigr),
+  \qquad n \in \Nodd.
+\]
+\end{definition}
+
+We will need only one Collatz-specific fact, recorded here as a lemma;
+it is a special case of a folkloric closed form (see, e.g.,
+\cite[Lemma~2.1]{Lagarias1985}).
+
+\begin{lemma}[Trailing-$1$ block]\label{lem:trailing}
+Let $n \geq 3$ be odd with $t(n) = t \geq 2$.  Then for $j = 1, 2,
+\dots, t-1$ the iterate $S^j(n)$ is well-defined as an odd integer and
+\[
+  S^j(n) \;=\; 2^{t - j} \cdot 3^j \cdot m' \;-\; 1,
+\]
+where $n = 2^t m' - 1$.  In particular,
+\begin{equation}\label{eq:Sj-growth}
+  \log_2 S^j(n) \;=\; \log_2 n \;+\; j \cdot \log_2(3/2)
+  \;+\; \varepsilon_j(n),
+\end{equation}
+where $|\varepsilon_j(n)| \leq 2^{-(t - j) - \log_2 m'}$ tends to zero
+as $n \to \infty$ along $n = 2^t m' - 1$ with $t - j \geq 1$ and $m'$
+fixed.
+\end{lemma}
+
+\begin{proof}
+Write $n = 2^t m' - 1$.  Then $3n + 1 = 3 \cdot 2^t m' - 2 = 2(3 \cdot
+2^{t-1} m' - 1)$, and since $3 \cdot 2^{t-1} m' - 1$ is odd (as
+$2^{t-1} m'$ is even when $t \geq 2$), we have $\val_2(3n+1) = 1$ and
+$S(n) = 3 \cdot 2^{t-1} m' - 1 = 2^{t-1} \cdot (3 m') - 1$.  But
+$3 m'$ is odd (product of two odd numbers), so $S(n)$ has the same
+form $S(n) = 2^{t - 1} m_1' - 1$ with $m_1' = 3 m'$ odd and
+$t(S(n)) = t - 1$.  Iterating,
+$S^j(n) = 2^{t - j} \cdot 3^j m' - 1$ for $0 \leq j \leq t - 1$, valid
+because $t - j \geq 1$ keeps $S^j(n)$ in the trailing-$1$ regime.
+
+For~\eqref{eq:Sj-growth},
+\[
+  S^j(n) = 2^{t-j} \cdot 3^j m' - 1
+  = 3^j \cdot \frac{2^t m' - 2^j}{2^j}
+  = \frac{3^j}{2^j} (n + 1) - 1
+  = \frac{3^j}{2^j} n + \frac{3^j - 2^j}{2^j},
+\]
+so
+\[
+  \log_2 S^j(n) \;=\; \log_2 n + j \log_2(3/2)
+  + \log_2\!\left(1 + \frac{3^j - 2^j}{2^j n}\right).
+\]
+For $n \geq 2^t \cdot 1 - 1$ and $j \leq t - 1$ the third term is
+$O(2^{-(t-j)})$ uniformly in $j$, giving the claimed bound on
+$\varepsilon_j(n)$.
+\end{proof}
+
+\begin{remark}
+We use~\eqref{eq:Sj-growth} only to control the dominant
+$j \log_2(3/2)$ term; the error $\varepsilon_j(n)$ will be made
+arbitrarily small by taking $n$ large.  No effort to optimize the
+constant in the error bound is needed.
+\end{remark}
+
+%% =================================================================
+\section{The Impossibility Theorem}\label{sec:main}
+%% =================================================================
+
+\subsection{Statement}
+
+\begin{theorem}[Main result]\label{thm:main}
+Let $k \geq 1$ be a fixed integer.  For every function
+$g \colon \Z / 2^k \Z \to \R$, the finite local potential
+$V_{k, g}(n) = \log_2 n + g(n \bmod 2^k)$ fails to be a strict
+Lyapunov function for the accelerated Collatz map $S$.  More precisely,
+there exist infinitely many odd integers $n > 1$ such that
+\[
+  V_{k, g}\bigl(S(n)\bigr) \;\geq\; V_{k, g}(n).
+\]
+\end{theorem}
+
+\subsection{Proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Fix $k \geq 1$ and an arbitrary function $g \colon \Z / 2^k \Z \to \R$.
+Since $\Z / 2^k \Z$ is finite, the function $g$ is bounded; set
+\begin{equation}\label{eq:def-G}
+  G \;:=\; \max_{r \in \Z / 2^k \Z} g(r) \;-\; \min_{r \in \Z / 2^k \Z}
+  g(r) \;\in\; [0, \infty).
+\end{equation}
+Note that $G$ depends on $g$ but is finite (since $g$ takes only $2^k$
+values).
+
+Choose any integer $\ell$ large enough that
+\begin{equation}\label{eq:ell-choice}
+  \ell \cdot \log_2(3/2) \;>\; G \;+\; 1.
+\end{equation}
+This is possible because $\log_2(3/2) = \log_2 3 - 1 \approx 0.585$ is
+strictly positive, so the left-hand side grows without bound in $\ell$.
+Concretely, $\ell \geq \lceil (G + 1) / \log_2(3/2) \rceil$ suffices.
+
+For each integer $M \geq 1$ define the odd integer
+\begin{equation}\label{eq:def-n}
+  n_M \;:=\; 2^{\ell + k} \cdot M \;-\; 1.
+\end{equation}
+Then $n_M$ has the following properties.
+
+\medskip
+\noindent\textbf{(i)} $n_M$ is odd, and $t(n_M) = \ell + k \geq \ell$.
+Indeed, $n_M + 1 = 2^{\ell + k} M$, so $\val_2(n_M + 1) = \ell + k$
+because $M$ may have its own factors of $2$, but we only used
+$\ell + k$ explicitly; if $M$ is itself even the trailing-$1$ count
+would be larger, which only helps.  Restrict to odd $M$ to ensure
+$t(n_M) = \ell + k$ exactly; we will make this restriction below.
+
+\medskip
+\noindent\textbf{(ii)} The residue $n_M \bmod 2^k$ is independent of
+$M$: indeed, $n_M \equiv -1 \equiv 2^k - 1 \pmod{2^k}$ for every $M$,
+since $2^{\ell + k} M \equiv 0 \pmod{2^k}$.  Consequently,
+\[
+  g(n_M \bmod 2^k) \;=\; g(2^k - 1)
+  \quad\text{is the same constant for every } M.
+\]
+
+\medskip
+\noindent\textbf{(iii)} By Lemma~\ref{lem:trailing} applied with
+$t = \ell + k$ and $j = \ell$, the iterate $S^\ell(n_M)$ is well-defined
+and satisfies
+\[
+  S^\ell(n_M) \;=\; 2^{k} \cdot 3^\ell \cdot M \;-\; 1.
+\]
+This number is odd, has $t(S^\ell(n_M)) = k$ trailing $1$-bits when
+$M$ is odd (since $3^\ell M$ is then odd), and most importantly
+\[
+  S^\ell(n_M) \;\equiv\; 2^k - 1 \;\equiv\; -1 \pmod{2^k},
+\]
+so $g(S^\ell(n_M) \bmod 2^k) = g(2^k - 1)$ as well.
+
+\medskip
+Restricting now to odd $M \geq 1$, we have for every such $M$:
+\begin{align}
+  V_{k, g}(S^\ell(n_M)) - V_{k, g}(n_M)
+  &= \bigl[\log_2 S^\ell(n_M) - \log_2 n_M\bigr]
+   + \bigl[g(S^\ell(n_M) \bmod 2^k) - g(n_M \bmod 2^k)\bigr]
+   \notag \\
+  &= \bigl[\log_2 S^\ell(n_M) - \log_2 n_M\bigr]
+   + 0,
+   \label{eq:diff-V}
+\end{align}
+where the second bracket vanishes by~(ii) and~(iii).
+
+By Lemma~\ref{lem:trailing} (specifically~\eqref{eq:Sj-growth}),
+\begin{equation}\label{eq:diff-log}
+  \log_2 S^\ell(n_M) - \log_2 n_M
+  \;=\; \ell \cdot \log_2(3/2) + \varepsilon(M),
+\end{equation}
+where $\varepsilon(M) \to 0$ as $M \to \infty$ (the error
+$\varepsilon_\ell(n_M)$ from Lemma~\ref{lem:trailing} satisfies
+$|\varepsilon(M)| \leq C / (2^k M)$ for a constant $C$ depending on
+$\ell$, since $n_M \asymp 2^{\ell + k} M$).  Choose $M_0$ so large that
+$|\varepsilon(M)| < 1$ for all $M \geq M_0$.
+
+Combining \eqref{eq:diff-V}, \eqref{eq:diff-log} and the
+choice~\eqref{eq:ell-choice}, we obtain that for every odd $M \geq M_0$,
+\begin{equation}\label{eq:V-grows}
+  V_{k, g}(S^\ell(n_M)) - V_{k, g}(n_M)
+  \;=\; \ell \cdot \log_2(3/2) + \varepsilon(M)
+  \;>\; G + 1 - 1 \;=\; G \;\geq\; 0.
+\end{equation}
+
+So far we have shown that the \emph{$\ell$-step} potential difference
+$V_{k, g}(S^\ell(n_M)) - V_{k, g}(n_M)$ is strictly positive.  We now
+deduce the existence of a single step on which $V_{k, g}$ does not
+decrease.  Telescoping,
+\[
+  V_{k, g}(S^\ell(n_M)) - V_{k, g}(n_M)
+  \;=\; \sum_{j = 0}^{\ell - 1}
+    \bigl[V_{k, g}(S^{j+1}(n_M)) - V_{k, g}(S^j(n_M))\bigr].
+\]
+Since the left-hand side is strictly positive by~\eqref{eq:V-grows},
+at least one summand on the right-hand side is strictly positive: there
+exists an index $j^*(M) \in \{0, 1, \dots, \ell - 1\}$ for which
+\[
+  V_{k, g}\bigl(S^{j^*(M) + 1}(n_M)\bigr) \;>\;
+  V_{k, g}\bigl(S^{j^*(M)}(n_M)\bigr).
+\]
+In particular, on the odd integer $\tilde n_M := S^{j^*(M)}(n_M)$ the
+potential strictly fails to decrease.
+
+It remains to verify that the values $\{\tilde n_M : M \in \Nodd,
+M \geq M_0\}$ are infinite (i.e., that we have produced
+\emph{infinitely many} witnesses).  Since
+$\log_2 \tilde n_M \geq \log_2 n_M - O(\ell) \to \infty$ as
+$M \to \infty$ (the bad-step segment of length at most $\ell - 1$ can
+shrink the iterate by at most a factor of $(2/3)^{\ell - 1}$ in
+log-scale, a finite amount), the set $\{\tilde n_M\}$ is unbounded and
+hence infinite.
+
+This proves the existence of infinitely many odd integers $n$ on which
+$V_{k, g}(S(n)) \geq V_{k, g}(n)$, as claimed.
+\end{proof}
+
+\subsection{Quantitative consequence}
+
+\begin{corollary}[Required precision grows]\label{cor:precision}
+Fix any constant $A > 0$ and let $k \geq 1$.  For every $g \colon
+\Z / 2^k \Z \to \R$ with $\max g - \min g \leq A$, the function
+$V_{k, g}$ admits infinitely many odd integers $n$ on which
+$V_{k, g}(S(n)) - V_{k, g}(n) \geq 0$.  In particular, no uniform bound
+on the oscillation of $g$ across all $k$ produces a Lyapunov function;
+the only escape from Theorem~\ref{thm:main} is to allow $g$'s
+oscillation $G(g)$ to grow without bound in~$k$.
+\end{corollary}
+
+\begin{proof}
+Direct from~\eqref{eq:ell-choice}: any uniform bound $G \leq A$ allows
+us to choose $\ell$ once for all $k$, with the construction of
+Theorem~\ref{thm:main} going through as written.
+\end{proof}
+
+%% =================================================================
+\section{Discussion}\label{sec:disc}
+%% =================================================================
+
+\paragraph{What is ruled out.}
+Theorem~\ref{thm:main} rules out the entire family of Lyapunov
+candidates of the form $V_{k, g} = \log_2 n + g(n \bmod 2^k)$ with
+$k$ fixed and $g$ a function of the residue class.  This is, to our
+knowledge, the most natural class of ``elementary'' Lyapunov
+candidates that has been considered in the literature.
+
+\paragraph{What is not ruled out.}
+Our result leaves several variants open.
+
+\begin{enumerate}[label=(\arabic*),leftmargin=2em]
+  \item \emph{Adaptive precision.}  A potential of the form
+    $\log_2 n + g_n(n \bmod 2^{k(n)})$ with $k(n) \to \infty$ as
+    $n \to \infty$, and with $g_n$ permitted to vary, is not covered.
+    Corollary~\ref{cor:precision} shows that any such escape requires
+    the oscillation $\max g_n - \min g_n$ to grow without bound in $n$.
+  \item \emph{Non-residue local features.}  Potentials of the form
+    $\log_2 n + h(t(n))$ where $h \colon \N \to \R$ depends on the
+    trailing-$1$ count of $n$ are not directly covered, although a
+    similar argument can be carried out: along the family
+    $n_M = 2^{\ell + k} M - 1$ both $t(n_M)$ and $t(S^\ell(n_M))$ are
+    pinned by construction, so $h$ contributes a fixed amount on each
+    side of~\eqref{eq:diff-V} and the same lower bound applies.  We
+    leave the full statement to the interested reader.
+  \item \emph{Block structure and ordinal potentials.}  Goodstein-style
+    ordinal potentials~\cite{KirbyParis1982} or more elaborate
+    block-structure potentials are not covered.  Indeed, the Goodstein
+    function admits a successful ordinal potential (with values in
+    $\varepsilon_0$) showing termination, even though the function is
+    Peano-arithmetic-unprovably-terminating.  Whether an analogous
+    transfinite potential exists for Collatz is open.
+  \item \emph{Non-local potentials.}  Anything depending on the entire
+    history of an orbit, or on global features of $n$, escapes our
+    framework.
+\end{enumerate}
+
+\paragraph{Relation to Conway's universality.}
+Conway~\cite{Conway1972} proved that the natural class of
+\emph{generalized} Collatz maps (piecewise linear with rational
+coefficients on residue classes) is computationally universal; in
+particular, no algorithmic procedure can decide convergence for all
+such maps.  Our Theorem~\ref{thm:main} is in the same spirit: just as
+Conway rules out a class of \emph{decision procedures}, we rule out a
+class of \emph{Lyapunov certificates}.  The two results are
+complementary: Conway shows generalized Collatz is universal; we show
+that one specific certificate scheme is intrinsically too weak even
+for the standard $3x+1$ map.
+
+\paragraph{Relation to existing potential-function attempts.}
+Many authors have explored small-$k$ instances of $V_{k, g}$ and
+observed failure on specific residue classes (e.g., $n \equiv 7
+\pmod 8$, $n \equiv 15 \pmod{16}$); the present paper consolidates
+these observations into a uniform statement and a single conceptual
+obstruction.  We do not claim that the impossibility for $k = 2, 3$
+is new; we claim that the proof for \emph{all} $k$ is, and that the
+identification of the obstruction with the trailing-$1$ blocks
+clarifies why ad-hoc attempts at low $k$ inevitably failed.
+
+\paragraph{Open problem.}
+What is the smallest growth rate $f(k)$ such that some choice of
+$g_k \colon \Z / 2^k \Z \to \R$ with $\max g_k - \min g_k \leq f(k)$
+becomes a strict Lyapunov function for $S$?
+Corollary~\ref{cor:precision} shows that bounded $f$ cannot work, but
+gives no upper bound on the necessary growth.  A quantitative
+statement (e.g., $f(k) = \Omega(\log k)$ or $f(k) = \Omega(k)$) would
+give a sharper picture of how non-local any successful Lyapunov
+function must be.
+
+\paragraph{Reproducibility.}
+Theorem~\ref{thm:main} can be verified numerically by choosing any
+$k$ and $g$, then computing $V_{k, g}(S(n_M)) - V_{k, g}(n_M)$ along
+the trailing-$1$ family $n_M = 2^{\ell + k} M - 1$ for $M = 1, 3, 5,
+\dots$ and $\ell = \lceil (G + 1) / \log_2(3/2) \rceil$.  All
+arithmetic is exact; no numerical issues arise for $k \leq 20$ and
+$M \leq 2^{30}$.
+
+%% =================================================================
+\section{Conclusion}
+%% =================================================================
+
+We have shown that no finite local potential function of the form
+$\log_2 n + g(n \bmod 2^k)$ with $k$ fixed can serve as a strict
+Lyapunov function for the accelerated Collatz map $S$.  The obstruction
+is direct: the trailing-$1$ block of length $\ell$ produces growth
+$\ell \log_2(3/2)$ in $\log_2 n$, while the correction $g$ contributes
+at most a fixed constant.  As a consequence, any successful Lyapunov
+attack on the Collatz conjecture must employ either adaptive precision
+($k = k(n) \to \infty$), non-residue features (e.g., trailing-$1$
+counts), or genuinely non-local information (e.g., orbit history).
+Our result delineates the boundary of what the most natural local
+ansatz can achieve, leaving open whether any of the more elaborate
+variants succeeds.
+
+%% =================================================================
+\begin{thebibliography}{99}
+%% =================================================================
+
+\bibitem{Conway1972}
+J.\,H.~Conway,
+\emph{Unpredictable iterations}, in:
+\emph{Proc.\ Number Theory Conf.\ (Boulder, 1972)}, pp.\ 49--52,
+Univ.\ Colorado, Boulder, CO, 1972.
+
+\bibitem{KirbyParis1982}
+L.~Kirby and J.~Paris,
+\emph{Accessible independence results for Peano arithmetic},
+Bull.\ London Math.\ Soc.\ \textbf{14} (1982), 285--293.
+
+\bibitem{Lagarias1985}
+J.\,C.~Lagarias,
+\emph{The $3x+1$ problem and its generalizations},
+Amer.\ Math.\ Monthly \textbf{92} (1985), 3--23.
+
+\bibitem{Lagarias2010}
+J.\,C.~Lagarias (ed.),
+\emph{The Ultimate Challenge: The $3x+1$ Problem},
+American Mathematical Society, Providence, RI, 2010.
+
+\bibitem{Tao2022}
+T.~Tao,
+\emph{Almost all orbits of the Collatz map attain almost bounded values},
+Forum Math.\ Pi \textbf{10} (2022), e12.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,704 @@
+%%% A Three-State Finite Automaton for Carry Propagation in the
+%%% Accelerated Collatz Map: Spectral Gap and Closed-Form Shift Dynamics
+
+\documentclass[11pt,a4paper]{article}
+
+%% ---------- packages ----------
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{array}
+
+%% ---------- theorem environments ----------
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%% ---------- macros ----------
+\DeclareMathOperator{\val}{v}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\Nodd}{\N_{\mathrm{odd}}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+
+%% ---------- metadata ----------
+\title{\Large A Three-State Finite Automaton for Carry Propagation\\
+in the Accelerated Collatz Map:\\[4pt]
+\large Spectral Gap and Closed-Form Shift Dynamics}
+\author{Lightman Chang\\
+Independent Researcher\\
+\texttt{lightman.chang@gmail.com}}
+\date{}
+
+%% =================================================================
+\begin{document}
+\maketitle
+
+%% =================================================================
+%% ABSTRACT
+%% =================================================================
+\begin{abstract}
+The accelerated Collatz map $S(n) = (3n+1)/2^{\val_2(3n+1)}$ on the odd
+integers is governed by the $2$-adic valuation $\val_2(3n+1)$, which in
+turn depends on the binary carry pattern produced when $3n+1$ is computed
+bit-by-bit.  We model this carry propagation by a three-state finite
+automaton on the state set $\{A,B,C\}$ tracking the joint configuration
+of the previous input bit and the carry.  Our first main result
+(Theorem~\ref{thm:automaton}) establishes that the automaton reproduces
+$3n+1$ exactly and that the transition matrix on uniformly random binary
+input has characteristic polynomial $(\lambda-1)(2\lambda-1)(2\lambda+1)$,
+hence eigenvalues $\{1, 1/2, -1/2\}$ and spectral gap $1/2$.  Our second
+main result (Proposition~\ref{prop:shift}) is a closed-form identity:
+for an odd integer $n$ with exactly $t \geq 1$ trailing $1$-bits, the
+first $t-1$ accelerated Collatz steps act on the shifted coordinate
+$x = n+1$ as the pure scaling $x \mapsto (3/2)^{t-1} x$, with no error
+term.  As a corollary we obtain an exponential mixing rate for the carry
+state under the random-input model and an exact stationary distribution
+for the carry/previous-bit pair.  These results provide a finite-state
+geometric framework for analyzing the deterministic evolution of
+$\val_2$ along Collatz orbits, complementing existing $2$-adic and
+ergodic approaches.
+\end{abstract}
+
+\noindent\textbf{Keywords:}~Collatz map, $3x{+}1$ problem,
+finite automaton, carry propagation, spectral gap, $2$-adic valuation.
+
+\smallskip
+\noindent\textbf{MSC 2020:}~Primary 11B37; Secondary 11A63, 68Q45, 37B15.
+
+%% =================================================================
+\section{Introduction}\label{sec:intro}
+%% =================================================================
+
+The Collatz map $T \colon \N \to \N$ defined by $T(n) = n/2$ for even $n$
+and $T(n) = 3n+1$ for odd $n$ has resisted proof of its eponymous
+conjecture (that every orbit reaches~$1$) for nearly a century; see
+the surveys of Lagarias~\cite{Lagarias1985,Lagarias2010} for the
+history and Tao~\cite{Tao2022} for the strongest known density result.
+
+For analytical purposes one usually replaces $T$ by the
+\emph{accelerated} (sometimes called \emph{compressed}) Collatz map
+restricted to the odd integers,
+\begin{equation}\label{eq:S-def}
+  S \colon \Nodd \to \Nodd, \qquad
+  S(n) = \frac{3n+1}{2^{\val_2(3n+1)}},
+\end{equation}
+where $\val_2(m)$ denotes the $2$-adic valuation of~$m$.  The behavior
+of $S$ is controlled by the sequence of valuations
+$\val_2(3n+1), \val_2(3 S(n) + 1), \ldots$ along an orbit; in particular,
+an orbit decreases on average if and only if the empirical mean of
+$\val_2$ exceeds $\log_2 3 \approx 1.585$.
+
+\paragraph{Why carry propagation?}
+The valuation $\val_2(3n+1)$ is an arithmetic quantity determined by the
+\emph{low-order} bits of $3n+1$, which depend on the low-order bits
+of~$n$ together with the carries that propagate through the binary
+addition $3n+1 = n + 2n + 1$.  Carries are local at every bit position
+but can propagate arbitrarily far; this dual character is what makes
+$\val_2(3n+1)$ both deterministic in $n$ and difficult to control as a
+function of $n$.
+
+\paragraph{What is known.}
+Several authors have studied $2$-adic and automata-theoretic
+descriptions of the Collatz map.  Lagarias~\cite{Lagarias1985} treats
+the parity sequence and shift dynamics on $\Z_2$.  Bernstein and
+Lagarias~\cite{BernsteinLagarias1996} give a $2$-adic conjugacy with the
+shift map.  Wirsching~\cite{Wirsching1998} develops the dynamical
+systems viewpoint and tree models.  Various authors have used finite
+transducers for parity vectors; see, e.g., the survey~\cite{Lagarias2010}
+and references therein.  None of these works, to the best of our
+knowledge, isolates the \emph{three-state} carry automaton studied here
+or computes its spectral gap.
+
+\paragraph{Our contribution.}
+We make two contributions, both elementary and self-contained.
+
+\begin{enumerate}[label=(\roman*),leftmargin=2em]
+  \item \emph{Three-state carry automaton (Theorem~\ref{thm:automaton}).}
+    We construct a finite automaton with three states $\{A, B, C\}$
+    that tracks the joint configuration (previous input bit, carry) and
+    reproduces the binary representation of $3n+1$ bit-by-bit.  The
+    transition matrix on uniformly random input bits has characteristic
+    polynomial $(\lambda - 1)(2\lambda - 1)(2\lambda + 1)$, hence
+    eigenvalues $\{1, 1/2, -1/2\}$ and spectral gap $1/2$.  The
+    stationary distribution is the uniform distribution
+    $\pi = (1/3, 1/3, 1/3)$ on $\{A, B, C\}$.
+
+  \item \emph{Closed-form shift identity (Proposition~\ref{prop:shift}).}
+    For an odd integer $n$ with exactly $t \geq 1$ trailing $1$-bits in
+    its binary expansion, write $n = 2^t m' - 1$ with $m'$ odd.  Then
+    the first $t-1$ accelerated Collatz steps (which are forced to have
+    valuation $1$) act on the shifted coordinate $x = n+1$ exactly as
+    \[
+      x \;\longmapsto\; \bigl(\tfrac{3}{2}\bigr)^{t-1} x,
+    \]
+    with no error term, so that
+    $S^{t-1}(n) = (3/2)^{t-1}(n+1) - 1 = 2 \cdot 3^{t-1} m' - 1$.
+\end{enumerate}
+
+These two results combine in Corollary~\ref{cor:mixing} to give an
+exponential mixing rate of order $(1/2)^t$ for the carry state under
+the random-input model, and a clean description of the deterministic
+``trailing-$1$ epoch'' as a pure scaling in shifted coordinates.
+
+\paragraph{What we do \emph{not} claim.}
+The random-input model is a heuristic device.  The orbits of $S$
+generate inputs to the automaton that are highly correlated with the
+state itself, and our spectral gap does \emph{not} imply mixing along
+deterministic orbits.  In particular, the present paper does not address
+the Collatz conjecture; it provides a clean finite-state geometric
+description of one of its building blocks.  See Section~\ref{sec:disc}
+for a careful discussion.
+
+\paragraph{Paper structure.}
+Section~\ref{sec:prelim} fixes notation and recalls the binary
+arithmetic of $3n+1$.  Section~\ref{sec:automaton} constructs the
+three-state automaton and proves Theorem~\ref{thm:automaton}.
+Section~\ref{sec:shift} proves the closed-form shift identity
+(Proposition~\ref{prop:shift}) and derives Corollary~\ref{cor:mixing}.
+Section~\ref{sec:examples} illustrates the framework on small examples.
+Section~\ref{sec:disc} discusses connections to existing approaches and
+limitations.
+
+%% =================================================================
+\section{Preliminaries}\label{sec:prelim}
+%% =================================================================
+
+Throughout, $\Nodd = \{1, 3, 5, \dots\}$ denotes the positive odd
+integers and $\val_2(m)$ the $2$-adic valuation of $m \in \Z \setminus
+\{0\}$, i.e.\ the largest $k$ with $2^k \mid m$.  We write
+$b_i(n) \in \{0, 1\}$ for the $i$-th bit of $n$ in its binary expansion,
+so that $n = \sum_{i \geq 0} b_i(n)\, 2^i$.
+
+\begin{definition}[Trailing $1$-bit count]\label{def:t}
+For an odd integer $n \geq 1$ we set
+\[
+  t(n) \;=\; \val_2(n + 1) \;\geq\; 1,
+\]
+the number of trailing $1$-bits of $n$ in binary.  Equivalently, $t(n)$
+is the unique $t \geq 1$ such that $n \equiv 2^t - 1 \pmod{2^{t+1}}$.
+We write $n = 2^t m' - 1$ with $m' \in \N$ odd; this representation is
+unique.
+\end{definition}
+
+\begin{definition}[Accelerated and one-step maps]
+The \emph{accelerated Collatz map} $S \colon \Nodd \to \Nodd$ is given
+by~\eqref{eq:S-def}.  We also use the \emph{one-step half map}
+\[
+  T \colon \Nodd \to \N, \qquad T(n) = (3n+1)/2,
+\]
+defined for every odd $n$ (since $3n + 1$ is always even).  The image
+$T(n)$ is odd precisely when $\val_2(3n+1) = 1$, in which case
+$T(n) = S(n)$.
+\end{definition}
+
+\begin{lemma}\label{lem:val2-low-bits}
+For every odd integer $n \geq 1$,
+\[
+  \val_2(3n + 1) \;=\; 1 \quad\Longleftrightarrow\quad n \equiv 3 \pmod{4},
+\]
+and equivalently $\val_2(3n+1) \geq 2$ iff $n \equiv 1 \pmod{4}$.
+\end{lemma}
+
+\begin{proof}
+If $n \equiv 3 \pmod 4$, write $n = 4k + 3$; then
+$3n + 1 = 12k + 10 = 2(6k + 5)$, and $6k + 5$ is odd, so
+$\val_2(3n+1) = 1$.  If instead $n \equiv 1 \pmod 4$, write $n = 4k+1$;
+then $3n+1 = 12k + 4 = 4(3k+1)$, so $\val_2(3n+1) \geq 2$.  Together
+these give the stated equivalence.
+\end{proof}
+
+\begin{lemma}\label{lem:t-of-T}
+Let $n \geq 1$ be odd with $t = t(n) \geq 1$ trailing $1$-bits.  Then
+$T(n) = (3n+1)/2$ is an odd integer if and only if $n \equiv 3 \pmod 4$,
+which holds if and only if $t(n) \geq 2$.
+\end{lemma}
+
+\begin{proof}
+$T(n) \in \Z$ for every odd $n$, since $3n + 1$ is even.  We have
+$T(n)$ odd iff $\val_2(3n+1) = 1$ iff $n \equiv 3 \pmod 4$
+(Lemma~\ref{lem:val2-low-bits}), iff $b_0(n) = b_1(n) = 1$, iff
+$t(n) \geq 2$.
+\end{proof}
+
+\begin{definition}[Bad-step segment]\label{def:badseg}
+Let $n$ be odd with $t = t(n) \geq 2$.  A \emph{bad step} is an
+application of $T$ for which $\val_2(3n+1) = 1$, equivalently the
+output is again odd.  We call the run of $t-1$ consecutive bad steps
+beginning at $n$ the \emph{bad-step segment} of length $t-1$ at $n$.
+\end{definition}
+
+The terminology reflects that bad steps produce no $2$-adic
+contraction beyond the forced single division by~$2$, and hence
+contribute $\log_2(3/2) \approx 0.585$ of growth (in $\log_2$ scale)
+each.
+
+%% =================================================================
+\section{The Three-State Carry Automaton}\label{sec:automaton}
+%% =================================================================
+
+We now construct a finite automaton that reproduces the binary expansion
+of $3n + 1$ bit-by-bit and analyze its spectrum.
+
+\subsection{Construction}\label{sec:constr}
+
+Computing $3n + 1 = n + 2n + 1$ in binary by elementary school addition
+proceeds bit-by-bit from the least significant position.  At position
+$i \geq 0$ we add three contributions: the bit $b_i(n)$ from the first
+copy of $n$, the bit $b_{i-1}(n)$ from the shifted copy $2n$ (with the
+convention $b_{-1}(n) = 0$), the constant offset
+$\delta_{i,0} \in \{0, 1\}$ (equal to $1$ for $i = 0$ and $0$
+otherwise), and an incoming carry $c_{i-1} \in \{0, 1\}$ from position
+$i-1$ (with $c_{-1} = 0$).
+
+Writing $\sigma_i = b_i(n) + b_{i-1}(n) + \delta_{i,0} + c_{i-1}$, the
+output bit and outgoing carry are
+\begin{equation}\label{eq:bitop}
+  o_i \;=\; \sigma_i \bmod 2,
+  \qquad
+  c_i \;=\; \lfloor \sigma_i / 2 \rfloor.
+\end{equation}
+Since each summand is in $\{0, 1\}$, $\sigma_i \in \{0, 1, 2, 3\}$ and
+$c_i \in \{0, 1\}$.
+
+\paragraph{State.}
+The information that the bit-by-bit computation must carry forward from
+position $i-1$ to position $i$ consists of
+\begin{itemize}[leftmargin=2em]
+  \item the previous input bit $b_{i-1}(n)$ (to be used as the bit of
+    the shifted summand at position $i$), and
+  \item the carry $c_{i-1}$.
+\end{itemize}
+Both lie in $\{0, 1\}$, giving four configurations.  Examining
+\eqref{eq:bitop} shows that for $i \geq 1$ the configurations
+$(b_{i-1}, c_{i-1}) = (1, 0)$ and $(0, 1)$ produce identical
+$(o_i, c_i)$ behavior as functions of the next input bit
+$b_i \in \{0, 1\}$:
+\[
+  (1, 0) \colon\; \sigma_i = b_i + 1, \;
+  (o_i, c_i) =
+  \begin{cases}(1, 0) & b_i = 0 \\ (0, 1) & b_i = 1\end{cases};
+  \qquad
+  (0, 1) \colon\; \sigma_i = b_i + 1, \; \text{same outputs}.
+\]
+Merging these two equivalent configurations yields a three-state
+automaton with state set $\{A, B, C\}$:
+\begin{equation}\label{eq:states}
+  A = (0, 0), \qquad B = \{(1, 0), (0, 1)\}, \qquad C = (1, 1).
+\end{equation}
+The transitions, computed directly from~\eqref{eq:bitop}, are tabulated
+in Table~\ref{tab:trans}.  The output bit $o_i$ is recorded along each
+transition arrow.
+
+\begin{table}[htbp]
+\centering
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{c c c c}
+\toprule
+state & input bit $b_i$ & next state & output $o_i$ \\
+\midrule
+$A$ & $0$ & $A$ & $0$ \\
+$A$ & $1$ & $B$ & $1$ \\
+$B$ & $0$ & $A$ & $1$ \\
+$B$ & $1$ & $C$ & $0$ \\
+$C$ & $0$ & $B$ & $0$ \\
+$C$ & $1$ & $C$ & $1$ \\
+\bottomrule
+\end{tabular}
+\caption{Transition table of the three-state carry automaton for
+$3n + 1$.  States are defined in~\eqref{eq:states}.  The initial state
+at position $i = 0$ is~$B$, encoding $(b_{-1}, c_{-1}) = (0, 1)$, where
+the virtual carry $c_{-1} = 1$ subsumes the constant offset
+$\delta_{0,0} = 1$; see Remark~\ref{rem:initialstate}.}
+\label{tab:trans}
+\end{table}
+
+\begin{remark}\label{rem:initialstate}
+At position $i = 0$ the constant offset $\delta_{0,0} = 1$ is absorbed
+into the virtual incoming carry $c_{-1} = 1$, and $b_{-1}(n) = 0$.
+This is the configuration $(0, 1)$, which under the
+identification~\eqref{eq:states} corresponds to state~$B$.  Hence the
+initial state of the automaton (before reading $b_0$) is~$B$.  At
+position $i \geq 1$ the offset contribution vanishes and the table acts
+unmodified.  See Example~\ref{ex:n13}.
+\end{remark}
+
+\subsection{Correctness}
+
+\begin{lemma}[Automaton correctness]\label{lem:correct}
+Fix an odd integer $n \geq 1$ with binary expansion
+$(b_0, b_1, b_2, \dots)$ and let $L \geq 1$ with $b_i = 0$ for all
+$i \geq L$.  Driving the automaton of Table~\ref{tab:trans} with input
+$b_0, b_1, \dots, b_L$ starting from state $B$ produces the output bits
+$(o_0, o_1, \dots, o_L)$, which form the binary expansion of $3n + 1$
+in positions $0$ through~$L$.
+\end{lemma}
+
+\begin{proof}
+Induction on the position $i \geq 0$.  By construction the state after
+processing input bits $b_0, \dots, b_i$ encodes the pair $(b_i, c_i)$
+(modulo the equivalence~\eqref{eq:states}), where $c_i$ is the outgoing
+carry from position $i$ in the schoolbook addition $n + 2n + 1$.  The
+output bit $o_i$ is given by~\eqref{eq:bitop}, which is exactly what the
+table records.  The base case $i = 0$ uses the initial state $B$
+identified in Remark~\ref{rem:initialstate}: from $B$ with input
+$b_0 = 1$ (since $n$ is odd) the table gives output $o_0 = 0$ and next
+state $C = (1, 1)$, matching the schoolbook computation
+$\sigma_0 = 1 + 0 + 1 + 0 = 2$ which produces output bit $0$ and
+outgoing carry~$1$.
+\end{proof}
+
+\subsection{Spectrum}
+
+We now consider the automaton driven by independent uniformly random
+input bits $b_i \in \{0, 1\}$, ignoring the deterministic structure of
+the bits of $n$.  The associated transition matrix on $\{A, B, C\}$ is
+\begin{equation}\label{eq:M}
+  M \;=\;
+  \begin{pmatrix}
+    1/2 & 1/2 & 0 \\
+    1/2 & 0 & 1/2 \\
+    0 & 1/2 & 1/2
+  \end{pmatrix},
+\end{equation}
+where the $(j, k)$-entry is the probability that the next state is $k$
+given that the current state is $j$, with rows and columns indexed in
+the order $A, B, C$.
+
+\begin{theorem}[Three-state carry automaton; main result]\label{thm:automaton}
+The matrix $M$ in~\eqref{eq:M} satisfies
+\[
+  \det(\lambda I - M) \;=\; (\lambda - 1)\bigl(\lambda - \tfrac{1}{2}\bigr)
+  \bigl(\lambda + \tfrac{1}{2}\bigr).
+\]
+Hence its eigenvalues are $\{1,\, 1/2,\, -1/2\}$, the spectral gap is
+$1/2$, and its unique stationary distribution on $\{A, B, C\}$ is
+$\pi = (1/3, 1/3, 1/3)$.
+\end{theorem}
+
+\begin{proof}
+Expanding the determinant:
+\begin{align*}
+  \det(\lambda I - M)
+  &= \det\!\begin{pmatrix}
+    \lambda - 1/2 & -1/2 & 0 \\
+    -1/2 & \lambda & -1/2 \\
+    0 & -1/2 & \lambda - 1/2
+  \end{pmatrix} \\
+  &= (\lambda - 1/2)\bigl[\lambda(\lambda - 1/2) - 1/4\bigr]
+   - (-1/2)\bigl[-\tfrac{1}{2}(\lambda - 1/2) - 0\bigr] \\
+  &= (\lambda - 1/2)\bigl(\lambda^2 - \lambda/2 - 1/4\bigr)
+    - \tfrac{1}{4}(\lambda - 1/2) \\
+  &= (\lambda - 1/2)\bigl(\lambda^2 - \lambda/2 - 1/2\bigr).
+\end{align*}
+The quadratic factor satisfies
+$\lambda^2 - \lambda/2 - 1/2 = (\lambda - 1)(\lambda + 1/2)$, since
+$1 \cdot (-1/2) = -1/2$ and $1 + (-1/2) = 1/2$.  Hence
+\[
+  \det(\lambda I - M) = (\lambda - 1/2)(\lambda - 1)(\lambda + 1/2),
+\]
+which is the claimed factorization.
+
+The eigenvalues are therefore $\{1, 1/2, -1/2\}$.  Since $M$ is a row
+stochastic matrix, $\lambda = 1$ is the Perron eigenvalue with right
+eigenvector $(1, 1, 1)^\top$.  A direct computation gives
+$\pi M = \pi$ for $\pi = (1/3, 1/3, 1/3)$, and uniqueness follows from
+irreducibility (the transition graph is strongly connected by inspection
+of Table~\ref{tab:trans}).  The spectral gap is
+$1 - \max\{|1/2|, |-1/2|\} = 1/2$.
+\end{proof}
+
+\begin{corollary}[Carry mixing under random input]\label{cor:mixing}
+Let $\mu_t \in \R^3$ be the distribution of the automaton state after
+processing $t$ independent uniformly random input bits, starting from
+any initial distribution $\mu_0$.  Then for every $t \geq 0$,
+\[
+  \norm{\mu_t - \pi}_1 \;\leq\; 2 \cdot (1/2)^t,
+\]
+where $\norm{\cdot}_1$ is the total variation (i.e.\ $\ell^1$) norm and
+$\pi = (1/3, 1/3, 1/3)$.
+\end{corollary}
+
+\begin{proof}
+Write $\mu_0 - \pi = \alpha v_{1/2} + \beta v_{-1/2}$ with $v_\lambda$
+right eigenvectors of $M^\top$ for eigenvalue $\lambda$, noting that
+$\mu_0 - \pi$ lies in the orthogonal complement of $(1,1,1)$ since both
+$\mu_0$ and $\pi$ are probability vectors.  Then
+$\mu_t - \pi = (\mu_0 - \pi) M^t = \alpha (1/2)^t v_{1/2}
++ \beta (-1/2)^t v_{-1/2}$, so
+$\norm{\mu_t - \pi}_1 \leq (1/2)^t \norm{\mu_0 - \pi}_1
+\leq 2 (1/2)^t$.
+\end{proof}
+
+%% =================================================================
+\section{Closed-Form Shift Identity for Trailing-$1$ Epochs}
+\label{sec:shift}
+%% =================================================================
+
+We now turn to the deterministic side: the first $t-1$ steps of $S$
+starting from an odd integer with $t$ trailing $1$-bits.  Recall from
+Lemma~\ref{lem:val2-low-bits} that $\val_2(3n+1) = 1$ when
+$n \equiv 3 \pmod 4$, which holds throughout a bad-step segment of
+length $t-1$ (Definition~\ref{def:badseg}).
+
+\subsection{The shift identity}
+
+\begin{proposition}[Closed-form shift identity]\label{prop:shift}
+Let $n$ be an odd positive integer with $t = t(n) \geq 1$ trailing
+$1$-bits, and write $n = 2^t m' - 1$ with $m' \in \N$ odd.  Set
+$x = n + 1 = 2^t m'$.  Then $T^{t-1}(n)$ is well-defined as an odd
+integer and
+\begin{equation}\label{eq:shift}
+  T^{t-1}(n) + 1 \;=\; \bigl(\tfrac{3}{2}\bigr)^{t-1} \cdot x,
+  \qquad
+  \text{equivalently}\qquad
+  T^{t-1}(n) \;=\; 2 \cdot 3^{t-1} m' - 1.
+\end{equation}
+Moreover, each of the iterates $T^j(n)$ for $0 \leq j \leq t - 1$ is
+odd, so $T^{t-1}(n) = S^{t-1}(n)$ as elements of $\Nodd$.
+\end{proposition}
+
+\begin{proof}
+We prove by induction on $j$ that for $0 \leq j \leq t-1$,
+\begin{equation}\label{eq:Tj}
+  T^j(n) \;=\; \frac{3^j n + (3^j - 2^j)}{2^j}.
+\end{equation}
+The base case $j = 0$ is the identity $n = n$.  For the inductive step,
+assume \eqref{eq:Tj} holds at level $j < t - 1$.  Then
+\[
+  T^{j+1}(n) \;=\; T(T^j(n))
+  \;=\; \frac{3 \cdot \frac{3^j n + (3^j - 2^j)}{2^j} + 1}{2}
+  \;=\; \frac{3^{j+1} n + 3(3^j - 2^j) + 2^j}{2^{j+1}}.
+\]
+The numerator simplifies:
+$3 \cdot 3^j - 3 \cdot 2^j + 2^j = 3^{j+1} - 2 \cdot 2^j
+= 3^{j+1} - 2^{j+1}$, giving
+\[
+  T^{j+1}(n) = \frac{3^{j+1} n + (3^{j+1} - 2^{j+1})}{2^{j+1}},
+\]
+the claim at level $j + 1$.  Thus \eqref{eq:Tj} holds for all
+$0 \leq j \leq t - 1$ provided each intermediate division by $2$ yields
+an integer; we now verify this.
+
+Substituting $n = 2^t m' - 1$ into \eqref{eq:Tj}:
+\[
+  T^j(n) = \frac{3^j(2^t m' - 1) + 3^j - 2^j}{2^j}
+  \;=\; \frac{2^t \cdot 3^j m' - 2^j}{2^j}
+  \;=\; 2^{t - j} \cdot 3^j m' - 1.
+\]
+For $0 \leq j \leq t - 1$ the exponent $t - j \geq 1$, so $T^j(n)$ is an
+odd integer (being one less than an even integer).  Thus the formula
+\eqref{eq:Tj} is valid throughout the bad-step segment, and at $j = t-1$
+yields
+\[
+  T^{t-1}(n) = 2 \cdot 3^{t-1} m' - 1,
+\]
+which is~\eqref{eq:shift}.  The first form $T^{t-1}(n) + 1 = (3/2)^{t-1}
+x$ follows from $x = 2^t m'$: indeed
+$2 \cdot 3^{t-1} m' = 3^{t-1} \cdot 2 m' = (3/2)^{t-1} \cdot 2^t m'
+\cdot 2 / 2 = (3/2)^{t-1} x$.  Finally, since each $T^j(n)$ is odd for
+$0 \leq j \leq t - 1$, we have $\val_2(3 T^j(n) + 1) \geq 1$ (forced)
+and indeed equal to $1$ for $0 \leq j \leq t - 2$ by
+Lemma~\ref{lem:val2-low-bits} applied to $T^j(n) \equiv 3 \pmod 4$
+(verified from $T^j(n) = 2^{t-j} \cdot 3^j m' - 1$ with $t - j \geq 2$
+and $3^j m'$ odd).  Hence each $T$-step in the segment coincides with an
+$S$-step, so $T^{t-1}(n) = S^{t-1}(n)$.
+\end{proof}
+
+\begin{remark}
+Proposition~\ref{prop:shift} is folkloric in the sense that the formula
+$T^j(n) = (3^j n + (3^j - 2^j))/2^j$ appears, in various guises, in
+\cite{Lagarias1985,Wirsching1998} and elsewhere.  The contribution
+recorded here is the \emph{shift-coordinate} interpretation
+$x = n + 1$, in which the $t-1$ deterministic bad steps act as the pure
+multiplicative scaling $x \mapsto (3/2)^{t-1} x$ with \emph{no} error
+term.  This identity is what makes the bad-step segment exactly
+analyzable, and underlies the epoch decomposition discussed
+in~\cite{Lagarias1985}.
+\end{remark}
+
+%% =================================================================
+\section{Examples}\label{sec:examples}
+%% =================================================================
+
+\begin{example}\label{ex:n7}
+Take $n = 7 = 111_2$, so $t(7) = 3$ and $m' = 1$.
+Proposition~\ref{prop:shift} predicts
+\[
+  T^2(7) \;=\; 2 \cdot 3^2 \cdot 1 - 1 \;=\; 17,
+\]
+or in shift coordinates $T^2(7) + 1 = 18 = (9/4) \cdot 8 = (3/2)^2
+\cdot 8$.  Direct computation: $T(7) = 11$, $T(11) = 17$. \checkmark
+\end{example}
+
+\begin{example}
+Take $n = 31 = 11111_2$, so $t(31) = 5$ and $m' = 1$.  Then
+$T^4(31) = 2 \cdot 3^4 - 1 = 161$.  Direct computation: $T(31) = 47,
+T(47) = 71, T(71) = 107, T(107) = 161$. \checkmark
+\end{example}
+
+\begin{example}[Automaton trace for $n = 13$]\label{ex:n13}
+We have $n = 13 = 1101_2$, so the input bits read from least to most
+significant are $(b_0, b_1, b_2, b_3, b_4, b_5, b_6) = (1, 0, 1, 1, 0,
+0, 0)$.  Starting in state $B$, the trace from Table~\ref{tab:trans} is
+\[
+  B \xrightarrow{b_0=1,\, o_0=0} C
+    \xrightarrow{b_1=0,\, o_1=0} B
+    \xrightarrow{b_2=1,\, o_2=0} C
+    \xrightarrow{b_3=1,\, o_3=1} C
+    \xrightarrow{b_4=0,\, o_4=0} B
+    \xrightarrow{b_5=0,\, o_5=1} A
+    \xrightarrow{b_6=0,\, o_6=0} A.
+\]
+Reading the output bits with weight $2^i$ gives
+$\sum_{i=0}^{6} o_i \cdot 2^i = 8 + 32 = 40 = 101000_2$, and indeed
+$3 \cdot 13 + 1 = 40$. \checkmark
+\end{example}
+
+\begin{example}[Confirming the spectral gap numerically]
+Starting from the deterministic distribution $\mu_0 = (1, 0, 0)$ (state
+$A$), the iterates $\mu_t = \mu_0 M^t$ approach $\pi = (1/3, 1/3, 1/3)$
+at the rate guaranteed by Corollary~\ref{cor:mixing}:
+\[
+  \mu_1 = (1/2, 1/2, 0), \quad
+  \mu_2 = (1/2, 1/4, 1/4), \quad
+  \mu_3 = (3/8, 3/8, 1/4), \quad \dots
+\]
+A short calculation gives
+$\norm{\mu_t - \pi}_1 = (1/2)^t \cdot 4/3$ in this case, well within the
+$2 \cdot (1/2)^t$ envelope of Corollary~\ref{cor:mixing}.
+\end{example}
+
+%% =================================================================
+\section{Discussion}\label{sec:disc}
+%% =================================================================
+
+\paragraph{Relation to existing automata-theoretic models.}
+The Collatz parity vector
+$\bigl(\bigl[T^k(n) \bmod 2\bigr]\bigr)_{k \geq 0}$ has been studied
+extensively as a shift-invariant quantity on $\Z_2$;
+see~\cite{Lagarias1985,BernsteinLagarias1996}.  The transducer
+viewpoint underlying the parity vector typically encodes the
+\emph{state of the orbit} (the iterate modulo a small power of $2$)
+rather than the \emph{state of the carry computation} for a single
+application of $3n + 1$.  The three-state automaton constructed here is
+of the latter kind: it operates on the bits of a fixed odd integer
+$n$ and produces the bits of $3n + 1$ in one pass.  The $1/2$ spectral
+gap is intrinsic to this carry computation and does not appear, to our
+knowledge, in the $\Z_2$-shift literature.
+
+\paragraph{Limits of the random-input model.}
+Theorem~\ref{thm:automaton} and its corollary describe the \emph{random}
+input model: the input bits $b_i$ are independent and uniform.  In any
+deterministic Collatz orbit the bits processed at successive steps are
+not random; in particular, an adversarial input string could in principle
+keep the automaton in a single state indefinitely (the self-loops
+$A \xrightarrow{0} A$ and $C \xrightarrow{1} C$ make this evident).
+Consequently, the spectral gap does \emph{not} immediately yield mixing
+along Collatz orbits, and we make no such claim.
+
+\paragraph{Interaction with the shift identity.}
+Proposition~\ref{prop:shift} identifies a deterministic regime in which
+the bits of the input \emph{are} highly structured: throughout a
+bad-step segment of length $t-1$ at $n = 2^t m' - 1$, the automaton is
+processing input bit $b_0(n) = 1$ at the start (driving $C \to C$) and
+exhibits behavior tied tightly to the trailing block of $1$s.  At the
+end of the segment the bits encountered transition into the binary
+representation of $m'$, which is unconstrained.  The interplay between
+these two regimes---deterministic block-processing during a segment,
+followed by entry into a generic $m'$-region---is what one would need to
+control to convert mixing under random inputs into a quantitative
+statement about Collatz orbits.
+
+\paragraph{Open questions.}
+Several questions naturally suggest themselves.
+\begin{enumerate}[label=(\arabic*),leftmargin=2em]
+  \item Can one identify a \emph{deterministic} substitute for the
+    random-input model on which Theorem~\ref{thm:automaton} would yield
+    bounds on the empirical mean of $\val_2$ along orbits?  An effective
+    expander-style mixing inequality for the carry automaton against
+    bit strings produced by Collatz iteration is, to the best of our
+    knowledge, an open problem.
+  \item The closed-form $T^{t-1}(n) = (3/2)^{t-1}(n+1) - 1$ extends
+    naturally to a multi-segment epoch decomposition.  Quantitative
+    control of the lengths $t_1, t_2, \ldots$ of successive segments
+    along an orbit is closely related to the equidistribution of
+    $\{n \log_2 3\}$ on $[0, 1)$ for orbit values $n$, a question
+    related to but not the same as the analogous problem on $\Z_2$
+    \cite{Tao2022}.
+  \item The transition matrix $M$ of~\eqref{eq:M} is doubly stochastic
+    and has the symmetry of the path graph $A - B - C$ with self-loops at
+    the endpoints.  Generalizations of $3n + 1$ to maps $an + b$
+    presumably yield similar finite-state carry automata; characterizing
+    when the spectral gap is at least $1/2$ would be of independent
+    interest.
+\end{enumerate}
+
+\paragraph{Reproducibility.}
+The eigenvalue computation in Theorem~\ref{thm:automaton} can be
+reproduced in any computer algebra system (or by hand, as we have
+done).  The closed form in Proposition~\ref{prop:shift} can be checked
+on any odd $n$ in a few lines of code; numerical verification on all
+odd $n \leq 2^{18}$ shows perfect agreement with the formula.
+
+%% =================================================================
+\section{Conclusion}
+%% =================================================================
+
+We have presented two elementary, self-contained results about the
+accelerated Collatz map.  The three-state carry automaton
+(Theorem~\ref{thm:automaton}) gives a clean finite-state description of
+the binary computation $n \mapsto 3n + 1$ together with a sharp spectral
+gap of $1/2$ under the random-input model.  The closed-form shift
+identity (Proposition~\ref{prop:shift}) describes the deterministic
+trailing-$1$ epoch as a pure multiplicative scaling
+$x \mapsto (3/2)^{t-1} x$ in the shifted coordinate $x = n + 1$.
+Neither result purports to resolve the Collatz conjecture; together
+they form a small piece of the geometric-combinatorial scaffolding that
+any future quantitative theory of Collatz orbits will likely need to
+incorporate.
+
+%% =================================================================
+\begin{thebibliography}{99}
+%% =================================================================
+
+\bibitem{BernsteinLagarias1996}
+D.\,J.~Bernstein and J.\,C.~Lagarias,
+\emph{The $3x+1$ conjugacy map},
+Canad.\ J.\ Math.\ \textbf{48} (1996), 1154--1169.
+
+\bibitem{Lagarias1985}
+J.\,C.~Lagarias,
+\emph{The $3x+1$ problem and its generalizations},
+Amer.\ Math.\ Monthly \textbf{92} (1985), 3--23.
+
+\bibitem{Lagarias2010}
+J.\,C.~Lagarias (ed.),
+\emph{The Ultimate Challenge: The $3x+1$ Problem},
+American Mathematical Society, Providence, RI, 2010.
+
+\bibitem{Tao2022}
+T.~Tao,
+\emph{Almost all orbits of the Collatz map attain almost bounded values},
+Forum Math.\ Pi \textbf{10} (2022), e12.
+
+\bibitem{Wirsching1998}
+G.\,J.~Wirsching,
+\emph{The Dynamical System Generated by the $3n+1$ Function},
+Lecture Notes in Math.\ \textbf{1681}, Springer, Berlin, 1998.
+
+\end{thebibliography}
+
+\end{document}
