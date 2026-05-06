@@ -14,13 +14,13 @@ Type B: Experimental mathematics paper (rigorous theorem + empirical conjecture 
 
 ## Summary (3 sentences)
 
-For the compressed Collatz map S(n) = (3n+1)/2^v_2(3n+1), the descent ratio B_T/T = (sum of valuations)/(steps) of an orbit segment must exceed log₂3 to descend. The paper proves rigorously that the deterministic minimum of this ratio over T ∈ [1,93] is exactly 65/41 (the sixth principal convergent of log₂3, attained at T = 41 and T = 82), reports an exhaustive computational study covering all odd n < 2^18 plus a structured sample to n < 2^44 supporting the conjecture that 65/41 is the actual worst-case descent ratio observed in any orbit, and derives as a clean rigorous corollary the cycle-element upper bound m < 2^B · 3^P / (2(2^B − 3^P)) using only Gelfond–Schneider transcendence of log₂3. The paper deliberately separates rigorous content (Theorem 4.1 and Corollary 7.3) from empirical content (Conjecture 6.1, Observation 6.3) so each can be evaluated on its own terms.
+For the compressed Collatz map S(n) = (3n+1)/2^v_2(3n+1), the descent ratio B_T/T = (sum of valuations)/(steps) of an orbit segment must exceed log₂3 to descend. The paper proves rigorously that the deterministic minimum of this ratio over T ∈ [1,93] is exactly 65/41 (the sixth principal convergent of log₂3, attained at T = 41 and T = 82), reports a computational study (exhaustive for odd n < 2^21, structured sample for n < 2^44) showing that the worst-case observed first-descent ratio takes values in the three-element set {65/41, 149/94, 233/147} and is at least 233/147 in every bit-bin tested at k ≥ 13, and derives as a clean rigorous corollary the cycle-element upper bound m < 2^B · 3^P / (4(2^B − 3^P)) using only the irrationality of log₂3. The paper deliberately separates rigorous content (Theorem 3.1 and Corollary 5.5) from empirical content (Conjecture 4.2, Observation 4.4) so each can be evaluated on its own terms.
 
 ## Key result(s)
 
-1. **Theorem 4.1 (Continued-fraction barrier, rigorous):** For every integer T ∈ [1, 93], B(T)/T ≥ 65/41, with equality iff T ∈ {41, 82}. Sharp at T = 94 (where 149/94 < 65/41 first occurs).
-2. **Conjecture 6.1 (Empirical 65/41 barrier):** For every odd n ≥ 3, the first-descent ratio satisfies ρ_des(n) ≥ 65/41. Verified exhaustively for n < 2^18 and on structured samples up to n < 2^44.
-3. **Corollary 7.3 (Cycle bound, rigorous):** For any nontrivial cycle of S of period P with cumulative valuation B, the smallest element m_min satisfies m_min < 2^B · 3^P / (2(2^B − 3^P)), where 2^B − 3^P ≥ 1 by Gelfond–Schneider.
+1. **Theorem 3.1 (Continued-fraction barrier, rigorous):** For every integer T ∈ [1, 93], B(T)/T ≥ 65/41, with equality iff T ∈ {41, 82}. Sharp at T = 94 (where 149/94 < 65/41 first occurs).
+2. **Conjecture 4.2 (Empirical descent-ratio barrier):** For every odd n of bit-length k ≥ 13, ρ_des(n) ≥ 233/147; the bit-bin worst case lies in {65/41, 149/94, 233/147, …} along upper convergents of log₂3, and at sampled scales (k ≤ 44) only the first three values are realized.
+3. **Corollary 5.5 (Cycle bound, rigorous):** For any nontrivial cycle of S of period P with cumulative valuation B, m_min < 2^B · 3^P / (4(2^B − 3^P)), where 2^B − 3^P ≥ 1 by the irrationality of log₂3 (no Gelfond–Schneider needed).
 
 ## Target journals (ranked)
 
