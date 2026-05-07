@@ -597,3 +597,18 @@ Collatz 映射同時涉及三種不可通約的數學結構：
 - 分析 4：最壞情況 B/T 比率 vs 連分數收斂子對應
 - 分析 5：每個步數 T 的最小下降所需 B
 - 分析 6：全軌道最小累積比率分佈
+
+
+---
+
+## 附錄：抽出之投稿論文
+
+本研究筆記透過 `research-to-papers` pipeline 抽出三篇英文投稿稿：
+
+| 論文 | 標題 | 對應節 | 類型 |
+|---|---|---|---|
+| `paper-a/paper.tex` | A Three-State Finite Automaton for Carry Propagation in the Accelerated Collatz Map: Spectral Gap and Closed-Form Shift Dynamics | §2.2 + §3 | Type A（新定理） |
+| `paper-b/paper.tex` | No Finite Local Potential Function Is a Strict Lyapunov Function for the Accelerated Collatz Map | §5.4 | Type C（不可能性） |
+| `paper-c/paper.tex` | The 65/41 Barrier: Continued-Fraction Convergents of log₂3 Bound Worst-Case Descent Ratios in the Compressed Collatz Map | §4 + §9 + §11 | Type B（實驗數學）|
+
+每篇含獨立 `meta.md` 列出建議投稿期刊。所有 paper-* 之 PDF 已隨 repo 提供。
