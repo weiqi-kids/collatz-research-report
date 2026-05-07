@@ -204,6 +204,23 @@ worst case equals the
 deterministic lower bound is at present an experimental observation
 rather than a theorem.
 
+\paragraph{Status of the rigorous results.}
+The continued-fraction arithmetic underlying
+Theorem~\ref{thm:cf}---identifying $65/41$ as the smallest-denominator
+above-approximation of $\log_2 3$ for $T \leq 93$, with the next
+improvement at $T = 94$---is a routine computation from the
+convergents of $\log_2 3$ tabulated in OEIS~A005664~\cite{OEIS-A005664},
+and the cycle-element corollary recasts an observation of
+Crandall~\cite{Crandall1978}.  Neither rigorous result is novel
+\emph{as a theorem of Diophantine arithmetic}; we include them because
+the empirical Collatz conjecture
+(Conjecture~\ref{conj:65-41}) is precisely the statement that this
+deterministic arithmetic floor is realized by actual orbits, and
+making that assertion meaningful requires both bookend theorems to be
+on the page.  The genuinely novel content of this paper is the
+empirical conjecture itself and the search procedure of
+Section~\ref{sec:exp} that supports it.
+
 \paragraph{What we do not claim.}
 We make no claim of resolving the Collatz conjecture.  The empirical
 match between worst-case observed descent ratios and the
@@ -356,7 +373,8 @@ $7$ & $5$ & $485/306$ & $1.584967$ & $+0.0000048$ \\
 $8$ & $2$ & $1054/665$ & $1.584962$ & $-0.000000095$ \\
 \bottomrule
 \end{tabular}
-\caption{The first nine principal convergents of $\log_2 3$.  The
+\caption{The first nine principal convergents of $\log_2 3$ (denominator
+sequence is OEIS~A005664~\cite{OEIS-A005664}).  The
 sixth convergent $h_5 = 65/41$ is the focus of the present paper:
 it is the worst above-approximation of $\log_2 3$ in a sense made
 precise by Theorem~\ref{thm:cf}.}
@@ -948,7 +966,7 @@ This weaker form is implied by the Collatz conjecture itself
 exceeds $\log_2 3$ over sufficiently long segments) but is not known
 unconditionally; Tao's almost-everywhere bound~\cite{Tao2022} gives
 the inequality almost surely with respect to logarithmic density.
-The strong form $\geq 149/94$ in Conjecture~\ref{conj:65-41} is what
+The strong form $\geq 233/147$ in Conjecture~\ref{conj:65-41} is what
 the data of Section~\ref{sec:exp} actually support.
 \end{remark}
 
@@ -1334,6 +1352,12 @@ T.~Tao,
 \emph{Almost all orbits of the Collatz map attain almost bounded
 values},
 Forum Math.\ Pi \textbf{10} (2022), e12.
+
+\bibitem{OEIS-A005664}
+The OEIS Foundation Inc.,
+\emph{The On-Line Encyclopedia of Integer Sequences},
+sequence A005664: ``Denominators of convergents to $\log_2 3$,''
+\url{https://oeis.org/A005664}.
 
 \end{thebibliography}
 
