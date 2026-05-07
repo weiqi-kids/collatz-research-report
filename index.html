@@ -949,7 +949,7 @@
     </section>
 
     <section class="theorem-section" id="sec-transducer" data-ai-summary="結構性結果一：將 Collatz 的 carry 傳播建模為 3 態自動機 {A,B,C}，轉移矩陣的特徵值為 {1, 1/2, -1/2}，譜間隙精確等於 1/2。此結果有獨立的數學價值：它將一個數論問題化約為有限狀態自動機的譜分析，並給出 v₂ 自相關指數衰減的精確速率。確定性 Expander Mixing 仍未獲得。">
-      <h2>3. 結構性結果一：3 態轉換器譜間隙 = 1/2</h2>
+      <h2>3. 結構性結果一：3 態轉換器譜間隙 = 1/2 <span style="font-size:0.7em;color:var(--color-link);font-weight:500;">[Paper A]</span></h2>
 
       <!-- 白話引言 -->
       <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
@@ -1089,7 +1089,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
     </section>
 
     <section class="theorem-section" id="sec-cfrac" data-ai-summary="結構性結果二：log₂3 的第 6 個連分數收斂子 65/41 ≈ 1.5854 是 Collatz 最壞情況的天然屏障。對所有測試的 k 值（k=5 到 k=44，覆蓋 14 到 44 位整數），最壞 B/T 比率精確命中 65/41，始終嚴格大於 log₂3 ≈ 1.5850。差距源於 log₂3 的超越性（Gelfond-Schneider）——任何整數比都不可能等於 log₂3。">
-      <h2>4. 結構性結果二：log₂3 連分數 65/41 屏障</h2>
+      <h2>4. 結構性結果二：log₂3 連分數 65/41 屏障 <span style="font-size:0.7em;color:var(--color-link);font-weight:500;">[Paper C]</span></h2>
 
       <!-- 白話引言 -->
       <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
@@ -1235,7 +1235,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
     </section>
 
     <section class="theorem-section" id="sec-ordinal" data-ai-summary="失敗路線：嘗試用序數值勢函數 α(n)（基於二進位 block 結構）證明 Collatz 終止，仿 Goodstein 定理風格。斷裂於 carry 傳播可能暫時增加 block 數量、且任何形如 log n + g(n mod 2^k) 的有限修正函數都被尾隨 1-bit 模式擊敗——(3/2)^k 指數增長遠超 O(1) 修正補償。此路線不夠：序數良序性需要單調下降，但 Collatz 對序數的影響非單調。">
-      <h2>5. 失敗路線：序數方法</h2>
+      <h2>5. 失敗路線：序數方法 <span style="font-size:0.7em;color:var(--color-link);font-weight:500;">[Paper B：嚴格化為「不可能性」結果]</span></h2>
 
       <p style="font-size:var(--text-sm); margin-bottom:1.5rem; color:var(--text-secondary);">
         <strong>結論：此路線不夠。</strong>嘗試用序數值勢函數（仿 Goodstein 定理）證明 Collatz 終止；斷裂於兩處：(1) 乘 3 加 1 的 carry 傳播可能<em>增加</em>二進位 block 數量，使序數反而上升；(2) 任何形如 \(\log n + g(n \bmod 2^k)\) 的有限修正函數都被 \(n \equiv -1 \pmod{2^{k+1}}\) 擊敗。<strong>理由：</strong>序數良序性要求單調下降，但 Collatz 步驟對序數的影響非單調。詳細推導與限制分析展開於下方 details。
@@ -1586,7 +1586,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
     </section>
 
     <section class="theorem-section" id="sec-experiments" data-ai-summary="計算驗證（支援 §4 的 65/41 屏障）：六項實驗一致顯示最壞情況 B/T 比率穩定在 65/41=1.5854 > log₂3=1.5850。完整枚舉 k≤18、抽樣至 k=44，所有測試均滿足下降條件 B/T > log₂3。Mersenne 數 2^k-1 均到達1。含六標籤互動實驗場。">
-      <h2>9. 計算實驗</h2>
+      <h2>9. 計算實驗 <span style="font-size:0.7em;color:var(--color-link);font-weight:500;">[Paper C 之實證部分]</span></h2>
 
       <!-- White-language introduction -->
       <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
@@ -1727,7 +1727,7 @@ C --0&rarr; B (out 0)     C --1&rarr; C (out 1)</code></pre>
     </section>
 
     <section class="theorem-section" id="sec-bounded" data-ai-summary="結構性結果四：循環元素的算術約束。有界軌道必入循環（鴿巢原理）；循環方程 m(2^B-3^P)=C 要求 2^B>3^P，由 log₂3 無理性（Gelfond-Schneider）保證 2^B≠3^P。循環元素有上界 m < 2^B·3^P / 2(2^B-3^P)。此結果獨立成立：給出非平凡循環尺寸的精確算術限制。Baker 型定理的下界仍不足以約束至可計算範圍。">
-      <h2>11. 結構性結果四：循環的算術約束</h2>
+      <h2>11. 結構性結果四：循環的算術約束 <span style="font-size:0.7em;color:var(--color-link);font-weight:500;">[Paper C 之 Corollary]</span></h2>
 
       <!-- White-language introduction -->
       <div style="background:var(--bg-surface); border-radius:0.5rem; padding:1.5rem;">
